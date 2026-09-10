@@ -1,4 +1,5 @@
 <title>Liquid Constellations</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='13' r='11' fill='%23F2F2F2'/%3E%3Ccircle cx='16' cy='13' r='5.8' fill='%23050505'/%3E%3Cpath d='M9 21c-1 5-1 8 0 9 1-2 2-5 2-9zM16 23c-1 5-1 8 0 9 1-1 1-4 1-9zM23 21c-1 4-1 7 0 8 1-2 1-4 1-8z' fill='%235DCAA5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -399,42 +400,171 @@
   /* ---------- staking figures ---------- */
   .figures { grid-column: 2; display: grid;
     grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 20px; margin-bottom: 26px; }
-  .fig-big { border: 1px solid var(--rule); background: var(--plate);
-    padding: 30px 28px; border-radius: 3px; }
+  .fig-big { padding: 34px 30px; border-radius: 26px;
+    background: linear-gradient(155deg,
+      color-mix(in srgb, var(--green) 14%, var(--plate)), var(--plate) 62%);
+    border: 1px solid color-mix(in srgb, var(--green) 28%, transparent);
+    position: relative; overflow: hidden; }
+  .fig-big::after {                    /* the ring, echoed */
+    content: ""; position: absolute; right: -40px; top: -40px;
+    width: 150px; height: 150px; border-radius: 50%;
+    border: 22px solid color-mix(in srgb, var(--green) 12%, transparent);
+  }
   .fig-big .num { display: block; font-family: var(--serif);
-    font-size: clamp(52px,7vw,80px); line-height: .9; color: var(--green);
-    font-variant-numeric: tabular-nums; }
+    font-size: clamp(52px,7vw,84px); line-height: .9; color: var(--green);
+    font-variant-numeric: tabular-nums; position: relative; }
   .fig-big .num em { font-style: normal; font-size: .5em; }
   .fig-big .lab { display: block; margin-top: 14px; font-family: var(--mono);
-    font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
+    font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ink-3); position: relative; }
 
   .terms { grid-column: 2; display: grid;
     grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 18px; }
-  .term { display: flex; gap: 13px; align-items: flex-start; }
-  .term .tick { width: 22px; height: 22px; flex: none; border-radius: 50%;
-    border: 1px solid var(--green); color: var(--green); display: grid;
-    place-items: center; font-size: 11px; margin-top: 2px; }
+  .term { display: flex; gap: 13px; align-items: flex-start;
+    background: var(--plate); border-radius: 999px 26px 26px 999px;
+    padding: 16px 24px 16px 16px;
+    border: 1px solid var(--rule); }
+  .term .tick { width: 26px; height: 26px; flex: none; border-radius: 50%;
+    background: var(--green); color: #050505; display: grid;
+    place-items: center; font-size: 12px; margin-top: 1px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 18%, transparent); }
   .term strong { display: block; font-size: 15.5px; font-weight: 600; }
   .term span { font-size: 14px; color: var(--ink-3); }
   @media (max-width: 780px) { .figures, .terms { grid-column: 1; } }
 
-  /* ---------- the pass card, alive ----------
-     Float sits on the stage and tilt on the card, so the two compose
-     instead of one overwriting the other's transform. */
-  @keyframes cardFloat {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-14px); }
-  }
-  @keyframes cardSweep {
-    0%        { transform: translateX(-130%); }
-    58%, 100% { transform: translateX(130%); }
-  }
+  /* ---------- the pass card, alive ---------- */
+  @keyframes cardFloat { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-14px);} }
+  @keyframes cardSweep { 0% { transform: translateX(-130%);} 58%,100% { transform: translateX(130%);} }
   @keyframes guilTurn { to { transform: rotate(360deg); } }
   .card-stage { animation: cardFloat 6.5s ease-in-out infinite; }
   .card-stage .sheen { animation: cardSweep 5.5s ease-in-out infinite; }
   .card-stage .card:hover .sheen { animation: none; }
   .card-stage canvas { animation: guilTurn 120s linear infinite; transform-origin: 50% 50%; }
   .card-stage:hover { animation-play-state: paused; }
+  .card { border-radius: 22px; }
+
+  /* =================================================================
+     LIQUID LANGUAGE
+     Taken from the mark: a glossy ring shedding green. Curves instead
+     of corners, drips instead of rules, gloss instead of flat fills.
+     ================================================================= */
+
+  /* the mark */
+  .mark { width: 30px; height: 31px; display: block; flex: none; }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand span { font-family: var(--serif); font-size: 19px; letter-spacing: .28em;
+    text-transform: uppercase; }
+
+  /* nav floats as a capsule rather than spanning a bordered bar */
+  .top {
+    position: sticky; top: 14px; z-index: 40;
+    margin: 14px auto 0; width: min(var(--maxw), calc(100% - var(--gut)));
+    display: flex; align-items: center; gap: 24px;
+    padding: 10px 12px 10px 22px;
+    border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--paper) 74%, transparent);
+    backdrop-filter: blur(20px) saturate(1.3);
+    box-shadow: 0 10px 40px -18px rgba(0,0,0,.6);
+  }
+  .top nav a { position: relative; padding: 4px 2px; }
+  .top nav a::after {
+    content: ""; position: absolute; left: 0; right: 100%; bottom: -2px; height: 1px;
+    background: var(--green); transition: right .3s cubic-bezier(.16,.84,.3,1);
+  }
+  .top nav a:hover::after { right: 0; }
+
+  /* every control is a capsule now */
+  .btn { border-radius: 999px; padding: 12px 24px; }
+  .btn-full { border-radius: 999px; }
+  .swap { border-radius: 50%; }
+  input[type="text"] { border-radius: 999px; padding-inline: 22px; }
+  input.pad { padding-left: 40px; }
+  .field .at { left: 22px; }
+
+  /* drip divider — replaces the 1px section rule */
+  .sec { border-bottom: none; position: relative; }
+  .sec::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 34px;
+    background:
+      radial-gradient(9px 26px at 12% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(6px 17px at 26% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(11px 32px at 43% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(5px 13px at 58% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(9px 24px at 71% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(7px 19px at 88% 0, var(--green) 0 46%, transparent 47%),
+      linear-gradient(var(--green), var(--green)) top/100% 1px no-repeat;
+    background-repeat: no-repeat;
+    opacity: .5; pointer-events: none;
+  }
+  .sec:last-of-type::after { display: none; }
+
+  /* panels curve and catch light */
+  .chartbox, .model, .col, .sched, .out, .reading {
+    border-radius: 24px;
+  }
+  .col, .model, .chartbox {
+    position: relative; overflow: hidden;
+    background: linear-gradient(160deg,
+      color-mix(in srgb, var(--ink) 4%, var(--plate)), var(--plate) 55%);
+  }
+  .col::before, .model::before, .chartbox::before {   /* specular, like the ring */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(150deg,
+      color-mix(in srgb, #fff 9%, transparent) 0%, transparent 34%);
+  }
+
+  /* stats become medallions */
+  .readings { grid-column: 1 / -1; display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+    gap: 16px; border: none; margin: 0 0 46px; }
+  .reading { border: 1px solid var(--rule); border-left: 1px solid var(--rule);
+    background: linear-gradient(150deg,
+      color-mix(in srgb, var(--green) 9%, var(--plate)), var(--plate) 58%);
+    padding: 26px 26px 24px; position: relative; overflow: hidden; }
+  .reading::after {
+    content: ""; position: absolute; right: -30px; bottom: -46px;
+    width: 110px; height: 110px; border-radius: 50%;
+    border: 16px solid color-mix(in srgb, var(--green) 10%, transparent);
+  }
+  .reading:first-child { border-left: 1px solid var(--rule); }
+  .reading dd { position: relative; }
+
+  /* the model's meter fills like a vessel */
+  .bar { height: 12px; border-radius: 999px; background: var(--raise);
+    border: 1px solid var(--rule); }
+  .bar i { border-radius: 999px;
+    background: linear-gradient(90deg, var(--deep), var(--green), var(--mint));
+    box-shadow: 0 0 18px -2px var(--green); }
+
+  /* floating tiles — code-drawn constellation previews, not collection art */
+  .tiles { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+  .tile { position: absolute; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 18px 40px -18px rgba(0,0,0,.8);
+    border: 1px solid color-mix(in srgb, var(--green) 22%, transparent);
+    opacity: .5; animation: tileDrift linear infinite; }
+  .tile canvas { display: block; width: 100%; height: 100%; }
+  @keyframes tileDrift {
+    0%   { transform: translateY(14px) rotate(var(--r)); }
+    50%  { transform: translateY(-16px) rotate(calc(var(--r) * -1)); }
+    100% { transform: translateY(14px) rotate(var(--r)); }
+  }
+  @media (max-width: 900px) { .tiles { display: none; } }
+
+  /* hero drips beneath the fold line */
+  .drips { position: absolute; left: 0; right: 0; bottom: -1px; height: 60px;
+    z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(14px 44px at 8% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(8px 24px at 19% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(17px 56px at 33% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(7px 19px at 46% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(13px 40px at 61% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(9px 27px at 77% 0, var(--green) 0 46%, transparent 47%),
+      radial-gradient(15px 48px at 91% 0, var(--green) 0 46%, transparent 47%);
+    background-repeat: no-repeat; opacity: .38;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--green) 40%, transparent));
+  }
 
   .closer { padding: clamp(80px,10vw,140px) 0; text-align: center; }
   .closer h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px,5.6vw,68px); line-height: 1.04; margin: 18px 0 0; }
@@ -593,14 +723,38 @@
   }
 </style>
 
-<aside class="rail" aria-hidden="true">
-  <span class="rail-mark">Orion</span>
-  <span class="rail-read" id="railRead">RA 05ʰ 35ᵐ · DEC −05° 23′</span>
-</aside>
-
 <div class="shift">
+  <span id="railRead" hidden></span>
   <header class="top">
-    <a class="brand" href="#top">Orion</a>
+    <a class="brand" href="#top"><svg class="mark" viewBox="0 0 200 210" aria-hidden="true">
+      <defs>
+        <radialGradient id="ringG" cx="36%" cy="28%" r="78%">
+          <stop offset="0" stop-color="#FFFFFF"/><stop offset="52%" stop-color="#F2F2F2"/>
+          <stop offset="100%" stop-color="#C2C2C2"/>
+        </radialGradient>
+        <linearGradient id="dripG" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#8FE3C2"/><stop offset="52%" stop-color="#5DCAA5"/>
+          <stop offset="100%" stop-color="#42AE87" stop-opacity="0"/>
+        </linearGradient>
+        <radialGradient id="poolG"><stop offset="0" stop-color="#5DCAA5" stop-opacity=".55"/>
+          <stop offset="100%" stop-color="#5DCAA5" stop-opacity="0"/></radialGradient>
+      </defs>
+      <ellipse cx="100" cy="168" rx="62" ry="13" fill="url(#poolG)"/>
+      <g fill="url(#dripG)">
+        <path d="M44 108 C40 132 38 148 42 156 C46 148 50 130 52 108 Z"/>
+        <path d="M66 120 C60 152 58 178 64 192 C70 176 74 148 76 120 Z"/>
+        <path d="M100 128 C94 160 92 192 100 208 C108 192 110 160 106 128 Z"/>
+        <path d="M132 120 C128 148 130 176 136 190 C142 176 144 150 140 120 Z"/>
+        <path d="M156 106 C152 128 152 144 158 154 C162 144 164 128 162 106 Z"/>
+        <path d="M86 132 C82 150 82 164 86 172 C90 164 92 150 92 132 Z"/>
+      </g>
+      <circle cx="100" cy="88" r="70" fill="url(#ringG)"/>
+      <circle cx="100" cy="88" r="70" fill="none" stroke="#9a9a9a" stroke-width=".8" opacity=".6"/>
+      <circle cx="100" cy="88" r="37" fill="var(--paper)"/>
+      <circle cx="100" cy="88" r="37" fill="none" stroke="#8a8a8a" stroke-width=".8" opacity=".5"/>
+      <path d="M52 62 C60 40 78 26 96 24 C80 30 64 44 58 66 Z" fill="#fff" opacity=".95"/>
+      <path d="M158 74 C162 90 160 108 152 122 C160 106 162 88 160 74 Z" fill="#fff" opacity=".7"/>
+    </svg><span>Orion</span></a>
     <nav>
       <a href="#stake">Stake</a>
       <a href="#lbt">LBT</a>
@@ -632,6 +786,8 @@
       </div>
       </div>
     </div>
+    <div class="drips" aria-hidden="true"></div>
+    <div class="tiles" id="tiles" aria-hidden="true"></div>
     <div class="sky-tag" id="skyTag">
       <span class="nm" id="skyName">Orion</span>
       <span class="meta" id="skyMeta">The Hunter · 594 sq° · α Betelgeuse 0.45</span>
@@ -1581,4 +1737,105 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
 
 
+
+/* =====================================================================
+   FLOATING TILES
+   Code-drawn constellation previews scattered behind the hero, so the
+   space reads as full without waiting on collection art.
+
+   These use PREVIEW-ONLY figures. The collection's traits are the 88 IAU
+   constellations; every tile here is drawn from a synthetic star pattern
+   with a name that is not on that list, so a tile can never coincide with
+   a real token.
+   ===================================================================== */
+(function () {
+  const host = document.getElementById('tiles');
+  if (!host || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const GROUNDS = [
+    ['#07100D', '#123024'], ['#050505', '#161033'],
+    ['#07100D', '#0B2A3A'], ['#0A0A0A', '#2A1030'],
+    ['#050505', '#1E2E12']
+  ];
+
+  /* Deliberately not IAU names, so nothing here collides with a trait. */
+  const PREVIEW = ['Vela Minor', 'Corvus Nova', 'Lyra Australis',
+                   'Hydra Borealis', 'Pyxis Nova', 'Crater Australe'];
+
+  function tile(i) {
+    const S = 150, DPR = Math.min(devicePixelRatio || 1, 2);
+    const cv = document.createElement('canvas');
+    cv.width = S * DPR; cv.height = S * DPR;
+    const g = cv.getContext('2d');
+    g.scale(DPR, DPR);
+
+    const [a, b] = GROUNDS[i % GROUNDS.length];
+    const bg = g.createLinearGradient(0, 0, S, S);
+    bg.addColorStop(0, a); bg.addColorStop(1, b);
+    g.fillStyle = bg; g.fillRect(0, 0, S, S);
+
+    // seeded so a given tile is stable across redraws
+    let seed = (i + 1) * 2654435761 % 2147483647;
+    const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+
+    const pts = [];
+    const nStars = 5 + Math.floor(rnd() * 4);
+    for (let k = 0; k < nStars; k++) {
+      pts.push({ x: 26 + rnd() * (S - 52), y: 26 + rnd() * (S - 62) });
+    }
+    // connect nearest-neighbour so it reads as a figure, not a scatter
+    const order = [pts.shift()];
+    while (pts.length) {
+      const last = order[order.length - 1];
+      let best = 0, bd = Infinity;
+      pts.forEach((p, j) => {
+        const d = (p.x - last.x) ** 2 + (p.y - last.y) ** 2;
+        if (d < bd) { bd = d; best = j; }
+      });
+      order.push(pts.splice(best, 1)[0]);
+    }
+
+    g.strokeStyle = 'rgba(93,202,165,.6)'; g.lineWidth = 1; g.lineCap = 'round';
+    g.beginPath();
+    order.forEach((p, k) => k ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y));
+    g.stroke();
+
+    order.forEach((p, k) => {
+      const r = k % 3 === 0 ? 2.6 : 1.7;
+      const gl = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 6);
+      gl.addColorStop(0, 'rgba(242,251,239,.95)');
+      gl.addColorStop(.3, 'rgba(143,227,194,.4)');
+      gl.addColorStop(1, 'rgba(93,202,165,0)');
+      g.fillStyle = gl;
+      g.beginPath(); g.arc(p.x, p.y, r * 6, 0, 6.2832); g.fill();
+      g.fillStyle = '#F2FBEF';
+      g.beginPath(); g.arc(p.x, p.y, r, 0, 6.2832); g.fill();
+    });
+
+    g.fillStyle = 'rgba(226,232,216,.55)';
+    g.font = '600 7px "IBM Plex Mono", monospace';
+    g.fillText(PREVIEW[i % PREVIEW.length].toUpperCase(), 12, S - 12);
+    g.fillStyle = 'rgba(93,202,165,.7)';
+    g.fillText('PREVIEW', S - 46, S - 12);
+    return cv;
+  }
+
+  // kept clear of the headline column so nothing sits under the type
+  const SPOTS = [
+    { l: '58%', t: '8%',  s: 116, r: -8,  d: 11 },
+    { l: '84%', t: '24%', s: 98,  r: 6,   d: 14 },
+    { l: '69%', t: '58%', s: 128, r: -4,  d: 12.5 },
+    { l: '90%', t: '72%', s: 86,  r: 9,   d: 16 },
+    { l: '52%', t: '78%', s: 92,  r: -11, d: 13.5 }
+  ];
+
+  SPOTS.forEach((sp, i) => {
+    const d = document.createElement('div');
+    d.className = 'tile';
+    d.style.cssText = `left:${sp.l};top:${sp.t};width:${sp.s}px;height:${sp.s}px;` +
+                      `--r:${sp.r}deg;animation-duration:${sp.d}s;animation-delay:${-i * 2.3}s`;
+    d.appendChild(tile(i));
+    host.appendChild(d);
+  });
+})();
 </script>
