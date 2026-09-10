@@ -12,22 +12,25 @@
      system-dark case and for each explicit stamp.
      =================================================================== */
   :root {
-    /* --- LIGHT: engraved chart on paper --- */
-    --paper:    #F6F3EA;
-    --plate:    #FFFDF7;
-    --raise:    #EFEADD;
-    --rule:     #D8D1BF;
-    --rule-hi:  #B9AF97;
-    --ink:      #14161C;   /* body text */
-    --ink-2:    #3E4453;   /* secondary — 8.9:1 on paper */
-    --ink-3:    #5E6577;   /* tertiary  — 5.6:1 on paper */
-    --brass:    #8A6A22;
-    --brass-hi: #6B520F;
-    --star:     #2C4A78;
-    --verd:     #1E6B4F;
-    --alarm:    #A33A28;
-    --card-1:   #14171F;   /* the pass stays dark in both themes */
-    --shadow:   0 20px 46px -22px rgba(40,34,20,.42);
+    /* --- LIGHT: the chart as printed --- */
+    --paper:    #F2FBEF;   /* near-white, faintly green */
+    --plate:    #FFFFFF;
+    --raise:    #E8F3ED;
+    --rule:     #C7DCD3;
+    --rule-hi:  #8FBFA9;
+    --ink:      #050505;
+    --ink-2:    #2F4A40;
+    --ink-3:    #5A7268;
+    --green:    #2F6B56;   /* darkened for contrast on paper */
+    --mint:     #42AE87;
+    --deep:     #42AE87;
+    --star:     #42AE87;
+    --verd:     #2F6B56;
+    --alarm:    #C4542F;
+    --shadow:   0 20px 46px -22px rgba(8,32,24,.4);
+
+    /* Holographic accent — discs, dividers, hex frames, the waitlist hover */
+    --holo: linear-gradient(90deg,#AFA9EC,#7F77DD,#5DCAA5,#F0E48C,#F0997B,#ED93B1,#AFA9EC);
 
     --serif: "EB Garamond", "Adobe Garamond", Georgia, serif;
     --sans:  "Barlow", -apple-system, "Segoe UI", system-ui, sans-serif;
@@ -37,38 +40,41 @@
     --maxw: 1560px;
   }
 
+  /* --- DARK: the sky as seen. This is the brand's home ground. --- */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper:    #070910;
-      --plate:    #0C1018;
-      --raise:    #141926;
-      --rule:     #222939;
-      --rule-hi:  #3A4459;
-      --ink:      #F2EFE6;
-      --ink-2:    #C3C7D2;   /* 11.4:1 on the dark ground */
-      --ink-3:    #9AA1B2;   /* 7.1:1  — was the unreadable one */
-      --brass:    #E0B978;
-      --brass-hi: #F3D8A6;
-      --star:     #A8CEFF;
-      --verd:     #6FD3A8;
-      --alarm:    #E8927E;
+      --paper:    #050505;   /* primary black */
+      --plate:    #07100D;   /* dark green-black */
+      --raise:    #0D1A16;
+      --rule:     #1B2E27;
+      --rule-hi:  #2F6B56;
+      --ink:      #F2FBEF;
+      --ink-2:    #E0E0E0;
+      --ink-3:    #9A9A9A;
+      --green:    #5DCAA5;   /* signature Orion green */
+      --mint:     #9FE1CB;   /* soft mint */
+      --deep:     #42AE87;
+      --star:     #8FE3C2;   /* glow pools */
+      --verd:     #5DCAA5;
+      --alarm:    #F0997B;   /* coral, from the holographic set */
       --shadow:   0 26px 60px -22px rgba(0,0,0,.9);
     }
   }
   :root[data-theme="dark"] {
-    --paper:    #070910;
-    --plate:    #0C1018;
-    --raise:    #141926;
-    --rule:     #222939;
-    --rule-hi:  #3A4459;
-    --ink:      #F2EFE6;
-    --ink-2:    #C3C7D2;
-    --ink-3:    #9AA1B2;
-    --brass:    #E0B978;
-    --brass-hi: #F3D8A6;
-    --star:     #A8CEFF;
-    --verd:     #6FD3A8;
-    --alarm:    #E8927E;
+    --paper:    #050505;
+    --plate:    #07100D;
+    --raise:    #0D1A16;
+    --rule:     #1B2E27;
+    --rule-hi:  #2F6B56;
+    --ink:      #F2FBEF;
+    --ink-2:    #E0E0E0;
+    --ink-3:    #9A9A9A;
+    --green:    #5DCAA5;
+    --mint:     #9FE1CB;
+    --deep:     #42AE87;
+    --star:     #8FE3C2;
+    --verd:     #5DCAA5;
+    --alarm:    #F0997B;
     --shadow:   0 26px 60px -22px rgba(0,0,0,.9);
   }
 
@@ -88,7 +94,7 @@
   }
   ::selection { background: rgba(224,185,120,.32); }
   a { color: inherit; text-decoration: none; }
-  :focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+  :focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 
   .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gut); }
 
@@ -146,9 +152,24 @@
     color: var(--ink); cursor: pointer;
     transition: border-color .25s, background .25s, color .25s;
   }
-  .btn:hover { border-color: var(--brass); color: var(--brass-hi); }
+  .btn:hover { border-color: var(--green); color: var(--mint); }
   .btn-solid { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 500; }
-  .btn-solid:hover { background: var(--brass-hi); border-color: var(--brass-hi); color: var(--paper); }
+
+  /* Holographic run around the box on hover, per the brand's gradient set.
+     The button keeps an opaque ground so only the 2px inset frame shows. */
+  .btn-holo { position: relative; z-index: 0; background: var(--green); color: #050505;
+    border-color: var(--green); }
+  .btn-holo::before {
+    content: ""; position: absolute; inset: -2px; z-index: -1;
+    background: var(--holo); background-size: 300% 100%;
+    opacity: 0; transition: opacity .3s;
+  }
+  .btn-holo:hover { background: var(--mint); border-color: var(--mint); }
+  .btn-holo:hover::before, .btn-holo:focus-visible::before {
+    opacity: 1; animation: holoRun 3.2s linear infinite;
+  }
+  @keyframes holoRun { to { background-position: 300% 0; } }
+  .btn-solid:hover { background: var(--mint); border-color: var(--mint); color: var(--paper); }
   .btn[aria-disabled="true"] { cursor: not-allowed; color: var(--ink-3); border-style: dashed; border-color: var(--rule); }
   .btn:disabled { cursor: not-allowed; opacity: .45; }
   .btn-solid:disabled { background: var(--rule-hi); border-color: var(--rule-hi); color: var(--paper); }
@@ -163,7 +184,7 @@
     border: 1px solid var(--rule-hi); background: transparent; cursor: pointer;
     color: var(--ink-2);
   }
-  .swap:hover { border-color: var(--brass); color: var(--brass-hi); }
+  .swap:hover { border-color: var(--green); color: var(--mint); }
   .swap svg { display: block; }
   .swap .moon { display: none; }
   :root[data-theme="dark"] .swap .sun,
@@ -203,7 +224,7 @@
     font-size: clamp(46px, 7.2vw, 96px); line-height: .96;
     letter-spacing: -.014em; margin: 18px 0 0; text-wrap: balance;
   }
-  h1 i { font-style: italic; color: var(--brass-hi); }
+  h1 i { font-style: italic; color: var(--mint); }
 
   .lede { font-size: clamp(16px, 1.35vw, 18px); color: var(--ink-2); max-width: 46ch; margin: 22px 0 0; }
   .lede b { color: var(--ink); font-weight: 600; }
@@ -258,7 +279,7 @@
   .sched { grid-column: 2; border: 1px solid var(--rule); }
   .row { display: grid; grid-template-columns: 60px 1fr 186px; gap: 22px; padding: 22px 24px; border-bottom: 1px solid var(--rule); align-items: baseline; }
   .row:last-child { border-bottom: none; }
-  .row .idx { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--brass); }
+  .row .idx { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--green); }
   .row h4 { font-family: var(--serif); font-size: 21px; font-weight: 400; margin: 0 0 4px; }
   .row p { margin: 0; font-size: 14.5px; color: var(--ink-3); line-height: 1.6; }
   .row .fig { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--ink-2); text-align: right; }
@@ -281,15 +302,97 @@
     border-top: 1px solid var(--rule); }
   .sources li { display: flex; align-items: baseline; gap: 10px; font-size: 15px;
     color: var(--ink-2); padding: 9px 0; border-bottom: 1px solid var(--rule); }
-  .sources li b { font-family: var(--mono); font-size: 13px; color: var(--brass);
+  .sources li b { font-family: var(--mono); font-size: 13px; color: var(--green);
     min-width: 46px; }
   .sources li span { font-family: var(--mono); font-size: 10px; color: var(--ink-3);
     letter-spacing: .1em; margin-left: auto; text-transform: uppercase; }
   @media (max-width: 780px) { .diagram, .two { grid-column: 1; } }
   @media (max-width: 660px) { .two { grid-template-columns: 1fr; gap: 28px; } }
+  /* Sections had no ground of their own, which is most of why the page read
+     flat. A faint wash per section gives depth without adding noise. */
+  .sec { position: relative; }
+  .sec::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(120% 90% at 12% 0%,
+      color-mix(in srgb, var(--star) 7%, transparent) 0%, transparent 62%);
+  }
+  #stake::before {
+    background: radial-gradient(120% 90% at 88% 0%,
+      color-mix(in srgb, var(--green) 8%, transparent) 0%, transparent 62%);
+  }
+
+  /* Headline figures were set at 33px, smaller than the body serif. The
+     numbers are the argument, so they now carry the weight. */
+  .reading dd { font-size: clamp(34px, 4.4vw, 52px); line-height: 1; }
+  .reading { padding: 30px 26px; transition: background .3s; }
+  .reading:hover { background: color-mix(in srgb, var(--green) 5%, transparent); }
+
+  /* ---------- live pass ---------- */
+  #pass { border-bottom: 1px solid var(--rule); }
+  .pass-grid {
+    display: grid; grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr);
+    gap: clamp(30px, 5vw, 68px); align-items: center;
+  }
+  @media (max-width: 860px) { .pass-grid { grid-template-columns: 1fr; } }
+  .pass-copy h2 { font-family: var(--serif); font-weight: 400;
+    font-size: clamp(32px,4.4vw,50px); line-height: 1.06; margin: 14px 0 0; }
+  .pass-copy h2 i { font-style: italic; color: var(--mint); }
+  .pass-copy p { color: var(--ink-2); margin: 18px 0 0; max-width: 46ch; }
+  .try { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+  .try .field { flex: 1 1 220px; }
+  .live-note { font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-3); margin: 12px 0 0; }
+  .card-stage { perspective: 1400px; }
+  .card-stage .card {
+    margin: 0; transition: transform .5s cubic-bezier(.16,.84,.3,1);
+    transform: rotateY(var(--ry,-9deg)) rotateX(var(--rx,4deg));
+  }
+
+  /* ---------- redemption model ---------- */
+  .model { grid-column: 2; border: 1px solid var(--rule); background: var(--plate);
+    padding: clamp(20px,3vw,30px); margin-top: 40px; }
+  @media (max-width: 780px) { .model { grid-column: 1; } }
+  .model h3 { font-family: var(--serif); font-weight: 400; font-size: 25px; margin: 0 0 6px; }
+  .model .lead { color: var(--ink-3); font-size: 14.5px; margin: 0 0 24px; max-width: 56ch; }
+  .slider-row { display: flex; align-items: baseline; justify-content: space-between;
+    gap: 14px; margin-bottom: 10px; }
+  .slider-row label { font-family: var(--mono); font-size: 10px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-3); }
+  .slider-row output { font-family: var(--serif); font-size: 30px;
+    font-variant-numeric: tabular-nums; color: var(--ink); }
+  input[type="range"] {
+    width: 100%; -webkit-appearance: none; appearance: none; height: 2px;
+    background: var(--rule-hi); outline: none; margin: 6px 0 26px; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--green); cursor: grab;
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 22%, transparent);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px; border: none; border-radius: 50%;
+    background: var(--green); cursor: grab;
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 22%, transparent);
+  }
+  input[type="range"]:focus-visible { outline: 2px solid var(--green); outline-offset: 6px; }
+  .outs { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+    gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .out { background: var(--paper); padding: 18px 18px 16px; }
+  .out dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-3); }
+  .out dd { margin: 7px 0 0; font-family: var(--serif); font-size: 28px;
+    font-variant-numeric: tabular-nums; line-height: 1; }
+  .out dd small { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-left: 4px; }
+  .out.gain dd { color: var(--verd); }
+  .bar { height: 5px; background: var(--rule); margin-top: 22px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--green), var(--mint));
+    transition: width .35s cubic-bezier(.16,.84,.3,1); }
+  .model .fine { color: var(--ink-3); font-size: 13.5px; margin: 18px 0 0; }
+
   .closer { padding: clamp(80px,10vw,140px) 0; text-align: center; }
   .closer h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px,5.6vw,68px); line-height: 1.04; margin: 18px 0 0; }
-  .closer h2 i { font-style: italic; color: var(--brass-hi); }
+  .closer h2 i { font-style: italic; color: var(--mint); }
   .closer p { color: var(--ink-2); max-width: 44ch; margin: 20px auto 30px; }
 
   footer { border-top: 1px solid var(--rule); padding: 26px 0; font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); }
@@ -314,7 +417,7 @@
   .sheet-top { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
   .ticks { display: flex; gap: 5px; }
   .tick { width: 18px; height: 1px; background: var(--rule-hi); transition: background .3s; }
-  .tick.on { background: var(--brass); }
+  .tick.on { background: var(--green); }
   .x { margin-left: auto; width: 30px; height: 30px; border: 1px solid var(--rule-hi); background: transparent; color: var(--ink-3); cursor: pointer; display: grid; place-items: center; font-size: 14px; }
   .x:hover { color: var(--ink); border-color: var(--ink); }
 
@@ -328,7 +431,7 @@
   }
   input.pad { padding-left: 36px; }
   input::placeholder { color: var(--ink-3); opacity: .7; }
-  input:focus { border-color: var(--brass); outline: none; }
+  input:focus { border-color: var(--green); outline: none; }
   .field { position: relative; }
   .field .at { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-family: var(--mono); color: var(--ink-3); pointer-events: none; }
   .micro { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin: 12px 0 20px; }
@@ -373,7 +476,7 @@
 
   .tasks { display: flex; flex-direction: column; }
   .task { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--rule); padding: 14px 2px; cursor: pointer; color: var(--ink); font-family: var(--sans); transition: padding-left .2s, background .2s; }
-  .task:hover { padding-left: 8px; background: color-mix(in srgb, var(--brass) 7%, transparent); }
+  .task:hover { padding-left: 8px; background: color-mix(in srgb, var(--green) 7%, transparent); }
   .task .n { width: 22px; height: 22px; flex: none; border: 1px solid var(--rule-hi); display: grid; place-items: center; font-family: var(--mono); font-size: 10px; color: var(--ink-3); transition: all .25s; }
   .task.done .n { background: var(--verd); border-color: var(--verd); color: var(--paper); }
   .task .t strong { display: block; font-size: 14.5px; font-weight: 600; }
@@ -453,10 +556,12 @@
   <header class="top">
     <a class="brand" href="#top">Orion</a>
     <nav>
-      <a href="#treasury">Treasury</a>
-      <a href="#staking">Staking</a>
-      <a href="#utility">Utility</a>
+      <a href="#stake">Stake</a>
+      <a href="#lbt">LBT</a>
+      <a href="#borrow">Borrow</a>
+      <a href="#rent">Rent</a>
     </nav>
+    <button class="btn" aria-disabled="true" title="Wallet connection is not live yet">Connect Wallet</button>
     <button class="swap" id="swap" aria-label="Switch between sky and chart">
       <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
         <circle cx="12" cy="12" r="4.4"/><path d="M12 1.6v3M12 19.4v3M1.6 12h3M19.4 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/>
@@ -471,15 +576,13 @@
     <canvas id="sky" aria-hidden="true"></canvas>
     <div class="hero-wrap"><div class="hero-in">
       <p class="cap">Liquid Backing Treasury · Ethereum</p>
-      <h1>Three thousand three hundred and thirty&#8209;three <i>constellations.</i></h1>
+      <h1>3,333 <i>Liquid Constellations</i></h1>
       <p class="lede">
-        Every Orion is backed by real ETH held in treasury. Not a promise about future
-        value — <b>a redeemable claim you can exercise today</b>, at a number published
-        on-chain. Burn your Orion, take your share. Backing only ratchets upward.
+        Every Orion is backed by real ETH you can redeem on demand.
       </p>
       <div class="acts">
-        <button class="btn btn-solid" data-open>Join the Waitlist</button>
-        <button class="btn" aria-disabled="true">Mint — Coming Soon</button>
+        <button class="btn btn-holo" data-open>Join Waitlist</button>
+        <button class="btn" aria-disabled="true">Mint Soon</button>
       </div>
       </div>
     </div>
@@ -499,7 +602,7 @@
   </div>
 
   <main class="wrap">
-    <section class="sec" id="treasury">
+    <section class="sec" id="lbt">
       <div class="sec-head"><div><span class="cap">Treasury</span></div>
         <h2>Two floors, and only one of them depends on opinion.</h2></div>
       <div class="sec-body">
@@ -515,8 +618,8 @@
           <svg viewBox="0 0 900 330" role="img" aria-label="The backing floor rises in steps as treasury revenue accrues and never falls. The market floor moves freely above it. The region below the backing floor is the arbitrage zone, where buying and redeeming is profitable.">
             <defs>
               <linearGradient id="arbFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="var(--brass)" stop-opacity=".26"/>
-                <stop offset="1" stop-color="var(--brass)" stop-opacity=".03"/>
+                <stop offset="0" stop-color="var(--green)" stop-opacity=".26"/>
+                <stop offset="1" stop-color="var(--green)" stop-opacity=".03"/>
               </linearGradient>
             </defs>
 
@@ -533,7 +636,7 @@
             <!-- backing floor: a ratchet, never a curve -->
             <path d="M70 250 L214 250 L214 226 L358 226 L358 198 L502 198 L502 166
                      L646 166 L646 128 L830 128"
-                  fill="none" stroke="var(--brass)" stroke-width="2.8"
+                  fill="none" stroke="var(--green)" stroke-width="2.8"
                   stroke-linejoin="round" stroke-linecap="round"/>
 
             <line x1="70" y1="286" x2="830" y2="286" stroke="var(--rule)" stroke-width="1"/>
@@ -542,8 +645,8 @@
               <text x="70" y="308" fill="var(--ink-3)">MINT</text>
               <text x="830" y="308" fill="var(--ink-3)" text-anchor="end">OVER TIME</text>
               <text x="70" y="182" fill="var(--star)">Market floor</text>
-              <text x="76" y="268" fill="var(--brass)">Backing floor</text>
-              <text x="446" y="272" fill="var(--brass)" text-anchor="middle" font-size="10"
+              <text x="76" y="268" fill="var(--green)">Backing floor</text>
+              <text x="446" y="272" fill="var(--green)" text-anchor="middle" font-size="10"
                     letter-spacing="1.6">ARBITRAGE ZONE</text>
             </g>
 
@@ -557,6 +660,31 @@
             accrues and has no mechanism for stepping down.
           </figcaption>
         </figure>
+
+        <div class="model">
+          <h3>What redemption does to the rest</h3>
+          <p class="lead">
+            Every redemption pays out backing less a 5% fee. The fee stays, the
+            supply falls — so the Orions that remain are each worth more than
+            before. Move the slider and watch it happen.
+          </p>
+          <div class="slider-row">
+            <label for="burn">Orions redeemed</label>
+            <output id="burnOut">0</output>
+          </div>
+          <input type="range" id="burn" min="0" max="3000" step="25" value="0"
+                 aria-label="Number of Orions redeemed">
+          <dl class="outs">
+            <div class="out"><dt>Supply remaining</dt><dd id="oSupply">3,333</dd></div>
+            <div class="out"><dt>Treasury</dt><dd id="oTre">26.664<small>ETH</small></dd></div>
+            <div class="out"><dt>Backing / Orion</dt><dd id="oBack">0.008000<small>ETH</small></dd></div>
+            <div class="out gain"><dt>Backing gain</dt><dd id="oGain">+0.00<small>%</small></dd></div>
+          </dl>
+          <div class="bar"><i id="oBar"></i></div>
+          <p class="fine" id="oNote">
+            At launch every Orion is backed by exactly its mint price.
+          </p>
+        </div>
 
         <div class="two">
           <div>
@@ -592,7 +720,52 @@
       </div>
     </section>
 
-    <section class="sec" id="staking">
+    <section class="sec" id="pass">
+      <div class="pass-grid">
+        <div class="pass-copy">
+          <span class="cap">The Founding Pass</span>
+          <h2>Struck from your <i>handle</i>.</h2>
+          <p>
+            Not a wallet address on a spreadsheet. Your pass carries your name, a
+            number out of 3,333, and one of the eighty-eight constellations — all
+            derived from the handle itself, so it can be regenerated any time and
+            never has to be stored to exist.
+          </p>
+          <div class="try">
+            <div class="field"><span class="at">@</span>
+              <input id="tryHandle" class="pad" type="text" placeholder="yourhandle"
+                     autocomplete="off" spellcheck="false" maxlength="15" value="orion">
+            </div>
+            <button class="btn btn-holo" data-open>Claim It</button>
+          </div>
+          <p class="live-note" id="liveNote">Type a handle — the card updates as you go</p>
+        </div>
+
+        <div class="card-stage">
+          <div class="card" id="showCard">
+            <canvas id="showGuil" width="720" height="454" aria-hidden="true"></canvas>
+            <div class="sheen"></div>
+            <div class="card-in">
+              <div class="card-top">
+                <div class="card-mark">Orion Collective</div>
+                <div class="card-kind">Founding<br>Pass</div>
+              </div>
+              <div class="card-mid">
+                <div class="card-handle" id="showHandle">@orion</div>
+                <div class="card-tier" id="showSign">Lyra · one of eighty&#8209;eight</div>
+                <div class="card-rule"></div>
+                <div class="card-foot">
+                  <div id="showNo">No. <b>0001</b> of 3,333<br>ORI-0000-0000</div>
+                  <div class="r">Founding Pass<br>2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="stake">
       <div class="sec-head"><div><span class="cap">Staking</span></div>
         <h2>Stake it, and the royalties come to you.</h2></div>
       <div class="sec-body">
@@ -613,14 +786,14 @@
         <h2>Liquidity without letting go.</h2></div>
       <div class="sec-body">
         <div class="cols">
-          <div class="col"><span class="cap">Borrow</span><h4>Against your backing</h4>
+          <div class="col" id="borrow"><span class="cap">Borrow</span><h4>Against your backing</h4>
             <p>Borrow against <b>100%</b> of your Orion's backing value at a fixed
             <b>5%</b>, over a choice of terms. A hard redeemable value makes
             unusually clean collateral — there is no oracle to argue with.</p></div>
-          <div class="col"><span class="cap">Rent</span><h4>Access without owning</h4>
+          <div class="col" id="rent"><span class="cap">Rent</span><h4>The protocol rents, not you</h4>
             <p>The treasury buys Orions with <b>10%</b> of secondary royalties and
-            rents them out at <b>10%</b> of backing value. Holder incentives
-            become reachable without buying at floor.</p></div>
+            rents <b>those</b> out at <b>10%</b> of backing — yield on assets the
+            protocol already owns. You never lend your own token.</p></div>
           <div class="col"><span class="cap">Redeem</span><h4>Exit at backing</h4>
             <p>Burn the token, take its share of treasury in ETH, less the 5% fee.
             Supply falls and backing per remaining Orion rises. The door stays
@@ -633,7 +806,7 @@
       <span class="cap">Waitlist open · Mint date to be announced</span>
       <h2>Take your place<br>in the <i>sky</i>.</h2>
       <p>Open to everyone. Bring your handle and we'll strike your pass.</p>
-      <button class="btn btn-solid" data-open>Create My Pass</button>
+      <button class="btn btn-holo" data-open>Join Waitlist</button>
     </section>
   </main>
 
@@ -794,17 +967,17 @@ document.getElementById('swap').addEventListener('click', () => {
     if (dark) {
       const grd = g.createRadialGradient(x, y, 0, x, y, rad * 8);
       grd.addColorStop(0, col);
-      grd.addColorStop(.16, `rgba(168,206,255,${alpha * .4})`);
-      grd.addColorStop(1, 'rgba(120,170,255,0)');
+      grd.addColorStop(.16, `rgba(93,202,165,${alpha * .45})`);
+      grd.addColorStop(1, 'rgba(66,174,135,0)');
       g.globalAlpha = alpha; g.fillStyle = grd;
       g.beginPath(); g.arc(x, y, rad * 8, 0, 6.2832); g.fill();
       g.globalAlpha = Math.min(1, alpha * 1.5); g.fillStyle = col;
       g.beginPath(); g.arc(x, y, rad, 0, 6.2832); g.fill();
     } else {
       /* engraved: ink dot with a fine halo ring, no bloom */
-      g.globalAlpha = alpha * .12; g.fillStyle = '#2C4A78';
+      g.globalAlpha = alpha * .12; g.fillStyle = '#42AE87';
       g.beginPath(); g.arc(x, y, rad * 3.4, 0, 6.2832); g.fill();
-      g.globalAlpha = Math.min(1, alpha * .96); g.fillStyle = '#16223A';
+      g.globalAlpha = Math.min(1, alpha * .96); g.fillStyle = '#07100D';
       g.beginPath(); g.arc(x, y, rad * .92, 0, 6.2832); g.fill();
     }
     g.globalAlpha = 1;
@@ -838,9 +1011,9 @@ document.getElementById('swap').addEventListener('click', () => {
     /* nebula wash */
     if (dark) {
       const neb = g.createRadialGradient(W * .68, H * .42, 0, W * .68, H * .42, Math.max(W, H) * .7);
-      neb.addColorStop(0, 'rgba(44,72,132,.20)');
-      neb.addColorStop(.45, 'rgba(26,38,78,.09)');
-      neb.addColorStop(1, 'rgba(7,9,16,0)');
+      neb.addColorStop(0, 'rgba(42,110,90,.20)');
+      neb.addColorStop(.45, 'rgba(20,58,46,.09)');
+      neb.addColorStop(1, 'rgba(5,5,5,0)');
       g.fillStyle = neb; g.fillRect(0, 0, W, H);
     }
 
@@ -894,7 +1067,7 @@ document.getElementById('swap').addEventListener('click', () => {
         ? Math.min(1, Math.max(0, intro * f.l.length - i)) : 1;
       if (seg <= 0 || drawIn <= 0) return;
       g.globalAlpha = drawIn;
-      g.strokeStyle = dark ? 'rgba(224,185,120,.46)' : 'rgba(80,64,26,.42)';
+      g.strokeStyle = dark ? 'rgba(93,202,165,.55)' : 'rgba(47,107,86,.48)';
       g.lineWidth = dark ? 1 : .85;
       g.beginPath(); g.moveTo(a.X, a.Y);
       g.lineTo(a.X + (c.X - a.X) * seg, a.Y + (c.Y - a.Y) * seg); g.stroke();
@@ -905,8 +1078,8 @@ document.getElementById('swap').addEventListener('click', () => {
         if (cyc < 1) {
           const hx = a.X + (c.X - a.X) * cyc, hy = a.Y + (c.Y - a.Y) * cyc;
           const pg = g.createRadialGradient(hx, hy, 0, hx, hy, 22);
-          pg.addColorStop(0, 'rgba(255,240,205,.8)');
-          pg.addColorStop(1, 'rgba(255,220,150,0)');
+          pg.addColorStop(0, 'rgba(159,225,203,.85)');
+          pg.addColorStop(1, 'rgba(93,202,165,0)');
           g.fillStyle = pg; g.beginPath(); g.arc(hx, hy, 22, 0, 6.2832); g.fill();
         }
       }
@@ -941,8 +1114,8 @@ document.getElementById('swap').addEventListener('click', () => {
       for (const s of shots) {
         s.x += s.vx * dt; s.y += s.vy * dt; s.l -= dt * .75;
         const gr = g.createLinearGradient(s.x, s.y, s.x - s.vx * .10, s.y - s.vy * .10);
-        gr.addColorStop(0, `rgba(255,250,235,${s.l * .9})`);
-        gr.addColorStop(1, 'rgba(255,250,235,0)');
+        gr.addColorStop(0, `rgba(242,251,239,${s.l * .9})`);
+        gr.addColorStop(1, 'rgba(159,225,203,0)');
         g.strokeStyle = gr; g.lineWidth = 1.5;
         g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(s.x - s.vx * .10, s.y - s.vy * .10); g.stroke();
       }
@@ -1245,4 +1418,103 @@ async function refreshCount() {
   el.textContent = 'Waitlist open';
 }
 refreshCount();   // the API path needs no capability handshake to resolve first
+/* =====================================================================
+   LIVE PASS — the card on the page is the same object the modal issues,
+   driven by whatever is typed. Nothing is stored; it is all derived.
+   ===================================================================== */
+(function () {
+  const inp = document.getElementById('tryHandle');
+  const card = document.getElementById('showCard');
+  const elH = document.getElementById('showHandle');
+  const elS = document.getElementById('showSign');
+  const elN = document.getElementById('showNo');
+  const note = document.getElementById('liveNote');
+  if (!inp) return;
+
+  function paint() {
+    const raw = inp.value.trim().replace(/^@+/, '');
+    const ok = /^[A-Za-z0-9_]{1,15}$/.test(raw);
+    const h = ok ? raw : 'orion';
+    note.textContent = ok || !raw.length
+      ? 'Type a handle — the card updates as you go'
+      : 'Letters, numbers and underscores only';
+    note.style.color = ok || !raw.length ? 'var(--ink-3)' : 'var(--alarm)';
+
+    const hash = hashOf(h);
+    const pass = (hash % SUPPLY) + 1;
+    const serial = 'ORI-' + hash.toString(16).toUpperCase().padStart(8, '0').slice(0, 4) +
+                   '-' + ((hash * 2654435761) >>> 0).toString(16).toUpperCase().slice(0, 4);
+    elH.textContent = '@' + h;
+    elS.innerHTML = esc(IAU[(hash >>> 7) % IAU.length]) + ' · one of eighty&#8209;eight';
+    elN.innerHTML = 'No. <b>' + String(pass).padStart(4, '0') + '</b> of 3,333<br>' + esc(serial);
+  }
+  inp.addEventListener('input', paint);
+  paint();
+
+  drawGuilloche(document.getElementById('showGuil'));
+
+  /* Tilt tracks the pointer so the card behaves like a held object rather
+     than a picture of one. */
+  card.addEventListener('pointermove', e => {
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width - .5;
+    const py = (e.clientY - r.top) / r.height - .5;
+    card.style.setProperty('--ry', (px * 16 - 2) + 'deg');
+    card.style.setProperty('--rx', (-py * 12 + 2) + 'deg');
+    card.style.setProperty('--sx', px * 200 + 'px');
+  });
+  card.addEventListener('pointerleave', () => {
+    card.style.setProperty('--ry', '-9deg');
+    card.style.setProperty('--rx', '4deg');
+    card.style.setProperty('--sx', '0px');
+  });
+})();
+
+
+/* =====================================================================
+   REDEMPTION MODEL
+   Iterated rather than approximated: each burn pays backing less the 5%
+   fee, the fee stays in treasury, supply drops by one. The compounding is
+   the whole point, so it is computed the way it actually happens.
+   ===================================================================== */
+(function () {
+  const SUP0 = 3333, TRE0 = 26.664, FEE = 0.05;
+  const burn = document.getElementById('burn');
+  if (!burn) return;
+  const out = document.getElementById('burnOut');
+  const [oS, oT, oB, oG, oBar, oNote] = ['oSupply','oTre','oBack','oGain','oBar','oNote']
+    .map(id => document.getElementById(id));
+  const base = TRE0 / SUP0;
+
+  function run(k) {
+    let sup = SUP0, tre = TRE0;
+    for (let i = 0; i < k && sup > 1; i++) {
+      const per = tre / sup;
+      tre -= per * (1 - FEE);        // the 5% fee never leaves
+      sup -= 1;
+    }
+    return { sup, tre, per: tre / sup };
+  }
+
+  function paint() {
+    const k = Number(burn.value);
+    const r = run(k);
+    const gain = (r.per / base - 1) * 100;
+    out.textContent = k.toLocaleString();
+    oS.textContent = r.sup.toLocaleString();
+    oT.innerHTML = r.tre.toFixed(3) + '<small>ETH</small>';
+    oB.innerHTML = r.per.toFixed(6) + '<small>ETH</small>';
+    oG.innerHTML = '+' + gain.toFixed(2) + '<small>%</small>';
+    oBar.style.width = Math.min(100, gain * 6) + '%';
+    oNote.textContent = k === 0
+      ? 'At launch every Orion is backed by exactly its mint price.'
+      : `${k.toLocaleString()} redeemed leaves ${r.sup.toLocaleString()} Orions, each backed by `
+        + `${r.per.toFixed(6)} ETH — ${gain.toFixed(2)}% more than at launch.`;
+  }
+  burn.addEventListener('input', paint);
+  paint();
+})();
+
+
+
 </script>
