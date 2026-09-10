@@ -12,6 +12,7 @@
  */
 
 import { neon } from "@neondatabase/serverless";
+import { csvCell } from "./_validate.js";
 
 const CONN = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
@@ -24,11 +25,6 @@ function keyMatches(given, expected) {
   for (let i = 0; i < given.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
   return diff === 0;
 }
-
-const csvCell = v => {
-  const s = v === null || v === undefined ? "" : String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
 
 export default async function handler(req, res) {
   const admin = process.env.ADMIN_KEY;
@@ -45,7 +41,7 @@ export default async function handler(req, res) {
     const sql = neon(CONN);
     const rows = await sql`
       SELECT handle, constellation, pass, serial, wallet, quote_url,
-             submitted_at, updated_at
+             tweet_id, verified, submitted_at, updated_at
         FROM waitlist
        ORDER BY submitted_at ASC`;
 
@@ -55,7 +51,7 @@ export default async function handler(req, res) {
     }
 
     const cols = ["handle", "constellation", "pass", "serial", "wallet",
-                  "quote_url", "submitted_at", "updated_at"];
+                  "quote_url", "tweet_id", "verified", "submitted_at", "updated_at"];
     const csv = [cols.join(","),
                  ...rows.map(r => cols.map(c => csvCell(r[c])).join(","))].join("\n");
 

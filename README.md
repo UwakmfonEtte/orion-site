@@ -74,6 +74,51 @@ document store, on a real domain it posts to `/api/waitlist`. If neither is
 reachable the submit **fails loudly** rather than showing success — a waitlist
 that quietly drops signups is the one bug worth being noisy about.
 
+## Security
+
+`node --test test/security.test.mjs` — 22 adversarial tests covering the
+submission boundary. They assert rejection, not "probably fine".
+
+All checking and derivation live in `api/_validate.js`, kept free of database
+imports so it can be attacked directly by the tests.
+
+**What is enforced**
+
+| Attack | Defence |
+|---|---|
+| SQL injection | Neon's tagged template compiles to `$1` placeholders with a separate params array — verified, not assumed |
+| XSS | Handles are `[A-Za-z0-9_]{1,15}`; every render escapes; the one raw use is inside `encodeURIComponent` |
+| Quoting someone else's post | The status URL author must equal the submitting handle |
+| Host spoofing (`x.com@evil.com`, `x.com.evil.com`) | URL is parsed and the hostname matched against an allowlist, never pattern-matched in the raw string |
+| `javascript:` / `data:` URLs | Protocol restricted to http/https |
+| Claiming pass No. 0001 | Pass, serial and constellation are recomputed server-side and the client's values discarded |
+| CSV formula injection | Cells opening `= + - @ TAB CR` are prefixed with `'` |
+| Prototype pollution | `__proto__` in the body cannot reach the record |
+| Type confusion | Objects and arrays in string fields are rejected, never coerced |
+| Oversize payloads | Body capped at 4 KB, fields at 512 chars |
+| Bulk fake signups | 6 submissions per IP per hour, keyed on a salted hash |
+
+**Tasks before wallet** — enforced in three places, and only the last one
+counts:
+
+1. The submit button is `disabled` until all four are clicked
+2. The click handler re-checks before sending
+3. `api/waitlist.js` rejects the request unless all four flags are `true`
+
+The first two are conveniences. A scripted request can still assert the flags,
+which is why the quote-ownership check matters: to be recorded at all, you must
+supply a real status URL **authored by the handle you are claiming**. That is
+the part which cannot be faked without actually posting.
+
+**Not yet verified** — that the post genuinely quotes *your* whitelist post, and
+that the repost, like and reply happened. Those need X data, which Sorsa can
+supply (`/quotes`, `/retweeters`, `/comments`). The `verified` column exists for
+exactly that: run a batch check before mint and only export `verified = true`.
+
+**Caveat** — inside claude.ai the page writes to the artifact document store
+directly, so only the client-side gates apply there. The Vercel deployment is
+the one with server-side enforcement.
+
 ## Passes
 
 Every pass is derived from the X handle alone — no lookup, no external service:

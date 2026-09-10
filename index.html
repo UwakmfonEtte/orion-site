@@ -150,6 +150,11 @@
   .btn-solid { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 500; }
   .btn-solid:hover { background: var(--brass-hi); border-color: var(--brass-hi); color: var(--paper); }
   .btn[aria-disabled="true"] { cursor: not-allowed; color: var(--ink-3); border-style: dashed; border-color: var(--rule); }
+  .btn:disabled { cursor: not-allowed; opacity: .45; }
+  .btn-solid:disabled { background: var(--rule-hi); border-color: var(--rule-hi); color: var(--paper); }
+  .btn-solid:disabled:hover { background: var(--rule-hi); border-color: var(--rule-hi); }
+  .gate-hint { font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); margin: 10px 0 0; text-align: center; }
   .btn[aria-disabled="true"]:hover { color: var(--ink-3); border-color: var(--rule); }
   .btn-full { width: 100%; padding: 15px; }
 
@@ -1046,6 +1051,7 @@ const TASKS = [
 
 function step3() {
   setStep(3);
+  const doneTasks = [false, false, false, false];
   const txt = encodeURIComponent(
     `Orion pass No. ${String(S2.pass).padStart(4,'0')} — ${S2.sign}.\n` +
     `3,333 liquid constellations, every one backed by ETH.\n\n@${S2.handle}`);
@@ -1061,20 +1067,50 @@ function step3() {
     <div class="hr"></div>
     <label class="lbl" for="wallet">Wallet</label>
     <div class="field"><input id="wallet" type="text" placeholder="0x0000… or yourname.eth" autocomplete="off" spellcheck="false"></div>
-    <button class="btn btn-solid btn-full" id="sub" style="margin-top:16px">Submit Wallet</button>
+    <button class="btn btn-solid btn-full" id="sub" style="margin-top:16px" disabled>Submit Wallet</button>
+    <p class="gate-hint" id="gateHint">Complete all four steps to continue</p>
     <p class="note" id="err3"></p>`;
 
+  const subBtn = () => document.getElementById('sub');
+  const hint = () => document.getElementById('gateHint');
+
+  /* The gate is enforced in three places, because the first two are only
+     conveniences: the button is disabled, the handler re-checks before
+     sending, and api/waitlist.js rejects the request outright if the task
+     flags are not all true. Only the third one actually stops anybody. */
+  function refreshGate() {
+    const left = doneTasks.filter(Boolean).length;
+    const all = left === 4;
+    subBtn().disabled = !all;
+    hint().textContent = all
+      ? 'All steps complete'
+      : `${4 - left} step${4 - left === 1 ? '' : 's'} remaining`;
+    hint().style.color = all ? 'var(--verd)' : 'var(--ink-3)';
+  }
+
   body.querySelectorAll('.task').forEach(b => b.addEventListener('click', () => {
+    const i = Number(b.dataset.i);
+    doneTasks[i] = true;
     b.classList.add('done'); b.querySelector('.n').textContent = '✓';
+    refreshGate();
     window.open(b.dataset.i === '0' ? 'https://x.com/intent/post?text='+txt : 'https://x.com/', '_blank', 'noopener');
   }));
+  refreshGate();
 
   document.getElementById('sub').addEventListener('click', async () => {
+    if (!doneTasks.every(Boolean)) {
+      document.getElementById('err3').textContent =
+        'Complete all four steps on X first.';
+      return;
+    }
     const q = document.getElementById('quote').value.trim();
     const w = document.getElementById('wallet').value.trim();
     const err = document.getElementById('err3');
-    if (!/^https?:\/\/(x|twitter)\.com\/[^/]+\/status\/\d+/i.test(q)) {
+    const qm = q.match(/^https?:\/\/(?:www\.|mobile\.)?(?:x|twitter)\.com\/([A-Za-z0-9_]{1,15})\/status(?:es)?\/(\d{5,25})/i);
+    if (!qm) {
       err.textContent = 'That does not look like an X post link. Copy it from the post you quoted.'; return; }
+    if (qm[1].toLowerCase() !== S2.handle.toLowerCase()) {
+      err.textContent = 'That post belongs to @' + qm[1] + '. Paste the link to your own quote.'; return; }
     if (!/^0x[a-fA-F0-9]{40}$/.test(w) && !/^[a-z0-9-]{3,}\.eth$/i.test(w)) {
       err.textContent = 'Enter a full 0x… address or an ENS name ending .eth.'; return; }
     err.textContent = '';
@@ -1084,6 +1120,7 @@ function step3() {
       await saveEntry({
         handle: S2.handle, constellation: S2.sign,
         pass: S2.pass, serial: S2.serial, quoteUrl: q, wallet: w,
+        tasks: doneTasks.slice(),
         submittedAt: new Date().toISOString()
       });
       done();
@@ -1093,7 +1130,11 @@ function step3() {
         invalid_wallet: 'That wallet was rejected. Use a full 0x address or an ENS name.',
         invalid_quote:  'That quote link was rejected. Copy it straight from your post on X.',
         invalid_handle: 'That handle was rejected. Letters, numbers and underscores only.',
-        not_configured: 'The waitlist is not accepting entries yet. Try again shortly.'
+        quote_not_yours:  'That post was written by a different account. Quote the whitelist post from @' + S2.handle + ' and paste your own link.',
+        tasks_incomplete: 'Complete all four steps on X first.',
+        rate_limited:     'Too many submissions from this connection. Try again in an hour.',
+        too_large:        'That request was too large.',
+        not_configured:   'The waitlist is not accepting entries yet. Try again shortly.'
       })[ex.message] || 'Could not save that. Check your connection and try again.';
     }
   });
