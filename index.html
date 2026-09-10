@@ -285,8 +285,14 @@
   .row .fig { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--ink-2); text-align: right; }
   @media (max-width: 660px) { .row { grid-template-columns: 44px 1fr; } .row .fig { grid-column: 2; text-align: left; margin-top: 8px; } }
 
-  .cols { grid-column: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(228px,1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
-  .col { background: var(--paper); padding: 26px 24px; }
+  /* Separate objects, not one table split by hairlines. */
+  .cols { grid-column: 2; display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 20px; }
+  .col { background: var(--plate); padding: 28px 26px;
+    border: 1px solid var(--rule); border-radius: 3px;
+    transition: border-color .3s, transform .3s, background .3s; }
+  .col:hover { border-color: var(--green); transform: translateY(-3px);
+    background: color-mix(in srgb, var(--green) 5%, var(--plate)); }
   .col h4 { font-family: var(--serif); font-size: 23px; font-weight: 400; margin: 12px 0 8px; }
   .col p { margin: 0; font-size: 14.5px; color: var(--ink-3); line-height: 1.62; }
 
@@ -389,6 +395,46 @@
     background: linear-gradient(90deg, var(--green), var(--mint));
     transition: width .35s cubic-bezier(.16,.84,.3,1); }
   .model .fine { color: var(--ink-3); font-size: 13.5px; margin: 18px 0 0; }
+
+  /* ---------- staking figures ---------- */
+  .figures { grid-column: 2; display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 20px; margin-bottom: 26px; }
+  .fig-big { border: 1px solid var(--rule); background: var(--plate);
+    padding: 30px 28px; border-radius: 3px; }
+  .fig-big .num { display: block; font-family: var(--serif);
+    font-size: clamp(52px,7vw,80px); line-height: .9; color: var(--green);
+    font-variant-numeric: tabular-nums; }
+  .fig-big .num em { font-style: normal; font-size: .5em; }
+  .fig-big .lab { display: block; margin-top: 14px; font-family: var(--mono);
+    font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); }
+
+  .terms { grid-column: 2; display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 18px; }
+  .term { display: flex; gap: 13px; align-items: flex-start; }
+  .term .tick { width: 22px; height: 22px; flex: none; border-radius: 50%;
+    border: 1px solid var(--green); color: var(--green); display: grid;
+    place-items: center; font-size: 11px; margin-top: 2px; }
+  .term strong { display: block; font-size: 15.5px; font-weight: 600; }
+  .term span { font-size: 14px; color: var(--ink-3); }
+  @media (max-width: 780px) { .figures, .terms { grid-column: 1; } }
+
+  /* ---------- the pass card, alive ----------
+     Float sits on the stage and tilt on the card, so the two compose
+     instead of one overwriting the other's transform. */
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-14px); }
+  }
+  @keyframes cardSweep {
+    0%        { transform: translateX(-130%); }
+    58%, 100% { transform: translateX(130%); }
+  }
+  @keyframes guilTurn { to { transform: rotate(360deg); } }
+  .card-stage { animation: cardFloat 6.5s ease-in-out infinite; }
+  .card-stage .sheen { animation: cardSweep 5.5s ease-in-out infinite; }
+  .card-stage .card:hover .sheen { animation: none; }
+  .card-stage canvas { animation: guilTurn 120s linear infinite; transform-origin: 50% 50%; }
+  .card-stage:hover { animation-play-state: paused; }
 
   .closer { padding: clamp(80px,10vw,140px) 0; text-align: center; }
   .closer h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px,5.6vw,68px); line-height: 1.04; margin: 18px 0 0; }
@@ -592,19 +638,17 @@
     </div>
   </section>
 
-  <div class="wrap">
-    <dl class="readings">
-      <div class="reading"><dt>Supply</dt><dd>3,333</dd></div>
-      <div class="reading"><dt>Mint</dt><dd>0.008<span>ETH</span></dd></div>
-      <div class="reading"><dt>Treasury at launch</dt><dd>26.664<span>ETH</span></dd></div>
-      <div class="reading"><dt>Backing / Orion</dt><dd>0.008<span>ETH</span></dd></div>
-    </dl>
-  </div>
-
   <main class="wrap">
     <section class="sec" id="lbt">
-      <div class="sec-head"><div><span class="cap">Treasury</span></div>
+      <div class="sec-head"><div><span class="cap">Liquid Backing Treasury</span></div>
         <h2>Two floors, and only one of them depends on opinion.</h2></div>
+
+      <dl class="readings">
+        <div class="reading"><dt>Supply</dt><dd>3,333</dd></div>
+        <div class="reading"><dt>Mint</dt><dd>0.008<span>ETH</span></dd></div>
+        <div class="reading"><dt>Total backing</dt><dd>26.664<span>ETH</span></dd></div>
+        <div class="reading"><dt>Backing / Orion</dt><dd>0.008<span>ETH</span></dd></div>
+      </dl>
       <div class="sec-body">
         <p>
           Every Orion sits above two numbers. The <b>market floor</b> is whatever
@@ -767,16 +811,36 @@
 
     <section class="sec" id="stake">
       <div class="sec-head"><div><span class="cap">Staking</span></div>
-        <h2>Stake it, and the royalties come to you.</h2></div>
+        <h2>Stake your Orion NFTs.</h2></div>
       <div class="sec-body">
-        <p>Stakers take 90% of external royalty income plus 100 points per day, per token. Points
-          are the weighting: they decide the size of your slice. Stake earlier and you compound
-          sooner; stake longer and you hold more of the weight.</p>
-        <div class="sched">
-          <div class="row"><span class="idx">01</span><div><h4>Deposit</h4><p>Lock your Orion into the vault. Still yours — withdraw at will.</p></div><span class="fig">No lock-up</span></div>
-          <div class="row"><span class="idx">02</span><div><h4>Accrue</h4><p>Each staked token earns points every day it stays in.</p></div><span class="fig">100 pts / day / NFT</span></div>
-          <div class="row"><span class="idx">03</span><div><h4>Distribute</h4><p>External royalty income is split across staked tokens by points held.</p></div><span class="fig">90% of royalties</span></div>
-          <div class="row"><span class="idx">04</span><div><h4>Claim or compound</h4><p>Take the yield, or leave it and let the weighting climb.</p></div><span class="fig">Any time</span></div>
+        <p>
+          Earn <b>40% of enforced royalties</b> plus <b>100 points per day, per NFT</b>.
+          The earlier you stake, the earlier you start earning points. The longer you
+          stake, the more points you hold — and the higher your rewards.
+        </p>
+
+        <div class="figures">
+          <div class="fig-big">
+            <span class="num">40<em>%</em></span>
+            <span class="lab">Orion royalties</span>
+          </div>
+          <div class="fig-big">
+            <span class="num">100</span>
+            <span class="lab">Points per day, per NFT</span>
+          </div>
+        </div>
+
+        <div class="terms">
+          <div class="term">
+            <span class="tick" aria-hidden="true">&#10003;</span>
+            <div><strong>No minimum staking period</strong>
+              <span>Stake for a day or a year — the terms do not change.</span></div>
+          </div>
+          <div class="term">
+            <span class="tick" aria-hidden="true">&#10003;</span>
+            <div><strong>Unstake anytime, no cool-down</strong>
+              <span>Withdraw the moment you want to. Nothing is locked.</span></div>
+          </div>
         </div>
       </div>
     </section>
