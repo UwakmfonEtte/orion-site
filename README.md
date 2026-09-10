@@ -27,25 +27,52 @@ directory is picked up automatically — no configuration needed.
 
 ## The waitlist store
 
-Submissions are currently written to the artifact runtime's document store, which
-only exists inside claude.ai. **On a real domain that store is not available**, so
-before launch this needs a persistent backend — Vercel KV, Supabase and Upstash
-Redis all work, and the write is a single call in `index.html` (search for
-`waitlist/`).
+Neon Postgres, added through the Vercel Marketplace. (Vercel's own KV and
+Postgres products were sunset — KV stores moved to Upstash Redis in December
+2024 — so marketplace providers are the current path.)
 
-Each record is:
+**Setup**
 
-```json
-{
-  "handle": "yourhandle",
-  "constellation": "Cassiopeia",
-  "pass": 417,
-  "serial": "ORI-1A2B-3C4D",
-  "quoteUrl": "https://x.com/…/status/…",
-  "wallet": "0x…",
-  "submittedAt": "2026-09-11T…"
-}
+1. Vercel dashboard → **Storage** → **Create Database** → **Neon**
+2. Connect it to this project. `DATABASE_URL` is injected automatically.
+3. Add an env var **`ADMIN_KEY`** — any long random string. It guards the export.
+4. Redeploy.
+
+The table is created on the first write, so there is no migration step.
+
+**Endpoints**
+
+| Route | Access | Purpose |
+|---|---|---|
+| `POST /api/waitlist` | public | Save one entry. Upserts on handle. |
+| `GET /api/count` | public | Tally only — no handles, no wallets. |
+| `GET /api/export?key=…` | `ADMIN_KEY` | Full CSV. This is the allowlist. |
+
+```bash
+curl -o allowlist.csv "https://your-domain/api/export?key=$ADMIN_KEY"
+curl "https://your-domain/api/export?key=$ADMIN_KEY&format=json"
 ```
+
+**Schema**
+
+```sql
+handle        text PRIMARY KEY
+constellation text
+pass          integer
+serial        text
+quote_url     text
+wallet        text
+submitted_at  timestamptz   -- kept from the original claim
+updated_at    timestamptz   -- moves when someone corrects their wallet
+```
+
+Re-submitting the same handle updates the wallet and quote but keeps
+`submitted_at`, so editing a typo never costs queue position.
+
+The page works in both places: inside claude.ai it writes to the artifact
+document store, on a real domain it posts to `/api/waitlist`. If neither is
+reachable the submit **fails loudly** rather than showing success — a waitlist
+that quietly drops signups is the one bug worth being noisy about.
 
 ## Passes
 

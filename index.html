@@ -916,6 +916,28 @@ let S2 = { handle:'', pass:0, serial:'', sign:'' };
 let DB = null;
 claude?.use?.('db').then(d => { DB = d; refreshCount(); }).catch(() => {});
 
+/* Two homes for the same record.
+   On claude.ai the artifact document store is available and there is no
+   server to call. On a real domain claude.use() resolves null and the API
+   route writes to Postgres. Whichever exists gets the row; if neither does,
+   this THROWS rather than returning quietly - a waitlist that silently
+   discards signups is the worst possible failure here. */
+async function saveEntry(rec) {
+  if (DB) {
+    await DB.doc('waitlist/' + rec.handle.toLowerCase()).set(rec);
+    return;
+  }
+  const r = await fetch('/api/waitlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(rec)
+  });
+  if (!r.ok) {
+    const detail = await r.json().catch(() => ({}));
+    throw new Error(detail.error || 'write_failed');
+  }
+}
+
 const scrim = document.getElementById('scrim');
 const body  = document.getElementById('body');
 const label = document.getElementById('stepLabel');
@@ -1059,15 +1081,20 @@ function step3() {
     const btn = document.getElementById('sub');
     btn.disabled = true; btn.textContent = 'Submitting…';
     try {
-      if (DB) await DB.doc('waitlist/' + S2.handle.toLowerCase()).set({
-        handle:S2.handle, constellation:S2.sign,
-        pass:S2.pass, serial:S2.serial, quoteUrl:q, wallet:w,
+      await saveEntry({
+        handle: S2.handle, constellation: S2.sign,
+        pass: S2.pass, serial: S2.serial, quoteUrl: q, wallet: w,
         submittedAt: new Date().toISOString()
       });
       done();
-    } catch {
+    } catch (ex) {
       btn.disabled = false; btn.textContent = 'Submit Wallet';
-      err.textContent = 'Could not save that. Check your connection and try again.';
+      err.textContent = ({
+        invalid_wallet: 'That wallet was rejected. Use a full 0x address or an ENS name.',
+        invalid_quote:  'That quote link was rejected. Copy it straight from your post on X.',
+        invalid_handle: 'That handle was rejected. Letters, numbers and underscores only.',
+        not_configured: 'The waitlist is not accepting entries yet. Try again shortly.'
+      })[ex.message] || 'Could not save that. Check your connection and try again.';
     }
   });
 }
@@ -1090,11 +1117,17 @@ function done() {
 
 async function refreshCount() {
   const el = document.getElementById('claimCount');
-  if (!DB) { el.textContent = 'Waitlist open'; return; }
+  const show = n => el.textContent = n ? `${n} pass${n === 1 ? '' : 'es'} claimed`
+                                       : 'Waitlist open';
   try {
-    const snap = await DB.collection('waitlist').limit(1000).get();
-    const n = snap?.docs?.length ?? 0;
-    el.textContent = n ? `${n} pass${n===1?'':'es'} claimed` : 'Waitlist open';
-  } catch { el.textContent = 'Waitlist open'; }
+    if (DB) {
+      const snap = await DB.collection('waitlist').limit(1000).get();
+      return show(snap?.docs?.length ?? 0);
+    }
+    const r = await fetch('/api/count');
+    if (r.ok) return show((await r.json()).count || 0);
+  } catch {}
+  el.textContent = 'Waitlist open';
 }
+refreshCount();   // the API path needs no capability handshake to resolve first
 </script>

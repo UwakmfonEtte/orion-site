@@ -1,5 +1,8 @@
 {
   "name": "orion-site",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
 }
