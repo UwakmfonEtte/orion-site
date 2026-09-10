@@ -598,6 +598,30 @@
   .pu-out dd.ok { color: var(--green); }
   .btn.wide { width: 100%; padding: 16px; margin-top: 4px; position: relative; }
 
+  /* ---------- benefit cards ---------- */
+  .wins { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .win {
+    border: 1px solid var(--rule); border-radius: 26px; overflow: hidden;
+    background: linear-gradient(160deg,
+      color-mix(in srgb, var(--ink) 5%, var(--plate)), var(--plate) 58%);
+    display: flex; flex-direction: column;
+  }
+  .win-head { padding: 22px 26px 0; }
+  .win-head h3 { font-family: var(--serif); font-weight: 400;
+    font-size: clamp(21px,2.4vw,28px); line-height: 1.12; margin: 0; }
+  .win-head h3 i { font-style: italic; color: var(--green); }
+  .win-art { padding: 6px 10px 0; }
+  .win-art svg { width: 100%; height: auto; display: block; }
+  .win-body { padding: 4px 26px 26px; }
+  .win-body p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.62; }
+  .win-body b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 860px) { .wins { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .win-head { padding: 18px 20px 0; }
+    .win-body { padding: 2px 20px 22px; }
+    .win-body p { font-size: 14.5px; }
+  }
+
   .closer { padding: clamp(70px,9vw,120px) 0; text-align: center; }
   .closer h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px,5.6vw,68px); line-height: 1.04; margin: 18px 0 0; }
   .closer h2 i { font-style: italic; color: var(--mint); }
@@ -841,6 +865,149 @@
   </section>
 
   <main class="wrap">
+
+    <!-- ================= WHO WINS ================= -->
+    <section class="sec" id="wins">
+      <div class="sec-top"><span class="cap">Why it works</span></div>
+      <div class="wins">
+
+        <article class="win">
+          <div class="win-head"><h3>Everyone wins with <i>LBT</i></h3></div>
+          <div class="win-art">
+            <svg viewBox="0 0 420 250" role="img" aria-label="Collections, traders and holders orbit a treasury ring that pays all three.">
+              <defs>
+                <linearGradient id="holoArc" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#AFA9EC"/><stop offset=".22" stop-color="#7F77DD"/>
+                  <stop offset=".46" stop-color="#5DCAA5"/><stop offset=".68" stop-color="#F0E48C"/>
+                  <stop offset=".85" stop-color="#F0997B"/><stop offset="1" stop-color="#ED93B1"/>
+                </linearGradient>
+                <radialGradient id="ringPearl" cx="36%" cy="28%" r="76%">
+                  <stop offset="0" stop-color="#FFFFFF"/><stop offset="55%" stop-color="#EFEFEF"/>
+                  <stop offset="100%" stop-color="#BFBFBF"/>
+                </radialGradient>
+                <linearGradient id="dripSm" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#8FE3C2"/>
+                  <stop offset="100%" stop-color="#42AE87" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+
+              <g fill="none" stroke="var(--rule-hi)" stroke-width="1" opacity=".55">
+                <circle cx="210" cy="196" r="150"/><circle cx="210" cy="196" r="118"/>
+                <circle cx="210" cy="196" r="86"/>
+              </g>
+              <path d="M74 196 A136 136 0 0 1 346 196" fill="none"
+                    stroke="url(#holoArc)" stroke-width="2.4" stroke-linecap="round"/>
+
+              <g stroke="var(--green)" stroke-width="1" opacity=".5" stroke-dasharray="3 4">
+                <line x1="210" y1="196" x2="96" y2="150"/>
+                <line x1="210" y1="196" x2="210" y2="118"/>
+                <line x1="210" y1="196" x2="324" y2="150"/>
+              </g>
+
+              <!-- the three who get paid -->
+              <g>
+                <rect x="56" y="108" width="80" height="34" rx="17"
+                      fill="var(--raise)" stroke="var(--green)" stroke-width="1"/>
+                <text x="96" y="130" text-anchor="middle" fill="var(--ink)"
+                      font-family="IBM Plex Mono, monospace" font-size="9.5"
+                      letter-spacing="1.1">COLLECTIONS</text>
+
+                <rect x="172" y="76" width="76" height="34" rx="17"
+                      fill="var(--raise)" stroke="var(--green)" stroke-width="1"/>
+                <text x="210" y="98" text-anchor="middle" fill="var(--ink)"
+                      font-family="IBM Plex Mono, monospace" font-size="9.5"
+                      letter-spacing="1.1">TRADERS</text>
+
+                <rect x="288" y="108" width="76" height="34" rx="17"
+                      fill="var(--raise)" stroke="var(--green)" stroke-width="1"/>
+                <text x="326" y="130" text-anchor="middle" fill="var(--ink)"
+                      font-family="IBM Plex Mono, monospace" font-size="9.5"
+                      letter-spacing="1.1">HOLDERS</text>
+              </g>
+
+              <!-- treasury: the mark itself -->
+              <g>
+                <path d="M186 214 C183 232 183 244 186 250 C190 242 192 228 192 214 Z" fill="url(#dripSm)"/>
+                <path d="M210 220 C206 240 206 250 210 250 C215 244 216 234 214 220 Z" fill="url(#dripSm)"/>
+                <path d="M232 214 C230 230 231 242 234 248 C237 240 238 226 238 214 Z" fill="url(#dripSm)"/>
+                <circle cx="210" cy="196" r="42" fill="url(#ringPearl)"/>
+                <circle cx="210" cy="196" r="22" fill="var(--plate)"/>
+                <path d="M182 176 C188 164 199 156 210 155 C199 159 190 167 186 179 Z" fill="#fff" opacity=".9"/>
+              </g>
+              <text x="210" y="200" text-anchor="middle" fill="var(--ink-3)"
+                    font-family="IBM Plex Mono, monospace" font-size="8" letter-spacing="1.4">LBT</text>
+            </svg>
+          </div>
+          <div class="win-body">
+            <p>Collections earn from trading fees and yield. Traders get guaranteed
+            liquidity. Holders borrow against their NFTs — <b>all while keeping full
+            ownership</b>.</p>
+          </div>
+        </article>
+
+        <article class="win">
+          <div class="win-head"><h3>Traders: instant <i>liquidity</i></h3></div>
+          <div class="win-art">
+            <svg viewBox="0 0 420 250" role="img" aria-label="A backed NFT circulates between traders, its redeemable value available at any time.">
+              <defs>
+                <linearGradient id="holoFace" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#AFA9EC"/><stop offset=".3" stop-color="#7F77DD"/>
+                  <stop offset=".55" stop-color="#5DCAA5"/><stop offset=".78" stop-color="#F0E48C"/>
+                  <stop offset="1" stop-color="#ED93B1"/>
+                </linearGradient>
+                <linearGradient id="fadeArrow" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="var(--green)" stop-opacity="0"/>
+                  <stop offset="1" stop-color="var(--green)"/>
+                </linearGradient>
+              </defs>
+
+              <g fill="none" stroke="var(--rule-hi)" stroke-width="1" opacity=".55">
+                <circle cx="210" cy="125" r="112"/><circle cx="210" cy="125" r="84"/>
+              </g>
+
+              <!-- the trade cycle -->
+              <path d="M126 88 A96 96 0 0 1 268 60" fill="none" stroke="url(#fadeArrow)"
+                    stroke-width="3" stroke-linecap="round"/>
+              <path d="M262 52 L276 62 L260 70 Z" fill="var(--green)"/>
+              <path d="M294 162 A96 96 0 0 1 152 190" fill="none" stroke="url(#fadeArrow)"
+                    stroke-width="3" stroke-linecap="round"/>
+              <path d="M158 198 L144 188 L160 180 Z" fill="var(--green)"/>
+
+              <!-- two traders -->
+              <g fill="var(--ink-3)">
+                <circle cx="58" cy="112" r="12"/>
+                <path d="M38 148 a20 20 0 0 1 40 0 z"/>
+                <circle cx="362" cy="112" r="12"/>
+                <path d="M342 148 a20 20 0 0 1 40 0 z"/>
+              </g>
+
+              <!-- the backed token -->
+              <g>
+                <rect x="158" y="76" width="104" height="104" rx="18"
+                      fill="var(--raise)" stroke="var(--rule-hi)" stroke-width="1"/>
+                <path d="M158 94 a18 18 0 0 1 18-18 h68 a18 18 0 0 1 18 18 v14 h-104 z"
+                      fill="url(#holoFace)" opacity=".92"/>
+                <text x="210" y="140" text-anchor="middle" fill="var(--ink)"
+                      font-family="IBM Plex Mono, monospace" font-size="12"
+                      font-weight="500" letter-spacing="1.2">BACKED</text>
+                <text x="210" y="160" text-anchor="middle" fill="var(--green)"
+                      font-family="IBM Plex Mono, monospace" font-size="10"
+                      letter-spacing="1.2">0.008 ETH</text>
+              </g>
+
+              <text x="210" y="234" text-anchor="middle" fill="var(--ink-3)"
+                    font-family="IBM Plex Mono, monospace" font-size="9"
+                    letter-spacing="1.6">REDEEMABLE AT ANY TIME</text>
+            </svg>
+          </div>
+          <div class="win-body">
+            <p>Trade knowing every Orion carries a value you can claim at any time.
+            <b>No guessing at floor prices. No becoming somebody's exit liquidity.</b></p>
+          </div>
+        </article>
+
+      </div>
+    </section>
 
     <!-- ================= LBT ================= -->
     <section class="sec" id="lbt">
