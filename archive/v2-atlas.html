@@ -1,0 +1,1093 @@
+<title>Orion Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Barlow:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* ===================================================================
+     ORION ATLAS
+     A celestial chart, not a landing page. Single-theme by intent — an
+     atlas plate is printed dark — so every colour is painted explicitly
+     and the page holds on either host ground.
+     =================================================================== */
+  :root {
+    --ink:      #080A0F;   /* printed ground */
+    --plate:    #0D1017;
+    --raise:    #131824;
+    --rule:     #1E2433;
+    --rule-hi:  #303A50;
+    --bone:     #EDE7DA;   /* warm paper white — the whole point */
+    --bone-dim: #A9A496;
+    --slate:    #6E7789;
+    --brass:    #C9A063;
+    --brass-hi: #E8CB98;
+    --star:     #9FC9FF;
+    --verd:     #6FBFA0;
+    --alarm:    #D98878;
+
+    --serif: "EB Garamond", "Adobe Garamond", Georgia, serif;
+    --sans:  "Barlow", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, Consolas, monospace;
+
+    --rail: 74px;
+    --gut: clamp(22px, 4.4vw, 64px);
+    --maxw: 1300px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--bone);
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  ::selection { background: rgba(201,160,99,.3); color: var(--bone); }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 1px solid var(--brass); outline-offset: 4px; }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding-inline: var(--gut);
+  }
+
+  /* engraved label — used everywhere a chart would caption something */
+  .cap {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--slate);
+  }
+
+  /* ---------- LEFT INSTRUMENT RAIL ---------- */
+  .rail {
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--rail);
+    border-right: 1px solid var(--rule);
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: space-between; padding: 22px 0;
+    z-index: 50; background: var(--ink);
+  }
+  .rail-mark {
+    writing-mode: vertical-rl;
+    font-family: var(--serif); font-size: 17px; letter-spacing: .42em;
+    color: var(--bone); text-transform: uppercase;
+  }
+  .rail-read {
+    writing-mode: vertical-rl;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .22em;
+    color: var(--slate); text-align: right;
+  }
+  .rail-read b { color: var(--brass); font-weight: 400; }
+  @media (max-width: 880px) { .rail { display: none; } :root { --rail: 0px; } }
+
+  .shift { margin-left: var(--rail); }
+
+  /* ---------- TOP BAR ---------- */
+  .top {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 30px;
+    padding: 15px var(--gut);
+    border-bottom: 1px solid var(--rule);
+    background: rgba(8,10,15,.86);
+    backdrop-filter: blur(16px);
+  }
+  .top nav { display: flex; gap: 28px; margin-right: auto; }
+  .top nav a {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--slate); transition: color .25s;
+  }
+  .top nav a:hover { color: var(--bone); }
+
+  .btn {
+    font-family: var(--mono);
+    font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+    padding: 11px 20px; border-radius: 0;
+    border: 1px solid var(--rule-hi); background: transparent;
+    color: var(--bone); cursor: pointer;
+    transition: border-color .25s, background .25s, color .25s;
+  }
+  .btn:hover { border-color: var(--brass); color: var(--brass-hi); }
+  .btn-solid {
+    background: var(--bone); color: var(--ink); border-color: var(--bone);
+    font-weight: 500;
+  }
+  .btn-solid:hover { background: var(--brass-hi); border-color: var(--brass-hi); color: var(--ink); }
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed; color: var(--slate); border-color: var(--rule);
+    border-style: dashed;
+  }
+  .btn[aria-disabled="true"]:hover { color: var(--slate); border-color: var(--rule); }
+  .btn-full { width: 100%; padding: 15px; }
+
+  /* ---------- HERO / PLATE ---------- */
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .92fr);
+    gap: clamp(32px, 5vw, 76px);
+    align-items: center;
+    padding: clamp(48px, 7vw, 96px) 0 clamp(40px, 6vw, 76px);
+  }
+  @media (max-width: 940px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; }
+    .plate-holder { order: -1; }
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(46px, 7.4vw, 92px);
+    line-height: .96;
+    letter-spacing: -.012em;
+    margin: 20px 0 0;
+    text-wrap: balance;
+  }
+  h1 i { font-style: italic; color: var(--brass-hi); }
+
+  .lede {
+    font-size: clamp(15.5px, 1.3vw, 17.5px);
+    color: var(--bone-dim);
+    max-width: 48ch;
+    margin: 22px 0 0;
+  }
+  .lede b { color: var(--bone); font-weight: 500; }
+
+  .acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; align-items: center; }
+  .gate-note {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--slate);
+  }
+
+  .plate-holder { position: relative; display: grid; place-items: center; }
+  #plate { width: 100%; height: auto; display: block; max-width: 620px; }
+  .plate-cap {
+    position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* ---------- READINGS STRIP ---------- */
+  .readings {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+  }
+  .reading { padding: 22px 26px; border-left: 1px solid var(--rule); }
+  .reading:first-child { border-left: none; }
+  .reading dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--slate); }
+  .reading dd {
+    margin: 6px 0 0; font-family: var(--serif); font-size: 32px;
+    font-variant-numeric: tabular-nums; letter-spacing: -.01em; color: var(--bone);
+  }
+  .reading dd span { font-family: var(--mono); font-size: 11px; color: var(--slate); letter-spacing: .1em; margin-left: 5px; }
+
+  /* ---------- PLATES (sections) ---------- */
+  .sec { padding: clamp(72px, 9vw, 128px) 0; border-bottom: 1px solid var(--rule); }
+  .sec-head { display: grid; grid-template-columns: 150px 1fr; gap: 30px; margin-bottom: 52px; }
+  @media (max-width: 760px) { .sec-head { grid-template-columns: 1fr; gap: 12px; } }
+  .sec-head h2 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(32px, 4.4vw, 50px); line-height: 1.06;
+    margin: 0; text-wrap: balance; max-width: 20ch;
+  }
+  .sec-head .side { padding-top: 10px; }
+  .sec-body { display: grid; grid-template-columns: 150px 1fr; gap: 30px; }
+  @media (max-width: 760px) { .sec-body { grid-template-columns: 1fr; } }
+  .sec-body > p { color: var(--bone-dim); max-width: 58ch; margin: 0 0 34px; grid-column: 2; }
+  @media (max-width: 760px) { .sec-body > p { grid-column: 1; } }
+
+  .charts { grid-column: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  @media (max-width: 900px) { .charts { grid-template-columns: 1fr; grid-column: 1; } }
+  .chartbox { border: 1px solid var(--rule); padding: 22px; background: var(--plate); }
+  .chartbox .cap { display: block; margin-bottom: 4px; }
+  .chartbox .val {
+    font-family: var(--serif); font-size: 27px; font-variant-numeric: tabular-nums;
+    margin-bottom: 14px;
+  }
+  .chartbox .val em { font-family: var(--mono); font-size: 11px; font-style: normal; color: var(--slate); letter-spacing: .1em; }
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .key { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+  .key span { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; color: var(--slate); text-transform: uppercase; }
+  .key i { width: 13px; height: 2px; }
+
+  /* staking — an engraved table, because it is a schedule */
+  .sched { grid-column: 2; border: 1px solid var(--rule); }
+  @media (max-width: 760px) { .sched { grid-column: 1; } }
+  .row {
+    display: grid; grid-template-columns: 62px 1fr 190px;
+    gap: 24px; padding: 22px 24px; border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+  .row:last-child { border-bottom: none; }
+  @media (max-width: 640px) { .row { grid-template-columns: 46px 1fr; } .row .fig { grid-column: 2; } }
+  .row .idx { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--brass); }
+  .row h4 { font-family: var(--serif); font-size: 21px; font-weight: 400; margin: 0 0 4px; }
+  .row p { margin: 0; font-size: 14px; color: var(--slate); line-height: 1.6; }
+  .row .fig {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .1em;
+    color: var(--bone-dim); text-align: right;
+  }
+  @media (max-width: 640px) { .row .fig { text-align: left; margin-top: 8px; } }
+
+  .cols { grid-column: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  @media (max-width: 760px) { .cols { grid-column: 1; } }
+  .col { background: var(--ink); padding: 26px 24px; }
+  .col h4 { font-family: var(--serif); font-size: 23px; font-weight: 400; margin: 12px 0 8px; }
+  .col p { margin: 0; font-size: 14px; color: var(--slate); line-height: 1.62; }
+
+  /* ---------- CLOSER ---------- */
+  .closer { padding: clamp(80px, 10vw, 140px) 0; text-align: center; }
+  .closer h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 5.6vw, 66px); line-height: 1.04; margin: 18px 0 0; }
+  .closer h2 i { font-style: italic; color: var(--brass-hi); }
+  .closer p { color: var(--bone-dim); max-width: 44ch; margin: 20px auto 30px; }
+
+  footer {
+    border-top: 1px solid var(--rule); padding: 26px 0;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--slate);
+  }
+  footer .wrap { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+
+  /* ===================================================================
+     MODAL
+     =================================================================== */
+  .scrim {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(4,5,9,.86); backdrop-filter: blur(10px);
+    display: grid; place-items: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity .32s;
+    overflow-y: auto;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    width: min(548px, 100%); margin: auto;
+    background: var(--plate); border: 1px solid var(--rule-hi);
+    padding: 30px; position: relative;
+    transform: translateY(12px); transition: transform .34s cubic-bezier(.16,.84,.3,1);
+  }
+  .scrim.open .sheet { transform: none; }
+  .sheet-top { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+  .ticks { display: flex; gap: 5px; align-items: center; }
+  .tick { width: 18px; height: 1px; background: var(--rule-hi); transition: background .3s; }
+  .tick.on { background: var(--brass); }
+  .x {
+    margin-left: auto; width: 30px; height: 30px; border: 1px solid var(--rule-hi);
+    background: transparent; color: var(--slate); cursor: pointer;
+    display: grid; place-items: center; font-size: 14px; transition: all .2s;
+  }
+  .x:hover { color: var(--bone); border-color: var(--bone); }
+
+  .sheet h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 4.6vw, 38px); line-height: 1.08; margin: 0 0 10px; }
+  .sheet .sub { color: var(--bone-dim); margin: 0 0 24px; font-size: 15px; }
+
+  input[type="text"] {
+    width: 100%; padding: 15px 16px; border-radius: 0;
+    background: var(--ink); border: 1px solid var(--rule-hi);
+    color: var(--bone); font-family: var(--mono); font-size: 14.5px;
+    transition: border-color .2s;
+  }
+  input.pad { padding-left: 36px; }
+  input::placeholder { color: #454C5E; }
+  input:focus { border-color: var(--brass); outline: none; }
+  .field { position: relative; }
+  .field .at { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-family: var(--mono); color: var(--slate); pointer-events: none; }
+  .micro { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--slate); margin: 12px 0 20px; }
+  .note { font-size: 13px; color: var(--alarm); margin: 12px 0 0; min-height: 1px; }
+  .lbl { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--slate); display: block; margin: 18px 0 8px; }
+  .hr { height: 1px; background: var(--rule); margin: 22px 0; }
+
+  /* reading-in-progress: an instrument taking a measurement */
+  .scan { padding: 22px 0 4px; }
+  .scan-row { display: flex; align-items: center; gap: 11px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; color: var(--slate); padding: 8px 0; opacity: .32; transition: opacity .3s, color .3s; text-transform: uppercase; }
+  .scan-row.live { opacity: 1; color: var(--bone-dim); }
+  .scan-row.ok { opacity: 1; color: var(--verd); }
+  .scan-row i { width: 5px; height: 5px; background: currentColor; flex: none; }
+  .meter { height: 1px; background: var(--rule); margin-top: 16px; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--brass); transition: width .45s ease; }
+
+  .score-line { display: flex; align-items: baseline; gap: 13px; margin: 4px 0 20px; }
+  .score-val { font-family: var(--serif); font-size: 60px; font-variant-numeric: tabular-nums; line-height: 1; }
+  .score-of { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; color: var(--slate); text-transform: uppercase; }
+  .memo {
+    border: 1px solid var(--rule); border-left: 2px solid var(--alarm);
+    padding: 14px 16px; font-size: 14px; color: var(--bone-dim); margin-bottom: 20px;
+  }
+  .memo.good { border-left-color: var(--verd); }
+
+  /* ===================================================================
+     THE PASS — a milled metal plate, bone on ink. Inverted against the
+     page so it reads as a physical object handed over, not a UI panel.
+     =================================================================== */
+  .card {
+    position: relative; aspect-ratio: 1.586; overflow: hidden;
+    background: linear-gradient(128deg, #FBF7EE 0%, #D9D2C4 24%, #EFEADE 46%, #C6BFAF 70%, #F3EEE3 100%);
+    box-shadow: 0 24px 56px -20px rgba(0,0,0,.9), 0 0 0 1px rgba(0,0,0,.5);
+    margin: 2px 0 20px; isolation: isolate;
+  }
+  .card canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .34; mix-blend-mode: multiply; }
+  .card .sheen {
+    position: absolute; inset: -30%;
+    background: linear-gradient(102deg, transparent 40%, rgba(255,255,255,.6) 48%, rgba(201,160,99,.28) 53%, transparent 63%);
+    transform: translateX(var(--sx, 0px)); transition: transform .16s ease-out;
+    pointer-events: none; mix-blend-mode: overlay;
+  }
+  .card-in { position: relative; height: 100%; padding: clamp(15px, 4.2%, 26px); display: flex; flex-direction: column; color: #1A1B18; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .card-mark { font-family: var(--serif); font-size: clamp(13px, 3.4vw, 18px); letter-spacing: .2em; text-transform: uppercase; }
+  .card-kind { font-family: var(--mono); font-size: clamp(6.5px, 1.7vw, 8.5px); letter-spacing: .26em; text-transform: uppercase; text-align: right; color: #5C574A; }
+  .chip {
+    width: clamp(26px, 7.4%, 38px); aspect-ratio: 1.32; margin: auto 0 10px;
+    background: linear-gradient(135deg, #E4CE9A, #A98B45 46%, #8B7132 54%, #DCC48C);
+    box-shadow: 0 1px 1px rgba(0,0,0,.35); position: relative;
+  }
+  .chip::after {
+    content: ""; position: absolute; inset: 20% 13%;
+    border: .5px solid rgba(0,0,0,.4);
+    background:
+      linear-gradient(90deg, transparent 46%, rgba(0,0,0,.4) 46%, rgba(0,0,0,.4) 54%, transparent 54%),
+      linear-gradient(180deg, transparent 46%, rgba(0,0,0,.4) 46%, rgba(0,0,0,.4) 54%, transparent 54%);
+  }
+  .card-handle {
+    font-family: var(--serif); font-size: clamp(19px, 6.2vw, 34px);
+    line-height: 1; letter-spacing: .005em; word-break: break-all;
+    text-shadow: 0 1px 0 rgba(255,255,255,.7);
+  }
+  .card-tier { font-family: var(--mono); font-size: clamp(7.5px, 1.9vw, 9.5px); letter-spacing: .26em; text-transform: uppercase; color: #6B5C35; margin-top: 7px; }
+  .card-rule { height: 1px; background: rgba(26,27,24,.28); margin: clamp(9px, 2.8%, 15px) 0; }
+  .card-foot {
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 10px;
+    font-family: var(--mono); font-size: clamp(7px, 1.8vw, 9px);
+    letter-spacing: .16em; text-transform: uppercase; color: #4E4A3F;
+  }
+  .card-foot b { color: #1A1B18; font-weight: 500; }
+  .card-foot .r { text-align: right; }
+
+  /* ---------- TASKS ---------- */
+  .tasks { display: flex; flex-direction: column; }
+  .task {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    background: transparent; border: 0; border-bottom: 1px solid var(--rule);
+    padding: 14px 2px; cursor: pointer; color: var(--bone); font-family: var(--sans);
+    transition: padding-left .2s, background .2s;
+  }
+  .task:hover { padding-left: 8px; background: rgba(201,160,99,.04); }
+  .task .n {
+    width: 22px; height: 22px; flex: none; border: 1px solid var(--rule-hi);
+    display: grid; place-items: center; font-family: var(--mono); font-size: 10px;
+    color: var(--slate); transition: all .25s;
+  }
+  .task.done .n { background: var(--verd); border-color: var(--verd); color: var(--ink); }
+  .task .t strong { display: block; font-size: 14.5px; font-weight: 500; }
+  .task .t span { font-size: 12.5px; color: var(--slate); }
+  .task .go { margin-left: auto; color: var(--slate); font-family: var(--mono); font-size: 12px; }
+
+  .seal { width: 54px; height: 54px; margin: 0 auto 20px; border: 1px solid var(--verd); border-radius: 50%; display: grid; place-items: center; }
+  .center { text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  @media (max-width: 620px) { .top nav { display: none; } .sheet { padding: 22px; } }
+</style>
+
+<aside class="rail" aria-hidden="true">
+  <span class="rail-mark">Orion</span>
+  <span class="rail-read" id="railRead">RA 05<b>h</b> 35<b>m</b> · DEC −05° 23′</span>
+</aside>
+
+<div class="shift">
+  <header class="top">
+    <nav>
+      <a href="#treasury">I. Treasury</a>
+      <a href="#staking">II. Staking</a>
+      <a href="#utility">III. Utility</a>
+    </nav>
+    <button class="btn" aria-disabled="true" title="Minting has not opened">Mint — Soon</button>
+    <button class="btn btn-solid" data-open>Join Waitlist</button>
+  </header>
+
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <p class="cap">Plate 0 — Orion · The Hunter · 594 sq. deg.</p>
+        <h1>Three thousand<br>three hundred<br>and thirty&#8209;three<br><i>constellations.</i></h1>
+        <p class="lede">
+          Every Orion is backed by real ETH held in treasury. Not a promise about
+          future value — <b>a redeemable claim you can exercise today</b>, at a number
+          published on-chain that only moves upward.
+        </p>
+        <div class="acts">
+          <button class="btn btn-solid" data-open>Join the Waitlist</button>
+          <button class="btn" aria-disabled="true">Mint — Coming Soon</button>
+          <span class="gate-note">Sorsa Score 300+</span>
+        </div>
+      </div>
+      <div class="plate-holder">
+        <canvas id="plate" width="1240" height="1240" aria-label="Planisphere showing the constellation Orion with a degree bezel and coordinate grid"></canvas>
+        <span class="cap plate-cap" id="plateCap">Epoch J2000 · Equatorial</span>
+      </div>
+    </section>
+  </div>
+
+  <div class="wrap">
+    <dl class="readings">
+      <div class="reading"><dt>Supply</dt><dd>3,333</dd></div>
+      <div class="reading"><dt>Treasury</dt><dd>3,000<span>ETH</span></dd></div>
+      <div class="reading"><dt>Backing / Orion</dt><dd>0.90<span>ETH</span></dd></div>
+      <div class="reading"><dt>Royalty to Stakers</dt><dd>90<span>%</span></dd></div>
+    </dl>
+  </div>
+
+  <main class="wrap">
+    <!-- ============ PLATE I ============ -->
+    <section class="sec" id="treasury">
+      <div class="sec-head">
+        <div class="side"><span class="cap">Plate I</span></div>
+        <h2>The floor is a number, not a mood.</h2>
+      </div>
+      <div class="sec-body">
+        <p>
+          Mint proceeds and royalties collect in the Liquid Backing Treasury. Divide it by
+          supply and you have the backing per Orion — a figure anyone can verify and no one
+          can talk down. Redeem whenever you like: the treasury pays your share in ETH, burns
+          the token, and the backing for everyone still holding goes up.
+        </p>
+        <div class="charts">
+          <div class="chartbox">
+            <span class="cap">Market floor against backing floor</span>
+            <div class="val">1.24 <em>ETH market · 0.90 backed</em></div>
+            <svg class="chart" viewBox="0 0 440 210" role="img" aria-label="Market floor oscillates between 0.95 and 1.24 ETH while the backing floor rises steadily from 0.62 to 0.90 ETH.">
+              <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#6E7789">
+                <text x="0" y="24">1.30</text><text x="0" y="66">1.05</text>
+                <text x="0" y="108">0.80</text><text x="0" y="150">0.55</text><text x="0" y="184">0.30</text>
+              </g>
+              <g stroke="#1E2433" stroke-width="1">
+                <line x1="34" y1="20" x2="436" y2="20"/><line x1="34" y1="62" x2="436" y2="62"/>
+                <line x1="34" y1="104" x2="436" y2="104"/><line x1="34" y1="146" x2="436" y2="146"/>
+                <line x1="34" y1="180" x2="436" y2="180"/>
+              </g>
+              <path d="M34 92 C 78 70, 94 112, 126 88 C 162 62, 180 104, 216 80 C 252 58, 270 92, 306 68 C 344 46, 368 80, 404 56 L436 48"
+                    fill="none" stroke="#9FC9FF" stroke-width="1.6"/>
+              <path d="M34 150 L126 141 L216 129 L306 117 L436 105"
+                    fill="none" stroke="#C9A063" stroke-width="2.2"/>
+              <circle cx="436" cy="48" r="3" fill="#9FC9FF"/>
+              <circle cx="436" cy="105" r="3" fill="#C9A063"/>
+              <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#6E7789" text-anchor="middle">
+                <text x="34" y="200">9 NOV</text><text x="155" y="200">17 NOV</text>
+                <text x="290" y="200">30 NOV</text><text x="424" y="200">1 DEC</text>
+              </g>
+            </svg>
+            <div class="key">
+              <span><i style="background:#9FC9FF"></i>Market</span>
+              <span><i style="background:#C9A063"></i>Backing</span>
+            </div>
+          </div>
+
+          <div class="chartbox">
+            <span class="cap">Backing per Orion</span>
+            <div class="val">0.90 <em>ETH · monotonic</em></div>
+            <svg class="chart" viewBox="0 0 440 210" role="img" aria-label="Backing per Orion rising from 0.62 to 0.90 ETH across the period.">
+              <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#6E7789">
+                <text x="0" y="24">0.95</text><text x="0" y="66">0.86</text>
+                <text x="0" y="108">0.77</text><text x="0" y="150">0.68</text><text x="0" y="184">0.59</text>
+              </g>
+              <g stroke="#1E2433" stroke-width="1">
+                <line x1="34" y1="20" x2="436" y2="20"/><line x1="34" y1="62" x2="436" y2="62"/>
+                <line x1="34" y1="104" x2="436" y2="104"/><line x1="34" y1="146" x2="436" y2="146"/>
+                <line x1="34" y1="180" x2="436" y2="180"/>
+              </g>
+              <path d="M34 168 L114 142 L194 112 L274 82 L356 56 L436 34 L436 180 L34 180 Z" fill="#C9A063" opacity=".1"/>
+              <path d="M34 168 L114 142 L194 112 L274 82 L356 56 L436 34" fill="none" stroke="#C9A063" stroke-width="2.2"/>
+              <g fill="#C9A063">
+                <circle cx="114" cy="142" r="2.4"/><circle cx="194" cy="112" r="2.4"/>
+                <circle cx="274" cy="82" r="2.4"/><circle cx="356" cy="56" r="2.4"/><circle cx="436" cy="34" r="3.4"/>
+              </g>
+              <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="#6E7789" text-anchor="middle">
+                <text x="34" y="200">9 NOV</text><text x="155" y="200">17 NOV</text>
+                <text x="290" y="200">30 NOV</text><text x="424" y="200">1 DEC</text>
+              </g>
+            </svg>
+            <div class="key"><span>Redemption burns supply · raises the rest</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PLATE II ============ -->
+    <section class="sec" id="staking">
+      <div class="sec-head">
+        <div class="side"><span class="cap">Plate II</span></div>
+        <h2>Stake it, and the royalties come to you.</h2>
+      </div>
+      <div class="sec-body">
+        <p>
+          Stakers take 90% of external royalty income plus 100 points per day, per token.
+          Points are the weighting: they decide the size of your slice. Stake earlier and you
+          compound sooner; stake longer and you hold more of the weight.
+        </p>
+        <div class="sched">
+          <div class="row">
+            <span class="idx">01</span>
+            <div><h4>Deposit</h4><p>Lock your Orion into the vault. Still yours — withdraw at will.</p></div>
+            <span class="fig">NO LOCK-UP</span>
+          </div>
+          <div class="row">
+            <span class="idx">02</span>
+            <div><h4>Accrue</h4><p>Each staked token earns points every day it stays in.</p></div>
+            <span class="fig">100 PTS / DAY / NFT</span>
+          </div>
+          <div class="row">
+            <span class="idx">03</span>
+            <div><h4>Distribute</h4><p>External royalty income is split across staked tokens by points held.</p></div>
+            <span class="fig">90% OF ROYALTIES</span>
+          </div>
+          <div class="row">
+            <span class="idx">04</span>
+            <div><h4>Claim or compound</h4><p>Take the yield, or leave it and let the weighting climb.</p></div>
+            <span class="fig">ANY TIME</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PLATE III ============ -->
+    <section class="sec" id="utility">
+      <div class="sec-head">
+        <div class="side"><span class="cap">Plate III</span></div>
+        <h2>Liquidity without letting go.</h2>
+      </div>
+      <div class="sec-body">
+        <div class="cols">
+          <div class="col">
+            <span class="cap">Borrow</span>
+            <h4>Against the backing</h4>
+            <p>A hard redeemable value makes unusually clean collateral. Draw ETH against your token without selling it; repay to release.</p>
+          </div>
+          <div class="col">
+            <span class="cap">Rent</span>
+            <h4>Lend the access</h4>
+            <p>Rent your Orion for a fixed term. The renter gets holder benefits, you keep ownership and the backing, and it returns automatically.</p>
+          </div>
+          <div class="col">
+            <span class="cap">Redeem</span>
+            <h4>Exit at backing</h4>
+            <p>Burn the token, take its share of treasury in ETH. Supply falls, backing per remaining token rises. The door stays open — that is the point.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closer">
+      <span class="cap">Waitlist open · Mint date to be announced</span>
+      <h2>Take your place<br>in the <i>sky</i>.</h2>
+      <p>Passes are issued to accounts scoring 300 or above on Sorsa. Bring your handle.</p>
+      <button class="btn btn-solid" data-open>Check Eligibility</button>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Orion Collective · MMXXVI</span>
+      <span id="claimCount">Waitlist open</span>
+    </div>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet">
+    <div class="sheet-top">
+      <div class="ticks"><i class="tick on" id="t1"></i><i class="tick" id="t2"></i><i class="tick" id="t3"></i></div>
+      <span class="cap" id="stepLabel">Step 1 / 3</span>
+      <button class="x" id="closeBtn" aria-label="Close">✕</button>
+    </div>
+    <div id="body"></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   THE PLANISPHERE
+   A real chart, drawn as one: a fixed degree bezel with the sky
+   rotating slowly inside it, an equatorial grid, and Orion's eight
+   named stars sized by their actual apparent magnitude.
+   ===================================================================== */
+(function () {
+  const cv = document.getElementById('plate');
+  const g = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const capEl = document.getElementById('plateCap');
+  const railEl = document.getElementById('railRead');
+
+  /* name · x,y within the plate · apparent magnitude · spectral tint */
+  const STARS = [
+    { n: 'Meissa',     x: .470, y: .105, m: 3.54, c: '#CBDDFF' },
+    { n: 'Betelgeuse', x: .292, y: .268, m: 0.45, c: '#FFBE93' },
+    { n: 'Bellatrix',  x: .648, y: .238, m: 1.64, c: '#CCE0FF' },
+    { n: 'Mintaka',    x: .600, y: .512, m: 2.20, c: '#DCEBFF' },
+    { n: 'Alnilam',    x: .516, y: .536, m: 1.69, c: '#E6F1FF' },
+    { n: 'Alnitak',    x: .436, y: .562, m: 1.77, c: '#DCEBFF' },
+    { n: 'Saiph',      x: .360, y: .812, m: 2.09, c: '#D4E5FF' },
+    { n: 'Rigel',      x: .716, y: .838, m: 0.13, c: '#EDF4FF' }
+  ];
+  const LINKS = [[0,1],[0,2],[1,2],[1,5],[2,3],[5,4],[4,3],[5,6],[3,7]];
+  /* the sword, hanging from the belt — faint, and the reason Orion is
+     the most-observed patch of sky there is (M42 sits here) */
+  const SWORD = [{ x: .468, y: .640, m: 4.0 }, { x: .462, y: .690, m: 3.4 }, { x: .456, y: .742, m: 4.6 }];
+
+  let S = 0, DPR = 1, dust = [], t0 = performance.now();
+  const ptr = { x: 0, y: 0, on: false };
+
+  function layout() {
+    DPR = Math.min(devicePixelRatio || 1, 2.5);
+    const r = cv.getBoundingClientRect();
+    S = r.width;
+    cv.width = S * DPR; cv.height = S * DPR;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    dust = [];
+    for (let i = 0; i < 420; i++) {
+      const a = Math.random() * 6.2832, rr = Math.sqrt(Math.random());
+      dust.push({ a, rr, s: .28 + Math.random() * .9, o: .12 + Math.random() * .5, ph: Math.random() * 6.28 });
+    }
+  }
+
+  function glow(x, y, rad, alpha, col) {
+    const grd = g.createRadialGradient(x, y, 0, x, y, rad * 8);
+    grd.addColorStop(0, col);
+    grd.addColorStop(.16, `rgba(159,201,255,${alpha * .42})`);
+    grd.addColorStop(1, 'rgba(120,170,255,0)');
+    g.globalAlpha = alpha; g.fillStyle = grd;
+    g.beginPath(); g.arc(x, y, rad * 8, 0, 6.2832); g.fill();
+    g.globalAlpha = Math.min(1, alpha * 1.55); g.fillStyle = col;
+    g.beginPath(); g.arc(x, y, rad, 0, 6.2832); g.fill();
+    g.globalAlpha = 1;
+  }
+
+  function frame(now) {
+    const t = (now - t0) / 1000;
+    const C = S / 2;
+    const Rout = S * .478;        // bezel outer
+    const Rin  = S * .404;        // chart field
+    const spin = reduce ? 0 : t * 0.0085;   // the sky turns, slowly
+
+    g.clearRect(0, 0, S, S);
+
+    /* --- chart field --- */
+    g.save();
+    g.beginPath(); g.arc(C, C, Rin, 0, 6.2832); g.clip();
+
+    const grd = g.createRadialGradient(C, C * .82, 0, C, C, Rin);
+    grd.addColorStop(0, '#141C2B');
+    grd.addColorStop(.55, '#0C111B');
+    grd.addColorStop(1, '#080A0F');
+    g.fillStyle = grd; g.fillRect(0, 0, S, S);
+
+    /* equatorial grid — declination circles and RA spokes */
+    g.strokeStyle = 'rgba(48,58,80,.5)'; g.lineWidth = .6;
+    for (let k = 1; k <= 3; k++) {
+      g.beginPath(); g.arc(C, C, Rin * k / 3.6, 0, 6.2832); g.stroke();
+    }
+    for (let k = 0; k < 12; k++) {
+      const a = spin + k * Math.PI / 6;
+      g.beginPath(); g.moveTo(C, C);
+      g.lineTo(C + Math.cos(a) * Rin, C + Math.sin(a) * Rin); g.stroke();
+    }
+
+    /* star dust, rotating with the field */
+    for (const d of dust) {
+      const a = d.a + spin, rr = d.rr * Rin;
+      const tw = reduce ? 1 : .7 + .3 * Math.sin(t * 1.2 + d.ph);
+      glow(C + Math.cos(a) * rr, C + Math.sin(a) * rr, d.s, d.o * tw, 'rgba(223,235,255,.9)');
+    }
+
+    /* Orion — the plate rotates as one body */
+    const place = (s) => {
+      const dx = (s.x - .5) * Rin * 1.86, dy = (s.y - .5) * Rin * 1.86;
+      const ca = Math.cos(spin), sa = Math.sin(spin);
+      return { X: C + dx * ca - dy * sa, Y: C + dx * sa + dy * ca };
+    };
+    const P = STARS.map(s => ({ ...s, ...place(s) }));
+
+    const intro = reduce ? 1 : Math.min(1, Math.max(0, (t - .3) / 2.4));
+    const eased = 1 - Math.pow(1 - intro, 3);
+
+    g.lineCap = 'round';
+    LINKS.forEach((L, i) => {
+      const a = P[L[0]], b = P[L[1]];
+      const seg = Math.min(1, Math.max(0, eased * LINKS.length - i));
+      if (seg <= 0) return;
+      g.strokeStyle = 'rgba(201,160,99,.42)'; g.lineWidth = .9;
+      g.beginPath(); g.moveTo(a.X, a.Y);
+      g.lineTo(a.X + (b.X - a.X) * seg, a.Y + (b.Y - a.Y) * seg); g.stroke();
+    });
+
+    SWORD.forEach(s => {
+      const p = place(s);
+      glow(p.X, p.Y, Math.max(.5, 1.5 - s.m * .26), .5 * eased, 'rgba(214,196,255,.9)');
+    });
+
+    P.forEach((s, i) => {
+      const ig = reduce ? 1 : Math.min(1, Math.max(0, (t - .15 - i * .15) / .85));
+      if (ig <= 0) return;
+      const br = Math.max(.4, 1.2 - s.m * .21);
+      const tw = reduce ? 1 : .88 + .12 * Math.sin(t * 1.5 + i * 1.3);
+      glow(s.X, s.Y, (1.3 + br * 2.4) * ig, Math.min(1, br * ig) * tw, s.c);
+      if (s.m < 1.7 && ig > .6) {                 /* spikes on the bright ones */
+        g.save(); g.globalAlpha = .34 * ig; g.strokeStyle = s.c; g.lineWidth = .55;
+        const L = (1.3 + br * 2.4) * 7;
+        g.beginPath();
+        g.moveTo(s.X - L, s.Y); g.lineTo(s.X + L, s.Y);
+        g.moveTo(s.X, s.Y - L); g.lineTo(s.X, s.Y + L);
+        g.stroke(); g.restore();
+      }
+    });
+    g.restore();
+
+    /* --- bezel: fixed, engraved, brass --- */
+    g.strokeStyle = 'rgba(201,160,99,.34)'; g.lineWidth = 1;
+    g.beginPath(); g.arc(C, C, Rin, 0, 6.2832); g.stroke();
+    g.strokeStyle = 'rgba(201,160,99,.5)';
+    g.beginPath(); g.arc(C, C, Rout, 0, 6.2832); g.stroke();
+    g.strokeStyle = 'rgba(201,160,99,.16)';
+    g.beginPath(); g.arc(C, C, Rout - 5, 0, 6.2832); g.stroke();
+
+    for (let deg = 0; deg < 360; deg += 2) {
+      const a = (deg - 90) * Math.PI / 180;
+      const major = deg % 30 === 0, mid = deg % 10 === 0;
+      const len = major ? 13 : mid ? 8 : 4;
+      g.strokeStyle = major ? 'rgba(232,203,152,.8)' : 'rgba(201,160,99,.34)';
+      g.lineWidth = major ? 1.1 : .6;
+      g.beginPath();
+      g.moveTo(C + Math.cos(a) * (Rin + 2), C + Math.sin(a) * (Rin + 2));
+      g.lineTo(C + Math.cos(a) * (Rin + 2 + len), C + Math.sin(a) * (Rin + 2 + len));
+      g.stroke();
+      if (major) {
+        g.save();
+        g.fillStyle = 'rgba(237,231,218,.62)';
+        g.font = `500 ${Math.max(8, S * .0165)}px "IBM Plex Mono", monospace`;
+        g.textAlign = 'center'; g.textBaseline = 'middle';
+        g.fillText(String(deg).padStart(3, '0'),
+                   C + Math.cos(a) * (Rout - 15), C + Math.sin(a) * (Rout - 15));
+        g.restore();
+      }
+    }
+
+    /* cursor readout — the plate behaves like an instrument */
+    if (ptr.on) {
+      const dx = ptr.x - C, dy = ptr.y - C, dist = Math.hypot(dx, dy);
+      if (dist < Rin) {
+        g.strokeStyle = 'rgba(159,201,255,.34)'; g.lineWidth = .6;
+        g.setLineDash([3, 4]);
+        g.beginPath();
+        g.moveTo(C, C); g.lineTo(ptr.x, ptr.y);
+        g.stroke(); g.setLineDash([]);
+        g.strokeStyle = 'rgba(159,201,255,.6)';
+        g.beginPath(); g.arc(ptr.x, ptr.y, 9, 0, 6.2832); g.stroke();
+        const bear = ((Math.atan2(dy, dx) * 180 / Math.PI) + 450) % 360;
+        const decl = (1 - dist / Rin) * 90;
+        capEl.textContent = `AZ ${bear.toFixed(1).padStart(5, '0')}° · ALT ${decl.toFixed(1)}° · J2000`;
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  cv.addEventListener('pointermove', e => {
+    const r = cv.getBoundingClientRect();
+    ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; ptr.on = true;
+  });
+  cv.addEventListener('pointerleave', () => {
+    ptr.on = false; capEl.textContent = 'Epoch J2000 · Equatorial';
+  });
+  addEventListener('resize', layout);
+  layout();
+  requestAnimationFrame(frame);
+
+  /* the rail carries Orion's real catalogue position */
+  if (railEl) {
+    const seq = ['RA 05ʰ 35ᵐ · DEC −05° 23′', 'M42 · ORION NEBULA · 1,344 ly',
+                 'BETELGEUSE · α ORI · MAG 0.45', 'RIGEL · β ORI · MAG 0.13'];
+    let i = 0;
+    if (!reduce) setInterval(() => {
+      i = (i + 1) % seq.length; railEl.textContent = seq[i];
+    }, 4200);
+  }
+})();
+
+
+/* =====================================================================
+   WAITLIST
+   ===================================================================== */
+const SUPPLY = 3333, GATE = 300;
+
+function tierFor(s) {
+  if (s >= 1500) return { n: 'Luminary',  d: 'First magnitude.' };
+  if (s >= 800)  return { n: 'Navigator', d: 'Sets the course.' };
+  if (s >= 500)  return { n: 'Voyager',   d: 'Well past the gate.' };
+  return { n: 'Observer', d: 'Eyes already up.' };
+}
+
+/* The published page runs sandboxed with no outbound network, so a live
+   Sorsa call cannot happen here. Point SCORE_API at your own /api/score
+   proxy when hosting this yourself and it switches over automatically.
+   Until then this returns a stable stand-in derived from the handle —
+   repeatable, demonstrable, and NOT a real reading. */
+const SCORE_API = "";
+
+async function sorsaScore(handle) {
+  if (SCORE_API) {
+    const r = await fetch(`${SCORE_API}?handle=${encodeURIComponent(handle)}`);
+    if (!r.ok) throw new Error(r.status === 404 ? 'no-account' : 'lookup-failed');
+    return { score: Math.round((await r.json()).score), real: true };
+  }
+  let h = 2166136261;
+  for (const c of handle.toLowerCase()) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  return { score: 60 + (h % 1900), real: false };
+}
+
+let S2 = { handle: '', score: 0, real: false, tier: null, pass: 0, serial: '' };
+let DB = null;
+claude?.use?.('db').then(d => { DB = d; refreshCount(); }).catch(() => {});
+
+const scrim = document.getElementById('scrim');
+const body  = document.getElementById('body');
+const label = document.getElementById('stepLabel');
+const ticks = [document.getElementById('t1'), document.getElementById('t2'), document.getElementById('t3')];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+function setStep(n) {
+  label.textContent = `Step ${n} / 3`;
+  ticks.forEach((t, i) => t.className = 'tick' + (i < n ? ' on' : ''));
+}
+function open() { scrim.classList.add('open'); document.body.style.overflow = 'hidden'; setStep(1); step1(); }
+function close() { scrim.classList.remove('open'); document.body.style.overflow = ''; }
+document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', open));
+document.getElementById('closeBtn').addEventListener('click', close);
+scrim.addEventListener('click', e => { if (e.target === scrim) close(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && scrim.classList.contains('open')) close(); });
+
+function step1() {
+  body.innerHTML = `
+    <h2 id="sheetTitle">Start with your handle.</h2>
+    <p class="sub">The pass is struck from it — so what you post carries your name, not an address.</p>
+    <div class="field"><span class="at">@</span>
+      <input id="handle" class="pad" type="text" placeholder="yourhandle" autocomplete="off" spellcheck="false" value="${esc(S2.handle)}"></div>
+    <p class="micro">No sign-in · No wallet yet · Nothing transacts</p>
+    <button class="btn btn-solid btn-full" id="go">Take the Reading</button>
+    <p class="note" id="err"></p>`;
+  const inp = document.getElementById('handle'), err = document.getElementById('err');
+  setTimeout(() => inp.focus(), 60);
+  const submit = () => {
+    const h = inp.value.trim().replace(/^@+/, '');
+    if (!/^[A-Za-z0-9_]{1,15}$/.test(h)) {
+      err.textContent = 'Not a valid X handle — letters, numbers and underscores, up to 15.'; return;
+    }
+    S2.handle = h; scan();
+  };
+  document.getElementById('go').addEventListener('click', submit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+}
+
+function scan() {
+  body.innerHTML = `
+    <h2>Taking the reading.</h2>
+    <p class="sub">Measuring <b style="font-family:var(--mono);color:var(--bone)">@${esc(S2.handle)}</b> against the Sorsa index.</p>
+    <div class="scan">
+      <div class="scan-row" id="r0"><i></i>Resolving account</div>
+      <div class="scan-row" id="r1"><i></i>Reading Sorsa Score</div>
+      <div class="scan-row" id="r2"><i></i>Weighing follower quality</div>
+      <div class="scan-row" id="r3"><i></i>Applying the 300 gate</div>
+      <div class="meter"><i id="fill"></i></div>
+    </div>`;
+  const rows = [0,1,2,3].map(i => document.getElementById('r' + i));
+  const fill = document.getElementById('fill');
+  let i = 0;
+  const tk = setInterval(() => {
+    if (i > 0) rows[i-1].className = 'scan-row ok';
+    if (i < rows.length) rows[i].className = 'scan-row live';
+    fill.style.width = ((i + 1) / rows.length * 100) + '%';
+    i++;
+  }, 400);
+
+  sorsaScore(S2.handle).then(({ score, real }) => setTimeout(() => {
+    clearInterval(tk); rows.forEach(r => r.className = 'scan-row ok');
+    S2.score = score; S2.real = real;
+    score >= GATE ? strike() : denied();
+  }, 1750)).catch(e => {
+    clearInterval(tk);
+    body.innerHTML = `<h2>No reading.</h2>
+      <p class="sub">${e.message === 'no-account'
+        ? 'Sorsa holds no record for that handle. Check the spelling.'
+        : 'The index did not answer. Try again shortly.'}</p>
+      <button class="btn btn-full" id="back">Another handle</button>`;
+    document.getElementById('back').addEventListener('click', step1);
+  });
+}
+
+function denied() {
+  body.innerHTML = `
+    <h2>Below the horizon.</h2>
+    <p class="sub">Passes open at ${GATE}. You are ${GATE - S2.score} short.</p>
+    <div class="score-line"><span class="score-val" style="color:var(--alarm)">${S2.score}</span>
+      <span class="score-of">/ ${GATE} required</span></div>
+    <div class="memo">Sorsa weighs <b>who</b> follows you, not how many. The number moves when
+      accounts that already carry weight in crypto start following and engaging. It re-reads
+      continuously — come back and take another reading.</div>
+    <button class="btn btn-full" id="back">Check another handle</button>`;
+  document.getElementById('back').addEventListener('click', step1);
+}
+
+function strike() {
+  setStep(2);
+  let h = 5381;
+  for (const c of S2.handle.toLowerCase()) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+  S2.pass = (h % SUPPLY) + 1;
+  S2.serial = 'ORI-' + h.toString(16).toUpperCase().padStart(8,'0').slice(0,4) + '-' +
+              ((h * 2654435761) >>> 0).toString(16).toUpperCase().slice(0,4);
+  S2.tier = tierFor(S2.score);
+
+  body.innerHTML = `
+    <span class="cap" style="color:var(--verd)">Pass struck · @${esc(S2.handle.toUpperCase())}</span>
+    <h2 style="margin-top:8px">Here it is.</h2>
+    <div class="score-line"><span class="score-val">${S2.score}</span>
+      <span class="score-of">Sorsa · ${esc(S2.tier.n)}</span></div>
+    <div class="card" id="card">
+      <canvas id="guil" width="720" height="454" aria-hidden="true"></canvas>
+      <div class="sheen"></div>
+      <div class="card-in">
+        <div class="card-top">
+          <div class="card-mark">Orion Collective</div>
+          <div class="card-kind">Founding<br>Pass</div>
+        </div>
+        <div class="chip" aria-hidden="true"></div>
+        <div class="card-handle">@${esc(S2.handle)}</div>
+        <div class="card-tier">${esc(S2.tier.n)} · ${esc(S2.tier.d)}</div>
+        <div class="card-rule"></div>
+        <div class="card-foot">
+          <div>No. <b>${String(S2.pass).padStart(4,'0')}</b> of 3,333<br>${esc(S2.serial)}</div>
+          <div class="r">Sorsa <b>${S2.score}</b><br>MMXXVI</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-solid btn-full" id="claim">Claim &amp; Submit Wallet</button>
+    <button class="btn btn-full" style="border:none;color:var(--slate);margin-top:8px" id="back">Different handle</button>`;
+
+  guilloche(document.getElementById('guil'));
+  const card = document.getElementById('card');
+  card.addEventListener('pointermove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--sx', ((e.clientX - r.left) / r.width - .5) * 200 + 'px');
+  });
+  card.addEventListener('pointerleave', () => card.style.setProperty('--sx', '0px'));
+  document.getElementById('claim').addEventListener('click', step3);
+  document.getElementById('back').addEventListener('click', () => { setStep(1); step1(); });
+}
+
+/* Guilloché — interference engraving, the technique on banknotes and
+   metal cards. Two hypotrochoids at close radii make the moiré. */
+function guilloche(cv) {
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W/2, cy = H/2;
+  g.clearRect(0,0,W,H); g.lineWidth = .55;
+  for (const o of [
+    { R:172, r:43, d:76, c:'rgba(96,80,44,.5)' },
+    { R:152, r:31, d:63, c:'rgba(70,72,80,.34)' },
+    { R:198, r:55, d:90, c:'rgba(120,100,58,.26)' }
+  ]) {
+    g.strokeStyle = o.c; g.beginPath();
+    for (let a = 0; a <= Math.PI * 2 * 29; a += .013) {
+      const k = (o.R - o.r) / o.r;
+      const x = cx + (o.R - o.r) * Math.cos(a) + o.d * Math.cos(k * a);
+      const y = cy + ((o.R - o.r) * Math.sin(a) - o.d * Math.sin(k * a)) * .62;
+      a === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+    }
+    g.stroke();
+  }
+}
+
+const TASKS = [
+  ['Quote the whitelist post', 'Opens X with your pass already written'],
+  ['Repost it', 'One tap'],
+  ['Like it', 'One tap'],
+  ['Leave a comment', 'Say something in the replies']
+];
+
+function step3() {
+  setStep(3);
+  const txt = encodeURIComponent(
+    `Orion pass No. ${String(S2.pass).padStart(4,'0')} — ${S2.tier.n}.\n` +
+    `3,333 liquid constellations, every one backed by ETH.\n\n@${S2.handle}`);
+
+  body.innerHTML = `
+    <h2>Claim it.</h2>
+    <p class="sub">Four taps on X, then the wallet that should hold the mint.</p>
+    <div class="tasks">${TASKS.map(([t,s],i)=>`
+      <button class="task" data-i="${i}"><span class="n">${i+1}</span>
+        <span class="t"><strong>${t}</strong><span>${s}</span></span><span class="go">↗</span></button>`).join('')}</div>
+    <label class="lbl" for="quote">Link to your quote</label>
+    <div class="field"><input id="quote" type="text" placeholder="https://x.com/you/status/…" autocomplete="off" spellcheck="false"></div>
+    <p class="micro">Post first, then copy the link from X</p>
+    <div class="hr"></div>
+    <label class="lbl" for="wallet">Wallet</label>
+    <div class="field"><input id="wallet" type="text" placeholder="0x0000… or yourname.eth" autocomplete="off" spellcheck="false"></div>
+    <button class="btn btn-solid btn-full" id="sub" style="margin-top:16px">Submit Wallet</button>
+    <p class="note" id="err3"></p>`;
+
+  body.querySelectorAll('.task').forEach(b => b.addEventListener('click', () => {
+    b.classList.add('done'); b.querySelector('.n').textContent = '✓';
+    window.open(b.dataset.i === '0' ? 'https://x.com/intent/post?text=' + txt : 'https://x.com/',
+                '_blank', 'noopener');
+  }));
+
+  document.getElementById('sub').addEventListener('click', async () => {
+    const q = document.getElementById('quote').value.trim();
+    const w = document.getElementById('wallet').value.trim();
+    const err = document.getElementById('err3');
+    if (!/^https?:\/\/(x|twitter)\.com\/[^/]+\/status\/\d+/i.test(q)) {
+      err.textContent = 'That does not look like an X post link. Copy it from the post you quoted.'; return;
+    }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(w) && !/^[a-z0-9-]{3,}\.eth$/i.test(w)) {
+      err.textContent = 'Enter a full 0x… address or an ENS name ending .eth.'; return;
+    }
+    err.textContent = '';
+    const btn = document.getElementById('sub');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      if (DB) await DB.doc('waitlist/' + S2.handle.toLowerCase()).set({
+        handle: S2.handle, score: S2.score, scoreVerified: S2.real, tier: S2.tier.n,
+        pass: S2.pass, serial: S2.serial, quoteUrl: q, wallet: w,
+        submittedAt: new Date().toISOString()
+      });
+      done();
+    } catch {
+      btn.disabled = false; btn.textContent = 'Submit Wallet';
+      err.textContent = 'Could not save that. Check your connection and try again.';
+    }
+  });
+}
+
+function done() {
+  body.innerHTML = `<div class="center">
+    <div class="seal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 12.6 L9.4 18 L20 6.6" stroke="#6FBFA0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2>Your place is held.</h2>
+    <p class="sub" style="max-width:38ch;margin-inline:auto">Pass
+      <b style="font-family:var(--mono);color:var(--bone)">No. ${String(S2.pass).padStart(4,'0')}</b>
+      stands against <b style="font-family:var(--mono);color:var(--bone)">@${esc(S2.handle)}</b>.
+      The mint date goes out on X.</p>
+    <div class="memo good" style="text-align:left">Spots are checked against your quote before mint.
+      Deleting the post gives up the place.</div>
+    <button class="btn btn-full" id="fin">Close</button></div>`;
+  document.getElementById('fin').addEventListener('click', close);
+  refreshCount();
+}
+
+async function refreshCount() {
+  const el = document.getElementById('claimCount');
+  if (!DB) { el.textContent = 'Waitlist open'; return; }
+  try {
+    const snap = await DB.collection('waitlist').limit(1000).get();
+    const n = snap?.docs?.length ?? 0;
+    el.textContent = n ? `${n} pass${n === 1 ? '' : 'es'} claimed` : 'Waitlist open';
+  } catch { el.textContent = 'Waitlist open'; }
+}
+</script>

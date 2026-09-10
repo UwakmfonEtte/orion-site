@@ -1,0 +1,1100 @@
+<title>Liquid Constellations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* ===================================================================
+     ORION — LIQUID CONSTELLATIONS
+     Two true states of one subject:
+       dark  = the sky as seen
+       light = the chart as printed (Uranometria was black ink on white)
+     Every token is declared on bare :root first, then redefined for the
+     system-dark case and for each explicit stamp.
+     =================================================================== */
+  :root {
+    /* --- LIGHT: engraved chart on paper --- */
+    --paper:    #F6F3EA;
+    --plate:    #FFFDF7;
+    --raise:    #EFEADD;
+    --rule:     #D8D1BF;
+    --rule-hi:  #B9AF97;
+    --ink:      #14161C;   /* body text */
+    --ink-2:    #3E4453;   /* secondary — 8.9:1 on paper */
+    --ink-3:    #5E6577;   /* tertiary  — 5.6:1 on paper */
+    --brass:    #8A6A22;
+    --brass-hi: #6B520F;
+    --star:     #2C4A78;
+    --verd:     #1E6B4F;
+    --alarm:    #A33A28;
+    --card-1:   #14171F;   /* the pass stays dark in both themes */
+    --shadow:   0 20px 46px -22px rgba(40,34,20,.42);
+
+    --serif: "EB Garamond", "Adobe Garamond", Georgia, serif;
+    --sans:  "Barlow", -apple-system, "Segoe UI", system-ui, sans-serif;
+    --mono:  "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    --rail: 72px;
+    --gut: clamp(22px, 4.4vw, 64px);
+    --maxw: 1560px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:    #070910;
+      --plate:    #0C1018;
+      --raise:    #141926;
+      --rule:     #222939;
+      --rule-hi:  #3A4459;
+      --ink:      #F2EFE6;
+      --ink-2:    #C3C7D2;   /* 11.4:1 on the dark ground */
+      --ink-3:    #9AA1B2;   /* 7.1:1  — was the unreadable one */
+      --brass:    #E0B978;
+      --brass-hi: #F3D8A6;
+      --star:     #A8CEFF;
+      --verd:     #6FD3A8;
+      --alarm:    #E8927E;
+      --shadow:   0 26px 60px -22px rgba(0,0,0,.9);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:    #070910;
+    --plate:    #0C1018;
+    --raise:    #141926;
+    --rule:     #222939;
+    --rule-hi:  #3A4459;
+    --ink:      #F2EFE6;
+    --ink-2:    #C3C7D2;
+    --ink-3:    #9AA1B2;
+    --brass:    #E0B978;
+    --brass-hi: #F3D8A6;
+    --star:     #A8CEFF;
+    --verd:     #6FD3A8;
+    --alarm:    #E8927E;
+    --shadow:   0 26px 60px -22px rgba(0,0,0,.9);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16.5px;
+    font-weight: 400;          /* 300 was the legibility bug */
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    transition: background .5s ease, color .5s ease;
+  }
+  ::selection { background: rgba(224,185,120,.32); }
+  a { color: inherit; text-decoration: none; }
+  :focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--gut); }
+
+  .cap {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ---------- RAIL ---------- */
+  .rail {
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--rail);
+    border-right: 1px solid var(--rule); z-index: 50;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: space-between; padding: 20px 0;
+    background: var(--paper); transition: background .5s ease;
+  }
+  .rail-mark {
+    writing-mode: vertical-rl; font-family: var(--serif); font-size: 17px;
+    letter-spacing: .44em; text-transform: uppercase;
+  }
+  .rail-read {
+    writing-mode: vertical-rl; font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: .2em; color: var(--ink-3); text-align: right;
+  }
+  @media (max-width: 900px) { .rail { display: none; } :root { --rail: 0px; } }
+  .shift { margin-left: var(--rail); }
+
+  /* ---------- TOP ---------- */
+  .top {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; gap: 26px;
+    padding: 14px var(--gut);
+    border-bottom: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(18px);
+  }
+  .top nav { display: flex; gap: 26px; margin-left: auto; }
+  /* the rail carries the wordmark on desktop; below 900px it is hidden,
+     so the header picks it up and the nav has something to sit against */
+  .top .brand {
+    display: none; font-family: var(--serif); font-size: 17px;
+    letter-spacing: .3em; text-transform: uppercase; color: var(--ink);
+  }
+  @media (max-width: 900px) { .top .brand { display: block; } }
+  .top nav a {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-3); transition: color .25s;
+  }
+  .top nav a:hover { color: var(--ink); }
+
+  .btn {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; padding: 11px 20px;
+    border: 1px solid var(--rule-hi); background: transparent;
+    color: var(--ink); cursor: pointer;
+    transition: border-color .25s, background .25s, color .25s;
+  }
+  .btn:hover { border-color: var(--brass); color: var(--brass-hi); }
+  .btn-solid { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 500; }
+  .btn-solid:hover { background: var(--brass-hi); border-color: var(--brass-hi); color: var(--paper); }
+  .btn[aria-disabled="true"] { cursor: not-allowed; color: var(--ink-3); border-style: dashed; border-color: var(--rule); }
+  .btn[aria-disabled="true"]:hover { color: var(--ink-3); border-color: var(--rule); }
+  .btn-full { width: 100%; padding: 15px; }
+
+  .swap {
+    width: 34px; height: 34px; padding: 0; display: grid; place-items: center;
+    border: 1px solid var(--rule-hi); background: transparent; cursor: pointer;
+    color: var(--ink-2);
+  }
+  .swap:hover { border-color: var(--brass); color: var(--brass-hi); }
+  .swap svg { display: block; }
+  .swap .moon { display: none; }
+  :root[data-theme="dark"] .swap .sun,
+  :root:not([data-theme="light"]) .swap .sun { display: block; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .swap .sun { display: none; }
+    :root:not([data-theme="light"]) .swap .moon { display: block; }
+  }
+  :root[data-theme="dark"] .swap .sun { display: none; }
+  :root[data-theme="dark"] .swap .moon { display: block; }
+  :root[data-theme="light"] .swap .sun { display: block; }
+  :root[data-theme="light"] .swap .moon { display: none; }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    position: relative; isolation: isolate;
+    display: flex; align-items: center;
+    min-height: 86vh; min-height: 86dvh;
+    padding: clamp(56px, 8vh, 104px) 0 clamp(44px, 6vh, 84px);
+  }
+  #sky { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -2; display: block; }
+  /* scrim runs left-to-right on wide screens (type left, figure right) and
+     flips to top-to-bottom once the layout stacks */
+  .hero::after {
+    content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: linear-gradient(100deg,
+      color-mix(in srgb, var(--paper) 93%, transparent) 0%,
+      color-mix(in srgb, var(--paper) 76%, transparent) 40%,
+      transparent 68%);
+  }
+  /* full-bleed: the type sits on the page gutter, not in a centred column */
+  .hero-wrap { width: 100%; padding-inline: var(--gut); }
+  .hero-in { max-width: min(640px, 52%); }
+
+  h1 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(46px, 7.2vw, 96px); line-height: .96;
+    letter-spacing: -.014em; margin: 18px 0 0; text-wrap: balance;
+  }
+  h1 i { font-style: italic; color: var(--brass-hi); }
+
+  .lede { font-size: clamp(16px, 1.35vw, 18px); color: var(--ink-2); max-width: 46ch; margin: 22px 0 0; }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+
+  /* live label for whichever constellation is on screen */
+  .sky-tag {
+    position: absolute; right: var(--gut); bottom: 26px; text-align: right;
+    z-index: 1; pointer-events: none; max-width: 46vw;
+  }
+  .sky-tag .nm {
+    font-family: var(--serif); font-size: clamp(19px, 2.3vw, 27px);
+    letter-spacing: .13em; text-transform: uppercase; color: var(--ink);
+    display: block; line-height: 1.15;
+  }
+  .sky-tag .meta { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; color: var(--ink-3); text-transform: uppercase; }
+  .sky-tag.fade { opacity: 0; }
+  .sky-tag { transition: opacity .8s ease; }
+  @media (max-width: 800px) { .sky-tag { display: none; } }
+
+  /* ---------- READINGS ---------- */
+  .readings { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px,1fr)); border-block: 1px solid var(--rule); }
+  .reading { padding: 22px 26px; border-left: 1px solid var(--rule); }
+  .reading:first-child { border-left: none; }
+  .reading dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-3); }
+  .reading dd { margin: 6px 0 0; font-family: var(--serif); font-size: 33px; font-variant-numeric: tabular-nums; }
+  .reading dd span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 5px; }
+
+  /* ---------- SECTIONS ---------- */
+  .sec { padding: clamp(72px,9vw,130px) 0; border-bottom: 1px solid var(--rule); }
+  .sec-head { display: grid; grid-template-columns: 150px 1fr; gap: 30px; margin-bottom: 50px; }
+  .sec-head h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px,4.4vw,52px); line-height: 1.06; margin: 0; max-width: 20ch; text-wrap: balance; }
+  .sec-body { display: grid; grid-template-columns: 150px 1fr; gap: 30px; }
+  .sec-body > p { grid-column: 2; color: var(--ink-2); max-width: 58ch; margin: 0 0 34px; }
+  @media (max-width: 780px) {
+    .sec-head, .sec-body { grid-template-columns: 1fr; gap: 14px; }
+    .sec-body > p, .charts, .sched, .cols { grid-column: 1; }
+  }
+
+  .charts { grid-column: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+  .chartbox { border: 1px solid var(--rule); padding: 22px; background: var(--plate); }
+  .chartbox .val { font-family: var(--serif); font-size: 27px; font-variant-numeric: tabular-nums; margin: 4px 0 14px; }
+  .chartbox .val em { font-family: var(--mono); font-size: 11px; font-style: normal; color: var(--ink-3); }
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .grid-line { stroke: var(--rule); }
+  .ax { fill: var(--ink-3); font-family: "IBM Plex Mono", monospace; font-size: 8.5px; }
+  .key { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+  .key span { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; color: var(--ink-3); text-transform: uppercase; }
+  .key i { width: 13px; height: 2px; }
+
+  .sched { grid-column: 2; border: 1px solid var(--rule); }
+  .row { display: grid; grid-template-columns: 60px 1fr 186px; gap: 22px; padding: 22px 24px; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .row:last-child { border-bottom: none; }
+  .row .idx { font-family: var(--mono); font-size: 10px; letter-spacing: .16em; color: var(--brass); }
+  .row h4 { font-family: var(--serif); font-size: 21px; font-weight: 400; margin: 0 0 4px; }
+  .row p { margin: 0; font-size: 14.5px; color: var(--ink-3); line-height: 1.6; }
+  .row .fig { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--ink-2); text-align: right; }
+  @media (max-width: 660px) { .row { grid-template-columns: 44px 1fr; } .row .fig { grid-column: 2; text-align: left; margin-top: 8px; } }
+
+  .cols { grid-column: 2; display: grid; grid-template-columns: repeat(auto-fit, minmax(228px,1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .col { background: var(--paper); padding: 26px 24px; }
+  .col h4 { font-family: var(--serif); font-size: 23px; font-weight: 400; margin: 12px 0 8px; }
+  .col p { margin: 0; font-size: 14.5px; color: var(--ink-3); line-height: 1.62; }
+
+  .closer { padding: clamp(80px,10vw,140px) 0; text-align: center; }
+  .closer h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px,5.6vw,68px); line-height: 1.04; margin: 18px 0 0; }
+  .closer h2 i { font-style: italic; color: var(--brass-hi); }
+  .closer p { color: var(--ink-2); max-width: 44ch; margin: 20px auto 30px; }
+
+  footer { border-top: 1px solid var(--rule); padding: 26px 0; font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+
+  /* ---------- MODAL ---------- */
+  .scrim {
+    position: fixed; inset: 0; z-index: 100; padding: 20px;
+    background: color-mix(in srgb, var(--paper) 78%, #000 22%);
+    backdrop-filter: blur(12px);
+    display: grid; place-items: center; overflow-y: auto;
+    opacity: 0; pointer-events: none; transition: opacity .32s;
+  }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    width: min(548px,100%); margin: auto; background: var(--plate);
+    border: 1px solid var(--rule-hi); padding: 30px; position: relative;
+    box-shadow: var(--shadow);
+    transform: translateY(12px); transition: transform .34s cubic-bezier(.16,.84,.3,1);
+  }
+  .scrim.open .sheet { transform: none; }
+  .sheet-top { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .ticks { display: flex; gap: 5px; }
+  .tick { width: 18px; height: 1px; background: var(--rule-hi); transition: background .3s; }
+  .tick.on { background: var(--brass); }
+  .x { margin-left: auto; width: 30px; height: 30px; border: 1px solid var(--rule-hi); background: transparent; color: var(--ink-3); cursor: pointer; display: grid; place-items: center; font-size: 14px; }
+  .x:hover { color: var(--ink); border-color: var(--ink); }
+
+  .sheet h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px,4.6vw,38px); line-height: 1.08; margin: 0 0 10px; }
+  .sheet .sub { color: var(--ink-2); margin: 0 0 24px; font-size: 15.5px; }
+
+  input[type="text"] {
+    width: 100%; padding: 15px 16px; background: var(--paper);
+    border: 1px solid var(--rule-hi); color: var(--ink);
+    font-family: var(--mono); font-size: 14.5px; transition: border-color .2s;
+  }
+  input.pad { padding-left: 36px; }
+  input::placeholder { color: var(--ink-3); opacity: .7; }
+  input:focus { border-color: var(--brass); outline: none; }
+  .field { position: relative; }
+  .field .at { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-family: var(--mono); color: var(--ink-3); pointer-events: none; }
+  .micro { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin: 12px 0 20px; }
+  .note { font-size: 13.5px; color: var(--alarm); margin: 12px 0 0; min-height: 1px; }
+  .lbl { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3); display: block; margin: 18px 0 8px; }
+  .hr { height: 1px; background: var(--rule); margin: 22px 0; }
+
+  .score-line { display: flex; align-items: baseline; gap: 13px; margin: 4px 0 20px; }
+  .score-val { font-family: var(--serif); font-size: 60px; font-variant-numeric: tabular-nums; line-height: 1; }
+  .score-of { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; color: var(--ink-3); text-transform: uppercase; }
+  .memo { border: 1px solid var(--rule); border-left: 2px solid var(--alarm); padding: 14px 16px; font-size: 14.5px; color: var(--ink-2); margin-bottom: 20px; }
+  .memo.good { border-left-color: var(--verd); }
+
+  /* ---------- THE PASS ---------- */
+  .card {
+    position: relative; aspect-ratio: 1.586; overflow: hidden;
+    background: linear-gradient(146deg,#2E3340 0%,#161A23 32%,#0D1016 60%,#252A35 100%);
+    box-shadow: 0 26px 60px -22px rgba(0,0,0,.9), 0 0 0 1px rgba(224,185,120,.26) inset;
+    margin: 2px 0 20px; isolation: isolate;
+  }
+  .card canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .52; }
+  .card .sheen {
+    position: absolute; inset: -40%;
+    background: linear-gradient(104deg,transparent 38%,rgba(255,255,255,.13) 47%,rgba(224,185,120,.2) 51%,transparent 62%);
+    transform: translateX(var(--sx,0px)); transition: transform .16s ease-out; pointer-events: none;
+  }
+  .card-in { position: relative; height: 100%; padding: clamp(16px,4.4%,28px); display: flex; flex-direction: column; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .card-mark { font-family: var(--serif); font-size: clamp(13px,3.4vw,18px); letter-spacing: .2em; text-transform: uppercase; color: #DCE0E8; }
+  .card-kind { font-family: var(--mono); font-size: clamp(6.5px,1.7vw,8.5px); letter-spacing: .26em; text-transform: uppercase; text-align: right; color: rgba(220,224,232,.6); }
+  .card-mid { margin-top: auto; }
+  .card-handle {
+    font-family: var(--serif); font-size: clamp(21px,6.6vw,38px); line-height: 1; word-break: break-all;
+    background: linear-gradient(96deg,#FFFBF0,#E0B978 52%,#9C7A2A);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .card-tier { font-family: var(--mono); font-size: clamp(7.5px,1.9vw,9.5px); letter-spacing: .26em; text-transform: uppercase; color: #A8CEFF; margin-top: 8px; }
+  .card-rule { height: 1px; background: linear-gradient(90deg,rgba(224,185,120,.5),transparent); margin: clamp(10px,3%,16px) 0; }
+  .card-foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; font-family: var(--mono); font-size: clamp(7px,1.8vw,9px); letter-spacing: .16em; text-transform: uppercase; color: rgba(220,224,232,.62); }
+  .card-foot b { color: #DCE0E8; font-weight: 500; }
+  .card-foot .r { text-align: right; color: rgba(224,185,120,.85); }
+
+  .tasks { display: flex; flex-direction: column; }
+  .task { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: transparent; border: 0; border-bottom: 1px solid var(--rule); padding: 14px 2px; cursor: pointer; color: var(--ink); font-family: var(--sans); transition: padding-left .2s, background .2s; }
+  .task:hover { padding-left: 8px; background: color-mix(in srgb, var(--brass) 7%, transparent); }
+  .task .n { width: 22px; height: 22px; flex: none; border: 1px solid var(--rule-hi); display: grid; place-items: center; font-family: var(--mono); font-size: 10px; color: var(--ink-3); transition: all .25s; }
+  .task.done .n { background: var(--verd); border-color: var(--verd); color: var(--paper); }
+  .task .t strong { display: block; font-size: 14.5px; font-weight: 600; }
+  .task .t span { font-size: 12.5px; color: var(--ink-3); }
+  .task .go { margin-left: auto; color: var(--ink-3); font-family: var(--mono); font-size: 12px; }
+
+  .seal { width: 54px; height: 54px; margin: 0 auto 20px; border: 1px solid var(--verd); border-radius: 50%; display: grid; place-items: center; }
+  .center { text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  /* ---------- TABLET ---------- */
+  @media (max-width: 1000px) {
+    .hero { min-height: auto; padding-top: clamp(40px, 6vh, 72px); }
+    .hero-in { max-width: 100%; }
+    .hero::after {
+      background: linear-gradient(180deg,
+        color-mix(in srgb, var(--paper) 40%, transparent) 0%,
+        color-mix(in srgb, var(--paper) 82%, transparent) 34%,
+        var(--paper) 62%);
+    }
+    /* clears the figure now sitting in the upper third */
+    .hero-wrap { padding-top: clamp(190px, 34vh, 330px); }
+  }
+
+  /* ---------- PHONE ---------- */
+  @media (max-width: 760px) {
+    body { font-size: 16px; }
+    .top { gap: 12px; padding: 11px var(--gut); }
+    .top .brand { font-size: 15px; letter-spacing: .22em; }
+    .top nav { gap: 15px; }
+    .top nav a { font-size: 9.5px; letter-spacing: .11em; }
+    .swap { width: 30px; height: 30px; flex: none; }
+
+    h1 { font-size: clamp(38px, 11vw, 56px); line-height: 1.0; }
+    .lede { font-size: 15.5px; max-width: 100%; }
+    .acts { flex-direction: column; align-items: stretch; gap: 9px; }
+    .acts .btn { width: 100%; padding: 15px; }
+
+    .reading { padding: 16px 18px; }
+    .reading dd { font-size: 26px; }
+    .readings { grid-template-columns: 1fr 1fr; }
+    .reading:nth-child(odd) { border-left: none; }
+    .reading:nth-child(n+3) { border-top: 1px solid var(--rule); }
+
+    .sec { padding: 62px 0; }
+    .sec-head { margin-bottom: 30px; }
+    .sec-head h2 { font-size: clamp(27px, 7.4vw, 36px); }
+    .sec-body > p { margin-bottom: 26px; }
+    .chartbox { padding: 16px; }
+    .col, .row { padding: 20px 18px; }
+    .closer { padding: 72px 0; }
+    .closer .btn { width: 100%; }
+
+    .scrim { padding: 0; align-items: stretch; }
+    .sheet {
+      padding: 22px 20px calc(22px + env(safe-area-inset-bottom));
+      min-height: 100%; border: none; width: 100%;
+    }
+    .sheet h2 { font-size: 27px; }
+    .score-val { font-size: 46px; }
+    input[type="text"] { font-size: 16px; }   /* 16px stops iOS zooming on focus */
+  }
+
+  @media (max-width: 400px) {
+    .readings { grid-template-columns: 1fr; }
+    .reading { border-left: none; }
+    .reading:nth-child(n+2) { border-top: 1px solid var(--rule); }
+  }
+</style>
+
+<aside class="rail" aria-hidden="true">
+  <span class="rail-mark">Orion</span>
+  <span class="rail-read" id="railRead">RA 05ʰ 35ᵐ · DEC −05° 23′</span>
+</aside>
+
+<div class="shift">
+  <header class="top">
+    <a class="brand" href="#top">Orion</a>
+    <nav>
+      <a href="#treasury">Treasury</a>
+      <a href="#staking">Staking</a>
+      <a href="#utility">Utility</a>
+    </nav>
+    <button class="swap" id="swap" aria-label="Switch between sky and chart">
+      <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="12" cy="12" r="4.4"/><path d="M12 1.6v3M12 19.4v3M1.6 12h3M19.4 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/>
+      </svg>
+      <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M20 14.4A8.6 8.6 0 1 1 9.6 4a6.9 6.9 0 0 0 10.4 10.4z"/>
+      </svg>
+    </button>
+  </header>
+
+  <section class="hero">
+    <canvas id="sky" aria-hidden="true"></canvas>
+    <div class="hero-wrap"><div class="hero-in">
+      <p class="cap">Liquid Backing Treasury · Ethereum</p>
+      <h1>Three thousand three hundred and thirty&#8209;three <i>constellations.</i></h1>
+      <p class="lede">
+        Every Orion is backed by real ETH held in treasury. Not a promise about future
+        value — <b>a redeemable claim you can exercise today</b>, at a number published
+        on-chain that only moves upward.
+      </p>
+      <div class="acts">
+        <button class="btn btn-solid" data-open>Join the Waitlist</button>
+        <button class="btn" aria-disabled="true">Mint — Coming Soon</button>
+      </div>
+      </div>
+    </div>
+    <div class="sky-tag" id="skyTag">
+      <span class="nm" id="skyName">Orion</span>
+      <span class="meta" id="skyMeta">The Hunter · 594 sq° · α Betelgeuse 0.45</span>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <dl class="readings">
+      <div class="reading"><dt>Supply</dt><dd>3,333</dd></div>
+      <div class="reading"><dt>Treasury</dt><dd>3,000<span>ETH</span></dd></div>
+      <div class="reading"><dt>Backing / Orion</dt><dd>0.90<span>ETH</span></dd></div>
+      <div class="reading"><dt>Royalty to Stakers</dt><dd>90<span>%</span></dd></div>
+    </dl>
+  </div>
+
+  <main class="wrap">
+    <section class="sec" id="treasury">
+      <div class="sec-head"><div><span class="cap">Plate I</span></div>
+        <h2>The floor is a number, not a mood.</h2></div>
+      <div class="sec-body">
+        <p>Mint proceeds and royalties collect in the Liquid Backing Treasury. Divide it by supply
+          and you have the backing per Orion — a figure anyone can verify and no one can talk down.
+          Redeem whenever you like: the treasury pays your share in ETH, burns the token, and the
+          backing for everyone still holding goes up.</p>
+        <div class="charts">
+          <div class="chartbox">
+            <span class="cap">Market floor against backing floor</span>
+            <div class="val">1.24 <em>ETH market · 0.90 backed</em></div>
+            <svg class="chart" viewBox="0 0 440 210" role="img" aria-label="Market floor oscillates between 0.95 and 1.24 ETH while the backing floor rises steadily from 0.62 to 0.90 ETH.">
+              <g class="ax"><text x="0" y="24">1.30</text><text x="0" y="66">1.05</text><text x="0" y="108">0.80</text><text x="0" y="150">0.55</text><text x="0" y="184">0.30</text></g>
+              <g class="grid-line" stroke-width="1">
+                <line x1="34" y1="20" x2="436" y2="20"/><line x1="34" y1="62" x2="436" y2="62"/>
+                <line x1="34" y1="104" x2="436" y2="104"/><line x1="34" y1="146" x2="436" y2="146"/><line x1="34" y1="180" x2="436" y2="180"/></g>
+              <path d="M34 92 C 78 70, 94 112, 126 88 C 162 62, 180 104, 216 80 C 252 58, 270 92, 306 68 C 344 46, 368 80, 404 56 L436 48" fill="none" stroke="var(--star)" stroke-width="1.7"/>
+              <path d="M34 150 L126 141 L216 129 L306 117 L436 105" fill="none" stroke="var(--brass)" stroke-width="2.3"/>
+              <circle cx="436" cy="48" r="3" fill="var(--star)"/><circle cx="436" cy="105" r="3" fill="var(--brass)"/>
+              <g class="ax" text-anchor="middle"><text x="34" y="200">9 NOV</text><text x="155" y="200">17 NOV</text><text x="290" y="200">30 NOV</text><text x="424" y="200">1 DEC</text></g>
+            </svg>
+            <div class="key"><span><i style="background:var(--star)"></i>Market</span><span><i style="background:var(--brass)"></i>Backing</span></div>
+          </div>
+          <div class="chartbox">
+            <span class="cap">Backing per Orion</span>
+            <div class="val">0.90 <em>ETH · monotonic</em></div>
+            <svg class="chart" viewBox="0 0 440 210" role="img" aria-label="Backing per Orion rising from 0.62 to 0.90 ETH across the period.">
+              <g class="ax"><text x="0" y="24">0.95</text><text x="0" y="66">0.86</text><text x="0" y="108">0.77</text><text x="0" y="150">0.68</text><text x="0" y="184">0.59</text></g>
+              <g class="grid-line" stroke-width="1">
+                <line x1="34" y1="20" x2="436" y2="20"/><line x1="34" y1="62" x2="436" y2="62"/>
+                <line x1="34" y1="104" x2="436" y2="104"/><line x1="34" y1="146" x2="436" y2="146"/><line x1="34" y1="180" x2="436" y2="180"/></g>
+              <path d="M34 168 L114 142 L194 112 L274 82 L356 56 L436 34 L436 180 L34 180 Z" fill="var(--brass)" opacity=".12"/>
+              <path d="M34 168 L114 142 L194 112 L274 82 L356 56 L436 34" fill="none" stroke="var(--brass)" stroke-width="2.3"/>
+              <g fill="var(--brass)"><circle cx="114" cy="142" r="2.4"/><circle cx="194" cy="112" r="2.4"/><circle cx="274" cy="82" r="2.4"/><circle cx="356" cy="56" r="2.4"/><circle cx="436" cy="34" r="3.4"/></g>
+              <g class="ax" text-anchor="middle"><text x="34" y="200">9 NOV</text><text x="155" y="200">17 NOV</text><text x="290" y="200">30 NOV</text><text x="424" y="200">1 DEC</text></g>
+            </svg>
+            <div class="key"><span>Redemption burns supply · raises the rest</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="staking">
+      <div class="sec-head"><div><span class="cap">Plate II</span></div>
+        <h2>Stake it, and the royalties come to you.</h2></div>
+      <div class="sec-body">
+        <p>Stakers take 90% of external royalty income plus 100 points per day, per token. Points
+          are the weighting: they decide the size of your slice. Stake earlier and you compound
+          sooner; stake longer and you hold more of the weight.</p>
+        <div class="sched">
+          <div class="row"><span class="idx">01</span><div><h4>Deposit</h4><p>Lock your Orion into the vault. Still yours — withdraw at will.</p></div><span class="fig">No lock-up</span></div>
+          <div class="row"><span class="idx">02</span><div><h4>Accrue</h4><p>Each staked token earns points every day it stays in.</p></div><span class="fig">100 pts / day / NFT</span></div>
+          <div class="row"><span class="idx">03</span><div><h4>Distribute</h4><p>External royalty income is split across staked tokens by points held.</p></div><span class="fig">90% of royalties</span></div>
+          <div class="row"><span class="idx">04</span><div><h4>Claim or compound</h4><p>Take the yield, or leave it and let the weighting climb.</p></div><span class="fig">Any time</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="utility">
+      <div class="sec-head"><div><span class="cap">Plate III</span></div>
+        <h2>Liquidity without letting go.</h2></div>
+      <div class="sec-body">
+        <div class="cols">
+          <div class="col"><span class="cap">Borrow</span><h4>Against the backing</h4>
+            <p>A hard redeemable value makes unusually clean collateral. Draw ETH against your token without selling it; repay to release.</p></div>
+          <div class="col"><span class="cap">Rent</span><h4>Lend the access</h4>
+            <p>Rent your Orion for a fixed term. The renter gets holder benefits, you keep ownership and the backing, and it returns automatically.</p></div>
+          <div class="col"><span class="cap">Redeem</span><h4>Exit at backing</h4>
+            <p>Burn the token, take its share of treasury in ETH. Supply falls, backing per remaining token rises. The door stays open — that is the point.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closer">
+      <span class="cap">Waitlist open · Mint date to be announced</span>
+      <h2>Take your place<br>in the <i>sky</i>.</h2>
+      <p>Open to everyone. Bring your handle and we'll strike your pass.</p>
+      <button class="btn btn-solid" data-open>Create My Pass</button>
+    </section>
+  </main>
+
+  <footer><div class="wrap">
+    <span>Orion Collective · MMXXVI</span>
+    <span id="claimCount">Waitlist open</span>
+  </div></footer>
+</div>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="sheet">
+    <div class="sheet-top">
+      <div class="ticks"><i class="tick on" id="t1"></i><i class="tick" id="t2"></i><i class="tick" id="t3"></i></div>
+      <span class="cap" id="stepLabel">Step 1 / 3</span>
+      <button class="x" id="closeBtn" aria-label="Close">✕</button>
+    </div>
+    <div id="body"></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   THEME — sky (dark) or chart (light). Persisted per viewer.
+   ===================================================================== */
+const THEME_KEY = 'orion-theme';
+function currentTheme() {
+  const stamped = document.documentElement.getAttribute('data-theme');
+  if (stamped) return stamped;
+  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+try {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+} catch {}
+document.getElementById('swap').addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(THEME_KEY, next); } catch {}
+  window.dispatchEvent(new Event('orion-theme'));
+});
+
+/* =====================================================================
+   THE LIQUID SKY
+   Real constellations, real apparent magnitudes. The field holds one
+   figure, then the stars TRAVEL to the next — which is the collection's
+   own premise rendered literally: constellations that will not sit still.
+   ===================================================================== */
+(function () {
+  const cv = document.getElementById('sky');
+  const g = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const nameEl = document.getElementById('skyName');
+  const metaEl = document.getElementById('skyMeta');
+  const tagEl  = document.getElementById('skyTag');
+  const railEl = document.getElementById('railRead');
+
+  /* x,y in a unit box · m = apparent magnitude (lower is brighter) */
+  const FIGURES = [
+    { name: 'Orion', meta: 'The Hunter · 594 sq° · α Betelgeuse 0.45',
+      rail: 'RA 05ʰ 35ᵐ · DEC −05° 23′',
+      s: [[.470,.105,3.54,'#CBDDFF'],[.292,.268,0.45,'#FFBE93'],[.648,.238,1.64,'#CCE0FF'],
+          [.600,.512,2.20,'#DCEBFF'],[.516,.536,1.69,'#E6F1FF'],[.436,.562,1.77,'#DCEBFF'],
+          [.360,.812,2.09,'#D4E5FF'],[.716,.838,0.13,'#EDF4FF']],
+      l: [[0,1],[0,2],[1,2],[1,5],[2,3],[5,4],[4,3],[5,6],[3,7]] },
+
+    { name: 'Ursa Major', meta: 'The Great Bear · 1,280 sq° · ε Alioth 1.77',
+      rail: 'RA 11ʰ 00ᵐ · DEC +50° 00′',
+      s: [[.780,.330,1.79,'#FFD9A8'],[.780,.560,2.37,'#EAF0FF'],[.630,.605,2.44,'#EAF0FF'],
+          [.632,.400,3.31,'#E4ECFF'],[.470,.352,1.77,'#EDF4FF'],[.312,.292,2.23,'#E6F0FF'],
+          [.150,.348,1.86,'#DCE8FF']],
+      l: [[0,1],[1,2],[2,3],[3,0],[3,4],[4,5],[5,6]] },
+
+    { name: 'Cassiopeia', meta: 'The Seated Queen · 598 sq° · α Schedar 2.24',
+      rail: 'RA 01ʰ 00ᵐ · DEC +60° 00′',
+      s: [[.130,.420,2.27,'#FFF0D8'],[.335,.585,2.24,'#FFD2A0'],[.520,.360,2.47,'#DDE8FF'],
+          [.715,.600,2.68,'#EAF0FF'],[.885,.395,3.35,'#DCE8FF']],
+      l: [[0,1],[1,2],[2,3],[3,4]] },
+
+    { name: 'Cygnus', meta: 'The Swan · 804 sq° · α Deneb 1.25',
+      rail: 'RA 20ʰ 37ᵐ · DEC +42° 00′',
+      s: [[.500,.115,1.25,'#F2F6FF'],[.500,.430,2.23,'#FFF2DE'],[.215,.520,2.46,'#E4ECFF'],
+          [.785,.395,2.87,'#FFE0C0'],[.500,.870,3.05,'#FFD9B0'],[.090,.610,3.79,'#E0EAFF'],
+          [.905,.320,3.80,'#E0EAFF']],
+      l: [[0,1],[1,4],[1,2],[1,3],[2,5],[3,6]] },
+
+    { name: 'Scorpius', meta: 'The Scorpion · 497 sq° · α Antares 1.06',
+      rail: 'RA 16ʰ 53ᵐ · DEC −30° 00′',
+      s: [[.205,.130,2.62,'#E2ECFF'],[.250,.255,2.29,'#DCE8FF'],[.170,.335,2.89,'#E2ECFF'],
+          [.355,.440,1.06,'#FF9E72'],[.425,.530,2.82,'#FFD0A8'],[.485,.640,2.29,'#E2ECFF'],
+          [.560,.745,3.00,'#E2ECFF'],[.665,.825,3.62,'#E2ECFF'],[.800,.795,1.62,'#DCE8FF']],
+      l: [[0,1],[1,2],[1,3],[3,4],[4,5],[5,6],[6,7],[7,8]] },
+
+    { name: 'Lyra', meta: 'The Lyre · 286 sq° · α Vega 0.03',
+      rail: 'RA 18ʰ 45ᵐ · DEC +36° 00′',
+      s: [[.285,.170,0.03,'#F4F8FF'],[.450,.115,4.36,'#E2ECFF'],[.375,.375,4.34,'#E2ECFF'],
+          [.330,.640,3.52,'#E4EDFF'],[.560,.600,3.25,'#E4EDFF'],[.590,.345,4.30,'#E2ECFF']],
+      l: [[0,1],[0,2],[2,3],[3,4],[4,5],[5,2]] }
+  ];
+
+  const MAX = Math.max(...FIGURES.map(f => f.s.length));
+  let W = 0, H = 0, DPR = 1, dust = [], shots = [];
+  let fig = 0, phase = 'hold', pT = 0, lineIn = 1;
+  const HOLD = 7.4, MORPH = 2.9;
+  const ptr = { x: .5, y: .5, tx: .5, ty: .5 };
+  let dark = currentTheme() === 'dark';
+  let t0 = performance.now(), last = t0;
+
+  /* actors: the stars that travel between figures */
+  const A = [];
+  for (let i = 0; i < MAX; i++) A.push({ x: .5, y: .5, fx: .5, fy: .5, tx: .5, ty: .5, m: 4, tm: 4, c: '#fff', tc: '#fff', on: false, trail: [] });
+
+  function apply(idx, instant) {
+    const f = FIGURES[idx];
+    for (let i = 0; i < MAX; i++) {
+      const a = A[i], d = f.s[i];
+      a.fx = a.x; a.fy = a.y;
+      if (d) { a.tx = d[0]; a.ty = d[1]; a.tm = d[2]; a.tc = d[3]; a.on = true; }
+      else {                                   /* park spare stars off the figure */
+        a.tx = .5 + Math.cos(i * 2.1) * .62; a.ty = .5 + Math.sin(i * 2.1) * .62;
+        a.tm = 6; a.on = false;
+      }
+      if (instant) { a.x = a.tx; a.y = a.ty; a.m = a.tm; a.c = a.tc; }
+    }
+    nameEl.textContent = f.name;
+    metaEl.textContent = f.meta;
+    if (railEl) railEl.textContent = f.rail;
+  }
+
+  function box() {
+    if (W > 1000) {                       // type left, figure right
+      const s = Math.min(W * .44, H * .84);
+      return { x: W * .68 - s / 2, y: H * .48 - s / 2, s };
+    }
+    if (W > 700) {                        // tablet: figure above the fold
+      const s = Math.min(W * .60, H * .48);
+      return { x: W * .5 - s / 2, y: H * .30 - s / 2, s };
+    }
+    const s = Math.min(W * .80, H * .34);  // phone: upper third only
+    return { x: W * .5 - s / 2, y: H * .235 - s / 2, s };
+  }
+
+  function layout() {
+    DPR = Math.min(devicePixelRatio || 1, W < 700 ? 2 : 2.5);
+    const r = cv.getBoundingClientRect();
+    W = r.width; H = Math.max(r.height, 460);
+    cv.width = W * DPR; cv.height = H * DPR;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    dust = [];
+    const n = Math.round(Math.min(W * H / 2600, W < 700 ? 260 : 560));
+    for (let i = 0; i < n; i++) dust.push({
+      x: Math.random(), y: Math.random(),
+      r: .3 + Math.random() * 1.35, a: .12 + Math.random() * .55,
+      d: .25 + Math.random(), ph: Math.random() * 6.28, sp: .4 + Math.random() * 1.5
+    });
+  }
+
+  function glow(x, y, rad, alpha, col) {
+    if (dark) {
+      const grd = g.createRadialGradient(x, y, 0, x, y, rad * 8);
+      grd.addColorStop(0, col);
+      grd.addColorStop(.16, `rgba(168,206,255,${alpha * .4})`);
+      grd.addColorStop(1, 'rgba(120,170,255,0)');
+      g.globalAlpha = alpha; g.fillStyle = grd;
+      g.beginPath(); g.arc(x, y, rad * 8, 0, 6.2832); g.fill();
+      g.globalAlpha = Math.min(1, alpha * 1.5); g.fillStyle = col;
+      g.beginPath(); g.arc(x, y, rad, 0, 6.2832); g.fill();
+    } else {
+      /* engraved: ink dot with a fine halo ring, no bloom */
+      g.globalAlpha = alpha * .12; g.fillStyle = '#2C4A78';
+      g.beginPath(); g.arc(x, y, rad * 3.4, 0, 6.2832); g.fill();
+      g.globalAlpha = Math.min(1, alpha * .96); g.fillStyle = '#16223A';
+      g.beginPath(); g.arc(x, y, rad * .92, 0, 6.2832); g.fill();
+    }
+    g.globalAlpha = 1;
+  }
+
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    const t = (now - t0) / 1000;
+    ptr.x += (ptr.tx - ptr.x) * .045; ptr.y += (ptr.ty - ptr.y) * .045;
+    const px = ptr.x - .5, py = ptr.y - .5;
+
+    /* --- phase clock --- */
+    if (!reduce) {
+      pT += dt;
+      if (phase === 'hold' && pT > HOLD) {
+        phase = 'morph'; pT = 0;
+        fig = (fig + 1) % FIGURES.length;
+        apply(fig, false);
+        tagEl.classList.add('fade');
+      } else if (phase === 'morph' && pT > MORPH) {
+        phase = 'hold'; pT = 0; tagEl.classList.remove('fade');
+      }
+    }
+    const mp = phase === 'morph' ? Math.min(1, pT / MORPH) : 1;
+    lineIn = phase === 'morph'
+      ? (mp < .45 ? 1 - mp / .45 : (mp - .45) / .55)   /* out, then back in */
+      : 1;
+
+    g.clearRect(0, 0, W, H);
+
+    /* nebula wash */
+    if (dark) {
+      const neb = g.createRadialGradient(W * .68, H * .42, 0, W * .68, H * .42, Math.max(W, H) * .7);
+      neb.addColorStop(0, 'rgba(44,72,132,.20)');
+      neb.addColorStop(.45, 'rgba(26,38,78,.09)');
+      neb.addColorStop(1, 'rgba(7,9,16,0)');
+      g.fillStyle = neb; g.fillRect(0, 0, W, H);
+    }
+
+    /* drifting field */
+    for (const s of dust) {
+      const tw = reduce ? 1 : .7 + .3 * Math.sin(t * s.sp + s.ph);
+      let x = s.x * W - px * 46 * s.d + (reduce ? 0 : Math.sin(t * .05 + s.ph) * 6 * s.d);
+      let y = s.y * H - py * 32 * s.d;
+      x = ((x % W) + W) % W; y = ((y % H) + H) % H;
+      glow(x, y, s.r, s.a * (dark ? 1 : .5) * tw, 'rgba(226,238,255,.95)');
+    }
+
+    /* --- the figure --- */
+    const b = box();
+    const ease = mp < .5 ? 4 * mp * mp * mp : 1 - Math.pow(-2 * mp + 2, 3) / 2;
+
+    A.forEach((a, i) => {
+      const stagger = Math.min(1, Math.max(0, (ease - i * .045) / (1 - Math.min(.5, MAX * .045))));
+      const e = phase === 'morph' ? stagger : 1;
+      a.x = a.fx + (a.tx - a.fx) * e;
+      a.y = a.fy + (a.ty - a.fy) * e;
+      a.m += (a.tm - a.m) * .08;
+      if (phase === 'morph' && e > 0 && e < 1 && !reduce) {
+        a.trail.push({ x: a.x, y: a.y, l: 1 });
+        if (a.trail.length > 14) a.trail.shift();
+      }
+      for (const p of a.trail) p.l -= dt * 2.2;
+      a.trail = a.trail.filter(p => p.l > 0);
+    });
+
+    const XY = a => ({ X: b.x + a.x * b.s - px * 72, Y: b.y + a.y * b.s - py * 50 });
+
+    /* trails first, underneath */
+    if (dark) {
+      A.forEach(a => a.trail.forEach(p => {
+        const q = XY(p);
+        g.globalAlpha = p.l * .32; g.fillStyle = 'rgba(190,220,255,.9)';
+        g.beginPath(); g.arc(q.X, q.Y, 1.1, 0, 6.2832); g.fill();
+      }));
+      g.globalAlpha = 1;
+    }
+
+    /* lines */
+    const f = FIGURES[fig];
+    const intro = reduce ? 1 : Math.min(1, Math.max(0, (t - .35) / 2.2));
+    const drawIn = phase === 'hold' ? Math.min(intro, 1) : lineIn;
+    g.lineCap = 'round';
+    f.l.forEach((L, i) => {
+      const a = XY(A[L[0]]), c = XY(A[L[1]]);
+      const seg = phase === 'hold' && intro < 1
+        ? Math.min(1, Math.max(0, intro * f.l.length - i)) : 1;
+      if (seg <= 0 || drawIn <= 0) return;
+      g.globalAlpha = drawIn;
+      g.strokeStyle = dark ? 'rgba(224,185,120,.46)' : 'rgba(80,64,26,.42)';
+      g.lineWidth = dark ? 1 : .85;
+      g.beginPath(); g.moveTo(a.X, a.Y);
+      g.lineTo(a.X + (c.X - a.X) * seg, a.Y + (c.Y - a.Y) * seg); g.stroke();
+
+      /* a pulse walks the finished figure */
+      if (dark && phase === 'hold' && intro >= 1 && !reduce) {
+        const cyc = (t * .5 + i * .13) % 5.5;
+        if (cyc < 1) {
+          const hx = a.X + (c.X - a.X) * cyc, hy = a.Y + (c.Y - a.Y) * cyc;
+          const pg = g.createRadialGradient(hx, hy, 0, hx, hy, 22);
+          pg.addColorStop(0, 'rgba(255,240,205,.8)');
+          pg.addColorStop(1, 'rgba(255,220,150,0)');
+          g.fillStyle = pg; g.beginPath(); g.arc(hx, hy, 22, 0, 6.2832); g.fill();
+        }
+      }
+      g.globalAlpha = 1;
+    });
+
+    /* stars */
+    A.forEach((a, i) => {
+      if (!a.on && phase === 'hold') return;
+      const q = XY(a);
+      const br = Math.max(.32, 1.22 - a.m * .2);
+      const ig = reduce ? 1 : Math.min(1, Math.max(0, (t - .15 - i * .12) / .8));
+      const tw = reduce ? 1 : .88 + .12 * Math.sin(t * 1.5 + i * 1.3);
+      const rad = (1.5 + br * 2.6) * ig;
+      glow(q.X, q.Y, rad, Math.min(1, br * ig) * tw, a.c);
+      if (dark && a.m < 1.7 && ig > .6 && phase === 'hold') {
+        g.save(); g.globalAlpha = .38 * ig; g.strokeStyle = a.c; g.lineWidth = .6;
+        const L = rad * 7.5;
+        g.beginPath();
+        g.moveTo(q.X - L, q.Y); g.lineTo(q.X + L, q.Y);
+        g.moveTo(q.X, q.Y - L); g.lineTo(q.X, q.Y + L);
+        g.stroke(); g.restore();
+      }
+    });
+
+    /* the occasional meteor */
+    if (dark && !reduce) {
+      if (Math.random() < .0016 && shots.length < 2) {
+        shots.push({ x: Math.random() * W * .7, y: Math.random() * H * .35, vx: 260 + Math.random() * 200, vy: 130 + Math.random() * 90, l: 1 });
+      }
+      shots = shots.filter(s => s.l > 0);
+      for (const s of shots) {
+        s.x += s.vx * dt; s.y += s.vy * dt; s.l -= dt * .75;
+        const gr = g.createLinearGradient(s.x, s.y, s.x - s.vx * .10, s.y - s.vy * .10);
+        gr.addColorStop(0, `rgba(255,250,235,${s.l * .9})`);
+        gr.addColorStop(1, 'rgba(255,250,235,0)');
+        g.strokeStyle = gr; g.lineWidth = 1.5;
+        g.beginPath(); g.moveTo(s.x, s.y); g.lineTo(s.x - s.vx * .10, s.y - s.vy * .10); g.stroke();
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize', layout);
+  addEventListener('orion-theme', () => { dark = currentTheme() === 'dark'; });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { dark = currentTheme() === 'dark'; });
+  addEventListener('pointermove', e => {
+    ptr.tx = e.clientX / innerWidth;
+    ptr.ty = Math.min(1, e.clientY / innerHeight);
+  }, { passive: true });
+
+  layout(); apply(0, true);
+  requestAnimationFrame(frame);
+})();
+
+
+/* =====================================================================
+   WAITLIST
+   ===================================================================== */
+const SUPPLY = 3333;
+
+/* All 88 IAU-recognised constellations. Each pass is assigned one, derived
+   from the handle — deterministic, so a handle always yields the same
+   constellation, and it needs no external service to compute. */
+const IAU = ['Andromeda','Antlia','Apus','Aquarius','Aquila','Ara','Aries','Auriga',
+'Bootes','Caelum','Camelopardalis','Cancer','Canes Venatici','Canis Major',
+'Canis Minor','Capricornus','Carina','Cassiopeia','Centaurus','Cepheus','Cetus',
+'Chamaeleon','Circinus','Columba','Coma Berenices','Corona Australis',
+'Corona Borealis','Corvus','Crater','Crux','Cygnus','Delphinus','Dorado','Draco',
+'Equuleus','Eridanus','Fornax','Gemini','Grus','Hercules','Horologium','Hydra',
+'Hydrus','Indus','Lacerta','Leo','Leo Minor','Lepus','Libra','Lupus','Lynx','Lyra',
+'Mensa','Microscopium','Monoceros','Musca','Norma','Octans','Ophiuchus','Orion',
+'Pavo','Pegasus','Perseus','Phoenix','Pictor','Pisces','Piscis Austrinus','Puppis',
+'Pyxis','Reticulum','Sagitta','Sagittarius','Scorpius','Sculptor','Scutum',
+'Serpens','Sextans','Taurus','Telescopium','Triangulum','Triangulum Australe',
+'Tucana','Ursa Major','Ursa Minor','Vela','Virgo','Volans','Vulpecula'];
+
+function hashOf(handle) {
+  let h = 5381;
+  for (const c of handle.toLowerCase()) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0;
+  return h;
+}
+
+let S2 = { handle:'', pass:0, serial:'', sign:'' };
+let DB = null;
+claude?.use?.('db').then(d => { DB = d; refreshCount(); }).catch(() => {});
+
+const scrim = document.getElementById('scrim');
+const body  = document.getElementById('body');
+const label = document.getElementById('stepLabel');
+const ticks = [1,2,3].map(i => document.getElementById('t' + i));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const setStep = n => { label.textContent = `Step ${n} / 3`; ticks.forEach((t,i)=>t.className='tick'+(i<n?' on':'')); };
+const open  = () => { scrim.classList.add('open'); document.body.style.overflow='hidden'; setStep(1); step1(); };
+const close = () => { scrim.classList.remove('open'); document.body.style.overflow=''; };
+document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', open));
+document.getElementById('closeBtn').addEventListener('click', close);
+scrim.addEventListener('click', e => { if (e.target === scrim) close(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && scrim.classList.contains('open')) close(); });
+
+function step1() {
+  body.innerHTML = `
+    <h2 id="sheetTitle">Start with your handle.</h2>
+    <p class="sub">The pass is struck from it — so what you post carries your name, not an address.</p>
+    <div class="field"><span class="at">@</span>
+      <input id="handle" class="pad" type="text" placeholder="yourhandle" autocomplete="off" spellcheck="false" value="${esc(S2.handle)}"></div>
+    <p class="micro">No sign-in · No wallet yet · Nothing transacts</p>
+    <button class="btn btn-solid btn-full" id="go">Create My Pass</button>
+    <p class="note" id="err"></p>`;
+  const inp = document.getElementById('handle'), err = document.getElementById('err');
+  setTimeout(() => inp.focus(), 60);
+  const submit = () => {
+    const h = inp.value.trim().replace(/^@+/, '');
+    if (!/^[A-Za-z0-9_]{1,15}$/.test(h)) { err.textContent = 'Not a valid X handle — letters, numbers and underscores, up to 15.'; return; }
+    S2.handle = h; strike();
+  };
+  document.getElementById('go').addEventListener('click', submit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+}
+
+function strike() {
+  setStep(2);
+  const h = hashOf(S2.handle);
+  S2.pass = (h % SUPPLY) + 1;
+  S2.serial = 'ORI-' + h.toString(16).toUpperCase().padStart(8,'0').slice(0,4) + '-' +
+              ((h*2654435761)>>>0).toString(16).toUpperCase().slice(0,4);
+  S2.sign = IAU[(h >>> 7) % IAU.length];
+
+  body.innerHTML = `
+    <span class="cap" style="color:var(--verd)">Pass struck · @${esc(S2.handle.toUpperCase())}</span>
+    <h2 style="margin-top:8px">Here it is.</h2>
+    <div class="score-line"><span class="score-val" style="font-size:clamp(30px,7vw,46px)">${esc(S2.sign)}</span>
+      <span class="score-of">Your constellation</span></div>
+    <div class="card" id="card">
+      <canvas id="guil" width="720" height="454" aria-hidden="true"></canvas>
+      <div class="sheen"></div>
+      <div class="card-in">
+        <div class="card-top">
+          <div class="card-mark">Orion Collective</div>
+          <div class="card-kind">Founding<br>Pass</div>
+        </div>
+        <div class="card-mid">
+          <div class="card-handle">@${esc(S2.handle)}</div>
+          <div class="card-tier">${esc(S2.sign)} · one of eighty&#8209;eight</div>
+          <div class="card-rule"></div>
+          <div class="card-foot">
+            <div>No. <b>${String(S2.pass).padStart(4,'0')}</b> of 3,333<br>${esc(S2.serial)}</div>
+            <div class="r">Founding Pass<br>MMXXVI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-solid btn-full" id="claim">Claim &amp; Submit Wallet</button>
+    <button class="btn btn-full" style="border:none;color:var(--ink-3);margin-top:8px" id="back">Different handle</button>`;
+
+  guilloche(document.getElementById('guil'));
+  const card = document.getElementById('card');
+  card.addEventListener('pointermove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--sx', ((e.clientX - r.left)/r.width - .5) * 200 + 'px');
+  });
+  card.addEventListener('pointerleave', () => card.style.setProperty('--sx','0px'));
+  document.getElementById('claim').addEventListener('click', step3);
+  document.getElementById('back').addEventListener('click', () => { setStep(1); step1(); });
+}
+
+/* Guilloché — interference engraving, as used on banknotes. */
+function guilloche(cv) {
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W/2, cy = H/2;
+  g.clearRect(0,0,W,H); g.lineWidth = .6;
+  for (const o of [
+    { R:172, r:43, d:76, c:'rgba(224,185,120,.42)' },
+    { R:152, r:31, d:63, c:'rgba(216,222,233,.22)' },
+    { R:198, r:55, d:90, c:'rgba(168,206,255,.16)' }
+  ]) {
+    g.strokeStyle = o.c; g.beginPath();
+    for (let a = 0; a <= Math.PI*2*29; a += .013) {
+      const k = (o.R - o.r) / o.r;
+      const x = cx + (o.R - o.r)*Math.cos(a) + o.d*Math.cos(k*a);
+      const y = cy + ((o.R - o.r)*Math.sin(a) - o.d*Math.sin(k*a)) * .62;
+      a === 0 ? g.moveTo(x,y) : g.lineTo(x,y);
+    }
+    g.stroke();
+  }
+}
+
+const TASKS = [
+  ['Quote the whitelist post','Opens X with your pass already written'],
+  ['Repost it','One tap'], ['Like it','One tap'],
+  ['Leave a comment','Say something in the replies']
+];
+
+function step3() {
+  setStep(3);
+  const txt = encodeURIComponent(
+    `Orion pass No. ${String(S2.pass).padStart(4,'0')} — ${S2.sign}.\n` +
+    `3,333 liquid constellations, every one backed by ETH.\n\n@${S2.handle}`);
+  body.innerHTML = `
+    <h2>Claim it.</h2>
+    <p class="sub">Four taps on X, then the wallet that should hold the mint.</p>
+    <div class="tasks">${TASKS.map(([t,s],i)=>`
+      <button class="task" data-i="${i}"><span class="n">${i+1}</span>
+      <span class="t"><strong>${t}</strong><span>${s}</span></span><span class="go">↗</span></button>`).join('')}</div>
+    <label class="lbl" for="quote">Link to your quote</label>
+    <div class="field"><input id="quote" type="text" placeholder="https://x.com/you/status/…" autocomplete="off" spellcheck="false"></div>
+    <p class="micro">Post first, then copy the link from X</p>
+    <div class="hr"></div>
+    <label class="lbl" for="wallet">Wallet</label>
+    <div class="field"><input id="wallet" type="text" placeholder="0x0000… or yourname.eth" autocomplete="off" spellcheck="false"></div>
+    <button class="btn btn-solid btn-full" id="sub" style="margin-top:16px">Submit Wallet</button>
+    <p class="note" id="err3"></p>`;
+
+  body.querySelectorAll('.task').forEach(b => b.addEventListener('click', () => {
+    b.classList.add('done'); b.querySelector('.n').textContent = '✓';
+    window.open(b.dataset.i === '0' ? 'https://x.com/intent/post?text='+txt : 'https://x.com/', '_blank', 'noopener');
+  }));
+
+  document.getElementById('sub').addEventListener('click', async () => {
+    const q = document.getElementById('quote').value.trim();
+    const w = document.getElementById('wallet').value.trim();
+    const err = document.getElementById('err3');
+    if (!/^https?:\/\/(x|twitter)\.com\/[^/]+\/status\/\d+/i.test(q)) {
+      err.textContent = 'That does not look like an X post link. Copy it from the post you quoted.'; return; }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(w) && !/^[a-z0-9-]{3,}\.eth$/i.test(w)) {
+      err.textContent = 'Enter a full 0x… address or an ENS name ending .eth.'; return; }
+    err.textContent = '';
+    const btn = document.getElementById('sub');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    try {
+      if (DB) await DB.doc('waitlist/' + S2.handle.toLowerCase()).set({
+        handle:S2.handle, constellation:S2.sign,
+        pass:S2.pass, serial:S2.serial, quoteUrl:q, wallet:w,
+        submittedAt: new Date().toISOString()
+      });
+      done();
+    } catch {
+      btn.disabled = false; btn.textContent = 'Submit Wallet';
+      err.textContent = 'Could not save that. Check your connection and try again.';
+    }
+  });
+}
+
+function done() {
+  body.innerHTML = `<div class="center">
+    <div class="seal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 12.6 L9.4 18 L20 6.6" stroke="var(--verd)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h2>Your place is held.</h2>
+    <p class="sub" style="max-width:38ch;margin-inline:auto">Pass
+      <b style="font-family:var(--mono);color:var(--ink)">No. ${String(S2.pass).padStart(4,'0')}</b>
+      stands against <b style="font-family:var(--mono);color:var(--ink)">@${esc(S2.handle)}</b>.
+      The mint date goes out on X.</p>
+    <div class="memo good" style="text-align:left">Spots are checked against your quote before mint.
+      Deleting the post gives up the place.</div>
+    <button class="btn btn-full" id="fin">Close</button></div>`;
+  document.getElementById('fin').addEventListener('click', close);
+  refreshCount();
+}
+
+async function refreshCount() {
+  const el = document.getElementById('claimCount');
+  if (!DB) { el.textContent = 'Waitlist open'; return; }
+  try {
+    const snap = await DB.collection('waitlist').limit(1000).get();
+    const n = snap?.docs?.length ?? 0;
+    el.textContent = n ? `${n} pass${n===1?'':'es'} claimed` : 'Waitlist open';
+  } catch { el.textContent = 'Waitlist open'; }
+}
+</script>
