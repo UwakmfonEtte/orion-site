@@ -4,7 +4,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='13' r='11' fill='%23F2F2F2'/%3E%3Ccircle cx='16' cy='13' r='5.8' fill='%23050505'/%3E%3Cpath d='M9 21c-1 5-1 8 0 9 1-2 2-5 2-9zM16 23c-1 5-1 8 0 9 1-1 1-4 1-9zM23 21c-1 4-1 7 0 8 1-2 1-4 1-8z' fill='%235DCAA5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,500;1,6..96,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   /* ===================================================================
      ORION — LIQUID CONSTELLATIONS
@@ -332,11 +332,6 @@
     display: grid; grid-template-columns: minmax(0,.92fr) minmax(0,1.08fr);
     gap: clamp(30px, 5vw, 68px); align-items: center;
   }
-  @media (max-width: 860px) { .pass-grid { grid-template-columns: 1fr; } }
-  .pass-copy h2 { font-family: var(--serif); font-weight: 700;
-    font-size: clamp(32px,4.4vw,50px); line-height: 1.06; margin: 14px 0 0; }
-  .pass-copy h2 i { font-style: normal; color: var(--green); }
-  .pass-copy p { color: var(--ink-2); margin: 18px 0 0; max-width: 46ch; }
   .try { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
   .try .field { flex: 1 1 220px; }
   .live-note { font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
@@ -763,6 +758,88 @@
     .reading { border-left: none; }
     .reading:nth-child(n+2) { border-top: 1px solid var(--rule); }
   }
+
+  /* ===================================================================
+     REFINEMENT PASS
+     Three things, no colour changed:
+       1. A real display face. Manrope was doing both jobs; the brand is
+          "the chart as printed", and an engraved didone is that register.
+          Kept off anything under ~20px, where Bodoni's hairlines vanish
+          against #050505.
+       2. Press feedback. There was not one :active state on the page.
+       3. Scroll entrances, added by script so the page still renders
+          complete with JS off.
+     =================================================================== */
+  :root {
+    --display: "Bodoni Moda", "Iowan Old Style", Georgia, "Times New Roman", serif;
+    --ease-out: cubic-bezier(.23, 1, .32, 1);
+    --press: 160ms;
+  }
+
+  /* ---- display face, large sizes only ---- */
+  h1,
+  .sec-h,
+  .closer h2,
+  .win-head h3,
+  .sheet h2,
+  .fig-big .num {
+    font-family: var(--display);
+    font-optical-sizing: auto;
+  }
+  h1          { font-weight: 700; letter-spacing: -.028em; }
+  .sec-h      { font-weight: 700; letter-spacing: -.022em; }
+  .closer h2  { font-weight: 700; letter-spacing: -.024em; }
+  .win-head h3{ font-weight: 600; letter-spacing: -.014em; }
+  .sheet h2 { font-weight: 600; letter-spacing: -.018em; }
+  .fig-big .num { font-weight: 600; letter-spacing: -.02em; }
+
+  /* The <i> in every heading was set to font-style:normal, which threw away
+     the one thing a didone is for. This is what those tags were reaching for. */
+  h1 i,
+  .closer h2 i,
+  .win-head h3 i,
+  .sec-h i {
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  /* ---- press feedback ---- */
+  .btn, .chip, .swap { transition: border-color .25s, background .25s, color .25s, transform var(--press) var(--ease-out); }
+  .btn:not([aria-disabled="true"]):not(:disabled):active { transform: scale(.975); }
+  .chip:active { transform: scale(.96); }
+  .swap:active { transform: scale(.92); }
+
+  /* ---- sticky header clearance for the nav anchors ---- */
+  .sec, .closer { scroll-margin-top: 92px; }
+
+  /* ---- section plate rule: marks where a plate begins, atlas-fashion ---- */
+  .sec-top { gap: 18px; }
+  .sec-top .cap { flex: none; }
+  .sec-top::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(90deg, var(--rule-hi), transparent);
+    order: 5;
+  }
+
+  /* ---- scroll entrances (class is added by script, never authored) ---- */
+  .rv { opacity: 0; transform: translateY(16px); }
+  .rv-in {
+    opacity: 1; transform: none;
+    transition: opacity .56s var(--ease-out), transform .56s var(--ease-out);
+  }
+
+  /* ---- a calculator output that changed should say so, briefly ---- */
+  .pu-out dd { transition: opacity .18s ease-out, transform .18s var(--ease-out); }
+  .pu-out dd.bumped { opacity: .45; transform: translateY(-2px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rv, .rv-in { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .btn:active, .chip:active, .swap:active { transform: none; }
+    .pu-out dd.bumped { opacity: 1; transform: none; }
+  }
+
 </style>
 
 <div class="shift">
@@ -1990,5 +2067,102 @@ refreshCount();   // the API path needs no capability handshake to resolve first
   pick('bPick', borrow); pick('bTerm', borrow);
   pick('rTerm', rent);
   borrow(); rent();
+})();
+</script>
+
+<script>
+/* =====================================================================
+   REFINEMENT PASS — entrances, counters, output feedback.
+
+   Every class here is applied from script. With JS off, or under
+   prefers-reduced-motion, the page renders finished and static: nothing
+   is authored at opacity 0 waiting to be switched on.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (calm) return;
+
+  /* ---- scroll entrances --------------------------------------------
+     One observer, 60ms stagger inside a group. Sections that are already
+     on screen at load settle immediately rather than waiting for a
+     scroll that may never come on a short viewport. */
+  var groups = [
+    ['.hero-in > *', 90],
+    ['#wins .win', 80],
+    ['#lbt .sec-top, #lbt .sec-h, #lbt > *:not(.sec-top):not(.sec-h)', 70],
+    ['#stake .sec-top, #stake .sec-h, #stake .figures, #stake .terms, #stake .btn', 70],
+    ['#borrow .sec-top, #borrow .sec-h, #borrow .panelui', 80],
+    ['#rent .sec-top, #rent .sec-h, #rent .panelui', 80],
+    ['.closer > *', 90]
+  ];
+
+  var seen = new WeakSet();
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting || seen.has(e.target)) return;
+      seen.add(e.target);
+      var delay = Number(e.target.dataset.rvDelay || 0);
+      setTimeout(function () { e.target.classList.add('rv-in'); }, delay);
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+
+  // Safety net: whatever has not been revealed after 3s gets revealed
+  // anyway. Nothing on this page is ever allowed to stay at opacity 0.
+  setTimeout(function () {
+    document.querySelectorAll('.rv:not(.rv-in)').forEach(function (n) {
+      n.classList.add('rv-in');
+    });
+  }, 3000);
+
+  groups.forEach(function (pair) {
+    var nodes = Array.prototype.slice.call(document.querySelectorAll(pair[0]));
+    nodes.forEach(function (n, idx) {
+      if (n.classList.contains('rv')) return;
+      n.classList.add('rv');
+      n.dataset.rvDelay = String(idx * pair[1]);
+      io.observe(n);
+    });
+  });
+
+  /* ---- the two stake figures count up -----------------------------
+     Marketing figures seen once, which is the only place this earns its
+     keep. tabular-nums is already set on .num, so the box never jitters. */
+  document.querySelectorAll('.fig-big .num').forEach(function (el) {
+    var node = el.firstChild;
+    if (!node || node.nodeType !== 3) return;
+    var target = parseInt(node.textContent.replace(/[^\d]/g, ''), 10);
+    if (!isFinite(target) || target <= 0) return;
+
+    var run = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      run.disconnect();
+      var t0 = performance.now(), dur = 950;
+      (function step(now) {
+        var p = Math.min((now - t0) / dur, 1);
+        // ease-out cubic: fast start, settled finish — reads as a readout
+        // landing rather than a slot machine.
+        node.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step);
+        else node.textContent = String(target);
+      })(t0);
+    }, { threshold: 0.5 });
+    run.observe(el);
+  });
+
+  /* ---- calculator outputs acknowledge a change ---------------------
+     State indication, not decoration: 180ms so the figure is readable
+     again almost immediately. A MutationObserver catches it wherever the
+     existing chip handlers write, without touching them. */
+  document.querySelectorAll('.pu-out dd').forEach(function (dd) {
+    var last = dd.textContent;
+    new MutationObserver(function () {
+      if (dd.textContent === last) return;
+      last = dd.textContent;
+      dd.classList.add('bumped');
+      setTimeout(function () { dd.classList.remove('bumped'); }, 180);
+    }).observe(dd, { childList: true, characterData: true, subtree: true });
+  });
 })();
 </script>
