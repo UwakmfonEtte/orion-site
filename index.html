@@ -700,7 +700,13 @@
   .card-kind { font-family: var(--mono); font-size: clamp(6.5px,1.7vw,8.5px); letter-spacing: .26em; text-transform: uppercase; text-align: right; color: rgba(220,224,232,.6); }
   .card-mid { margin-top: auto; }
   .card-handle {
-    font-family: var(--serif); font-weight: 700; font-size: clamp(21px,6.6vw,38px); line-height: 1; word-break: break-all;
+    /* line-height:1 made the element box exactly the font size, and with
+       background-clip:text the gradient is painted to that box - so glyph
+       descenders (g, q, p, y) fell outside it, got no gradient, and with
+       text-fill-color:transparent rendered as nothing. @Oriongqgc read as
+       @Orionqqqc. The box has to be taller than the glyphs, not equal. */
+    font-family: var(--serif); font-weight: 700; font-size: clamp(21px,6.6vw,38px);
+    line-height: 1.24; padding-bottom: .06em; word-break: break-word;
     background: linear-gradient(96deg,#FFFBF0,#E0B978 52%,#9C7A2A);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
