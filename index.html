@@ -4,7 +4,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='13' r='11' fill='%23F2F2F2'/%3E%3Ccircle cx='16' cy='13' r='5.8' fill='%23050505'/%3E%3Cpath d='M9 21c-1 5-1 8 0 9 1-2 2-5 2-9zM16 23c-1 5-1 8 0 9 1-1 1-4 1-9zM23 21c-1 4-1 7 0 8 1-2 1-4 1-8z' fill='%235DCAA5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,600;0,6..96,700;1,6..96,500;1,6..96,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   /* ===================================================================
      ORION — LIQUID CONSTELLATIONS
@@ -420,6 +420,53 @@
   @media (max-width: 780px) { .figures, .terms { grid-column: 1; } }
 
   /* ---------- the pass card, alive ---------- */
+  /* --- the strike: plate lands, light rakes it, engraving settles --- */
+  @keyframes cardStrike {
+    0%   { opacity: 0; transform: perspective(1400px) rotateX(26deg) translateY(38px) scale(.93); }
+    55%  { opacity: 1; transform: perspective(1400px) rotateX(-4deg) translateY(-6px) scale(1.012); }
+    78%  { transform: perspective(1400px) rotateX(1.5deg) translateY(2px) scale(.998); }
+    100% { opacity: 1; transform: perspective(1400px) rotateX(0) translateY(0) scale(1); }
+  }
+  /* One hard rake of light, timed to arrive as the plate settles. */
+  @keyframes cardRake {
+    0%, 18% { transform: translateX(-140%); opacity: 0; }
+    30%     { opacity: 1; }
+    82%     { transform: translateX(140%); opacity: 1; }
+    100%    { transform: translateX(140%); opacity: 0; }
+  }
+  /* The guilloche fades up last, so the engraving reads as settling into
+     the metal rather than arriving with it. */
+  @keyframes guilSettle {
+    0%, 30% { opacity: 0; transform: rotate(-7deg) scale(1.07); }
+    100%    { opacity: .5; transform: rotate(0) scale(1); }
+  }
+  @keyframes chipGlint {
+    0%, 62%, 100% { filter: brightness(1); }
+    72%           { filter: brightness(1.45); }
+  }
+
+  .card.struck            { animation: cardStrike 1.05s var(--ease-out) both; }
+  .card.struck .sheen     { animation: cardRake 1.15s var(--ease-out) both; }
+  .card.struck canvas     { animation: guilSettle 1.4s var(--ease-out) both; }
+  .card.struck .chip      { animation: chipGlint 1.5s ease-out both; }
+  /* Content rises a beat behind the plate it is printed on. */
+  .card.struck .card-in > *,
+  .card.struck .card-mid > * { animation: cardLine .6s var(--ease-out) both; }
+  @keyframes cardLine { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+  .card.struck .card-mid > *:nth-child(1) { animation-delay: .40s; }
+  .card.struck .card-mid > *:nth-child(2) { animation-delay: .48s; }
+  .card.struck .card-mid > *:nth-child(3) { animation-delay: .54s; }
+  .card.struck .card-mid > *:nth-child(4) { animation-delay: .60s; }
+  .card.struck .card-mid > *:nth-child(5) { animation-delay: .66s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card.struck, .card.struck .sheen, .card.struck canvas, .card.struck .chip,
+    .card.struck .card-in > *, .card.struck .card-mid > * {
+      animation: none !important; opacity: 1 !important; transform: none !important;
+    }
+    .card.struck canvas { opacity: .5 !important; }
+  }
+
   @keyframes cardFloat { 0%,100% { transform: translateY(0);} 50% { transform: translateY(-14px);} }
   @keyframes cardSweep { 0% { transform: translateX(-130%);} 58%,100% { transform: translateX(130%);} }
   @keyframes guilTurn { to { transform: rotate(360deg); } }
@@ -761,46 +808,12 @@
 
   /* ===================================================================
      REFINEMENT PASS
-     Three things, no colour changed:
-       1. A real display face. Manrope was doing both jobs; the brand is
-          "the chart as printed", and an engraved didone is that register.
-          Kept off anything under ~20px, where Bodoni's hairlines vanish
-          against #050505.
-       2. Press feedback. There was not one :active state on the page.
-       3. Scroll entrances, added by script so the page still renders
-          complete with JS off.
+     Press feedback, anchor clearance and scroll entrances. The display
+     face experiment is gone: Manrope carries every size again.
      =================================================================== */
   :root {
-    --display: "Bodoni Moda", "Iowan Old Style", Georgia, "Times New Roman", serif;
     --ease-out: cubic-bezier(.23, 1, .32, 1);
     --press: 160ms;
-  }
-
-  /* ---- display face, large sizes only ---- */
-  h1,
-  .sec-h,
-  .closer h2,
-  .win-head h3,
-  .sheet h2,
-  .fig-big .num {
-    font-family: var(--display);
-    font-optical-sizing: auto;
-  }
-  h1          { font-weight: 700; letter-spacing: -.028em; }
-  .sec-h      { font-weight: 700; letter-spacing: -.022em; }
-  .closer h2  { font-weight: 700; letter-spacing: -.024em; }
-  .win-head h3{ font-weight: 600; letter-spacing: -.014em; }
-  .sheet h2 { font-weight: 600; letter-spacing: -.018em; }
-  .fig-big .num { font-weight: 600; letter-spacing: -.02em; }
-
-  /* The <i> in every heading was set to font-style:normal, which threw away
-     the one thing a didone is for. This is what those tags were reaching for. */
-  h1 i,
-  .closer h2 i,
-  .win-head h3 i,
-  .sec-h i {
-    font-style: italic;
-    font-weight: 500;
   }
 
   /* ---- press feedback ---- */
@@ -1073,21 +1086,31 @@
       <div class="charts">
         <div class="chartbox">
           <span class="cap">Market floor vs backing floor</span>
-          <div class="val">0.008 <em>ETH backed</em></div>
-          <svg class="chart" viewBox="0 0 460 200" role="img" aria-label="Market floor moves freely above a backing floor that steps upward and never falls.">
-            <g class="grid-line" stroke-width="1">
-              <line x1="8" y1="24" x2="452" y2="24"/><line x1="8" y1="68" x2="452" y2="68"/>
-              <line x1="8" y1="112" x2="452" y2="112"/><line x1="8" y1="156" x2="452" y2="156"/>
+          <div class="val">0.008 <em>ETH backed at mint</em></div>
+          <svg class="chart" viewBox="0 0 460 220" role="img" aria-label="Market floor moves freely between 0.009 and 0.015 ETH while the backing floor steps up from 0.008 and never falls.">
+            <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--ink-3)">
+              <text x="0" y="26">.016</text><text x="0" y="66">.014</text>
+              <text x="0" y="106">.012</text><text x="0" y="146">.010</text>
+              <text x="0" y="182">.008</text>
             </g>
-            <path d="M8 156 L98 156 L98 138 L188 138 L188 116 L278 116 L278 88 L368 88 L368 56 L452 56 L452 176 L8 176 Z"
-                  fill="var(--green)" opacity=".14"/>
-            <path d="M8 128 C 52 96, 74 140, 98 116 C 140 76, 166 120, 188 94
-                     C 232 54, 256 100, 278 70 C 322 34, 344 78, 368 44 L452 30"
+            <g class="grid-line" stroke-width="1">
+              <line x1="34" y1="22" x2="452" y2="22"/><line x1="34" y1="62" x2="452" y2="62"/>
+              <line x1="34" y1="102" x2="452" y2="102"/><line x1="34" y1="142" x2="452" y2="142"/>
+              <line x1="34" y1="178" x2="452" y2="178"/>
+            </g>
+            <path d="M34 178 L118 178 L118 160 L202 160 L202 136 L286 136 L286 106 L370 106 L370 74 L452 74 L452 178 Z"
+                  fill="var(--green)" opacity=".13"/>
+            <path d="M34 146 C 76 112, 98 156, 118 130 C 158 88, 182 134, 202 106
+                     C 244 64, 266 112, 286 80 C 328 44, 350 90, 370 58 L452 46"
                   fill="none" stroke="var(--mint)" stroke-width="2" stroke-linecap="round"/>
-            <path d="M8 156 L98 156 L98 138 L188 138 L188 116 L278 116 L278 88 L368 88 L368 56 L452 56"
+            <path d="M34 178 L118 178 L118 160 L202 160 L202 136 L286 136 L286 106 L370 106 L370 74 L452 74"
                   fill="none" stroke="var(--green)" stroke-width="2.6" stroke-linejoin="round"/>
-            <circle cx="452" cy="30" r="3.2" fill="var(--mint)"/>
-            <circle cx="452" cy="56" r="3.2" fill="var(--green)"/>
+            <circle cx="452" cy="46" r="3.2" fill="var(--mint)"/>
+            <circle cx="452" cy="74" r="3.2" fill="var(--green)"/>
+            <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--ink-3)" text-anchor="middle">
+              <text x="34" y="200">MINT</text><text x="160" y="200">+30D</text>
+              <text x="300" y="200">+90D</text><text x="440" y="200">+180D</text>
+            </g>
           </svg>
           <div class="key">
             <span><i style="background:var(--mint)"></i>Market floor</span>
@@ -1098,16 +1121,30 @@
         <div class="chartbox">
           <span class="cap">Backing per Orion</span>
           <div class="val">0.008 <em>ETH · only ratchets up</em></div>
-          <svg class="chart" viewBox="0 0 460 200" role="img" aria-label="Backing per Orion stepping upward over time and never falling.">
-            <g class="grid-line" stroke-width="1">
-              <line x1="8" y1="24" x2="452" y2="24"/><line x1="8" y1="68" x2="452" y2="68"/>
-              <line x1="8" y1="112" x2="452" y2="112"/><line x1="8" y1="156" x2="452" y2="156"/>
+          <svg class="chart" viewBox="0 0 460 220" role="img" aria-label="Backing per Orion stepping up from 0.008 ETH and never falling.">
+            <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--ink-3)">
+              <text x="0" y="26">.013</text><text x="0" y="66">.012</text>
+              <text x="0" y="106">.010</text><text x="0" y="146">.009</text>
+              <text x="0" y="182">.008</text>
             </g>
-            <path d="M8 164 L82 164 L82 146 L156 146 L156 122 L230 122 L230 96 L304 96 L304 66 L378 66 L378 40 L452 40 L452 176 L8 176 Z"
+            <g class="grid-line" stroke-width="1">
+              <line x1="34" y1="22" x2="452" y2="22"/><line x1="34" y1="62" x2="452" y2="62"/>
+              <line x1="34" y1="102" x2="452" y2="102"/><line x1="34" y1="142" x2="452" y2="142"/>
+              <line x1="34" y1="178" x2="452" y2="178"/>
+            </g>
+            <path d="M34 178 L104 178 L104 156 L174 156 L174 130 L244 130 L244 102 L314 102 L314 70 L384 70 L384 42 L452 42 L452 178 Z"
                   fill="var(--green)" opacity=".16"/>
-            <path d="M8 164 L82 164 L82 146 L156 146 L156 122 L230 122 L230 96 L304 96 L304 66 L378 66 L378 40 L452 40"
+            <path d="M34 178 L104 178 L104 156 L174 156 L174 130 L244 130 L244 102 L314 102 L314 70 L384 70 L384 42 L452 42"
                   fill="none" stroke="var(--green)" stroke-width="2.6" stroke-linejoin="round"/>
-            <circle cx="452" cy="40" r="4" fill="var(--green)"/>
+            <g fill="var(--green)">
+              <circle cx="104" cy="156" r="2.6"/><circle cx="174" cy="130" r="2.6"/>
+              <circle cx="244" cy="102" r="2.6"/><circle cx="314" cy="70" r="2.6"/>
+              <circle cx="452" cy="42" r="4"/>
+            </g>
+            <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--ink-3)" text-anchor="middle">
+              <text x="34" y="200">MINT</text><text x="160" y="200">+30D</text>
+              <text x="300" y="200">+90D</text><text x="440" y="200">+180D</text>
+            </g>
           </svg>
           <div class="key"><span>Every redemption raises it for the rest</span></div>
         </div>
@@ -1565,7 +1602,9 @@ function hashOf(handle) {
 
 let S2 = { handle:'', pass:0, serial:'', sign:'' };
 let DB = null;
-claude?.use?.('db').then(d => { DB = d; refreshCount(); }).catch(() => {});
+if (typeof claude !== 'undefined' && claude && typeof claude.use === 'function') {
+  claude.use('db').then(d => { DB = d; refreshCount(); }).catch(() => {});
+}
 
 /* Two homes for the same record.
    On claude.ai the artifact document store is available and there is no
@@ -1659,6 +1698,11 @@ function strike() {
     <button class="btn btn-full" style="border:none;color:var(--ink-3);margin-top:8px" id="back">Different handle</button>`;
 
   guilloche(document.getElementById('guil'));
+
+  // Strike the plate. rAF so the class lands after the node is in the DOM —
+  // set it in the same tick and the browser has no "from" state to animate.
+  const cardEl = document.getElementById('card');
+  if (cardEl) requestAnimationFrame(() => cardEl.classList.add('struck'));
   const card = document.getElementById('card');
   card.addEventListener('pointermove', e => {
     const r = card.getBoundingClientRect();
@@ -1689,21 +1733,24 @@ function guilloche(cv) {
   }
 }
 
+const ORION_X = 'https://x.com/Oriongqgc';
 const TASKS = [
-  ['Quote the whitelist post','Opens X with your pass already written'],
-  ['Repost it','One tap'], ['Like it','One tap'],
-  ['Leave a comment','Say something in the replies']
+  ['Follow @Oriongqgc', 'The account minting the collection', ORION_X],
+  ['Quote the whitelist post', 'Opens X with your pass already written', null],
+  ['Repost it', 'One tap', ORION_X],
+  ['Like it', 'One tap', ORION_X],
+  ['Leave a comment', 'Say something in the replies', ORION_X]
 ];
 
 function step3() {
   setStep(3);
-  const doneTasks = [false, false, false, false];
+  const doneTasks = TASKS.map(() => false);
   const txt = encodeURIComponent(
     `Orion pass No. ${String(S2.pass).padStart(4,'0')} — ${S2.sign}.\n` +
     `3,333 liquid constellations, every one backed by ETH.\n\n@${S2.handle}`);
   body.innerHTML = `
     <h2>Claim it.</h2>
-    <p class="sub">Four taps on X, then the wallet that should hold the mint.</p>
+    <p class="sub">Five taps on X, then the wallet that should hold the mint.</p>
     <div class="tasks">${TASKS.map(([t,s],i)=>`
       <button class="task" data-i="${i}"><span class="n">${i+1}</span>
       <span class="t"><strong>${t}</strong><span>${s}</span></span><span class="go">↗</span></button>`).join('')}</div>
@@ -1714,7 +1761,7 @@ function step3() {
     <label class="lbl" for="wallet">Wallet</label>
     <div class="field"><input id="wallet" type="text" placeholder="0x0000… or yourname.eth" autocomplete="off" spellcheck="false"></div>
     <button class="btn btn-solid btn-full" id="sub" style="margin-top:16px" disabled>Submit Wallet</button>
-    <p class="gate-hint" id="gateHint">Complete all four steps to continue</p>
+    <p class="gate-hint" id="gateHint">Complete all five steps to continue</p>
     <p class="note" id="err3"></p>`;
 
   const subBtn = () => document.getElementById('sub');
@@ -1726,11 +1773,12 @@ function step3() {
      flags are not all true. Only the third one actually stops anybody. */
   function refreshGate() {
     const left = doneTasks.filter(Boolean).length;
-    const all = left === 4;
+    const all = left === TASKS.length;
+    const short = TASKS.length - left;
     subBtn().disabled = !all;
     hint().textContent = all
       ? 'All steps complete'
-      : `${4 - left} step${4 - left === 1 ? '' : 's'} remaining`;
+      : `${short} step${short === 1 ? '' : 's'} remaining`;
     hint().style.color = all ? 'var(--verd)' : 'var(--ink-3)';
   }
 
@@ -1739,7 +1787,10 @@ function step3() {
     doneTasks[i] = true;
     b.classList.add('done'); b.querySelector('.n').textContent = '✓';
     refreshGate();
-    window.open(b.dataset.i === '0' ? 'https://x.com/intent/post?text='+txt : 'https://x.com/', '_blank', 'noopener');
+    // Each task owns its destination; the quote task is the one that needs
+    // the intent URL with the pass already written into it.
+    const dest = TASKS[i][2] || ('https://x.com/intent/post?text=' + txt);
+    window.open(dest, '_blank', 'noopener');
   }));
   refreshGate();
 

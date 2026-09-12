@@ -131,7 +131,7 @@ export function validateSubmission(body) {
   // request can assert it — but it makes the requirement explicit at the
   // boundary, and `verified` below is what actually gates the allowlist.
   const tasks = body.tasks;
-  if (!Array.isArray(tasks) || tasks.length !== 4 || !tasks.every(t => t === true)) {
+  if (!Array.isArray(tasks) || tasks.length !== 5 || !tasks.every(t => t === true)) {
     return { ok: false, error: 'tasks_incomplete' };
   }
 
