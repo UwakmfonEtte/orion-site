@@ -22,7 +22,7 @@ export const IAU = ['Andromeda','Antlia','Apus','Aquarius','Aquila','Ara','Aries
 'Serpens','Sextans','Taurus','Telescopium','Triangulum','Triangulum Australe',
 'Tucana','Ursa Major','Ursa Minor','Vela','Virgo','Volans','Vulpecula'];
 
-export const SUPPLY = 3333;
+export const SUPPLY = 1600;
 
 /** X handles: letters, digits, underscore, 1-15. Deliberately the strictest
  *  reading of X's own rule — it is also what makes the handle safe to place in

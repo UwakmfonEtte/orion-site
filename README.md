@@ -1,6 +1,7 @@
 # Orion Collective — waitlist site
 
-Waitlist and founding-pass site for **Orion**, a 3,333-piece collection backed by a
+Waitlist and founding-pass site for **Orion**, a 1,600-piece collection minted at
+0.005 ETH and backed by a
 Liquid Backing Treasury.
 
 Static HTML with one serverless function. No build step, no framework, no
@@ -123,7 +124,7 @@ the one with server-side enforcement.
 
 Every pass is derived from the X handle alone — no lookup, no external service:
 
-- **Number** — `hash(handle) % 3333 + 1`
+- **Number** — `hash(handle) % 1600 + 1`
 - **Constellation** — one of the 88 IAU-recognised constellations, the same set
   used as the collection's trait list
 - **Serial** — `ORI-XXXX-XXXX`
