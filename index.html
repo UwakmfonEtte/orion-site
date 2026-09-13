@@ -688,13 +688,20 @@
     box-shadow: 0 26px 60px -22px rgba(0,0,0,.9), 0 0 0 1px rgba(224,185,120,.26) inset;
     margin: 2px 0 20px; isolation: isolate;
   }
-  .card canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .52; }
+  .card canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .30; }
+  /* Guilloché is a ground, not a pattern to read the name through. This
+     scrim keeps the lower half legible without flattening the engraving
+     off the top of the card, where it is doing the decorative work. */
+  .card::before {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(180deg, transparent 34%, rgba(10,12,16,.55) 62%, rgba(10,12,16,.82) 100%);
+  }
   .card .sheen {
     position: absolute; inset: -40%;
     background: linear-gradient(104deg,transparent 38%,rgba(255,255,255,.13) 47%,rgba(224,185,120,.2) 51%,transparent 62%);
     transform: translateX(var(--sx,0px)); transition: transform .16s ease-out; pointer-events: none;
   }
-  .card-in { position: relative; height: 100%; padding: clamp(16px,4.4%,28px); display: flex; flex-direction: column; }
+  .card-in { position: relative; z-index: 2; height: 100%; padding: clamp(16px,4.4%,28px); display: flex; flex-direction: column; }
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
   .card-mark { font-family: var(--serif); font-weight: 700; font-size: clamp(13px,3.4vw,18px); letter-spacing: .2em; text-transform: uppercase; color: #DCE0E8; }
   .card-kind { font-family: var(--mono); font-size: clamp(6.5px,1.7vw,8.5px); letter-spacing: .26em; text-transform: uppercase; text-align: right; color: rgba(220,224,232,.6); }
@@ -1130,8 +1137,6 @@
               <text x="46" y="204">MINT</text><text x="180" y="204">+30D</text>
               <text x="320" y="204">+90D</text><text x="446" y="204">+180D</text>
             </g>
-            <text x="248" y="226" text-anchor="middle" font-family="IBM Plex Mono, monospace"
-                  font-size="8" fill="var(--ink-3)" letter-spacing="1.4">SHAPE ONLY — LIVE FIGURES AT MINT</text>
           </svg>
         </div>
 
@@ -1166,8 +1171,6 @@
               <text x="46" y="204">MINT</text><text x="180" y="204">+30D</text>
               <text x="320" y="204">+90D</text><text x="446" y="204">+180D</text>
             </g>
-            <text x="248" y="226" text-anchor="middle" font-family="IBM Plex Mono, monospace"
-                  font-size="8" fill="var(--ink-3)" letter-spacing="1.4">SHAPE ONLY — LIVE FIGURES AT MINT</text>
           </svg>
         </div>
       </div>
@@ -1241,6 +1244,15 @@
 
       <div class="panelui">
         <div class="pu-row">
+          <label class="pu-lab">Orions</label>
+          <div class="pu-pick" id="rCount">
+            <button class="chip on" data-orion="1">1 Orion</button>
+            <button class="chip" data-orion="3">3</button>
+            <button class="chip" data-orion="10">10</button>
+          </div>
+        </div>
+
+        <div class="pu-row">
           <label class="pu-lab">Term</label>
           <div class="pu-pick" id="rTerm">
             <button class="chip on" data-days="7">7 days</button>
@@ -1250,9 +1262,9 @@
         </div>
 
         <dl class="pu-outs">
-          <div class="pu-out"><dt>Treasury-owned</dt><dd id="rPool">—</dd></div>
-          <div class="pu-out"><dt>Rate</dt><dd>10<small>% of backing</small></dd></div>
-          <div class="pu-out"><dt>Cost</dt><dd id="rCost">0.0008<small>ETH</small></dd></div>
+          <div class="pu-out"><dt>Rate</dt><dd>10<small>% of backing / 30d</small></dd></div>
+          <div class="pu-out"><dt>Cost per Orion</dt><dd id="rEach">0.0008<small>ETH</small></dd></div>
+          <div class="pu-out"><dt>You pay</dt><dd id="rCost">0.0008<small>ETH</small></dd></div>
           <div class="pu-out"><dt>Holder perks</dt><dd class="ok">Full</dd></div>
         </dl>
 
@@ -1694,9 +1706,7 @@ function strike() {
 
   body.innerHTML = `
     <span class="cap" style="color:var(--verd)">Pass struck · @${esc(S2.handle.toUpperCase())}</span>
-    <h2 style="margin-top:8px">Here it is.</h2>
-    <div class="score-line"><span class="score-val" style="font-size:clamp(30px,7vw,46px)">${esc(S2.sign)}</span>
-      <span class="score-of">Your constellation</span></div>
+
     <div class="card" id="card">
       <canvas id="guil" width="720" height="454" aria-hidden="true"></canvas>
       <div class="sheen"></div>
@@ -2130,15 +2140,15 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
   function rent() {
     if (!$('rCost')) return;
-    const days = val('rTerm', 'days');
-    $('rCost').innerHTML = (BACKING * RENT * (days / 30)).toFixed(4) + '<small>ETH</small>';
-    // The treasury buys its stock from royalties, so the pool is empty
-    // until secondary trading begins. Saying so beats inventing a number.
-    $('rPool').innerHTML = '0<small>until mint</small>';
+    const days  = val('rTerm', 'days');
+    const count = val('rCount', 'orion');
+    const each  = BACKING * RENT * (days / 30);
+    $('rEach').innerHTML = each.toFixed(4) + '<small>ETH</small>';
+    $('rCost').innerHTML = (each * count).toFixed(4) + '<small>ETH</small>';
   }
 
   pick('bPick', borrow); pick('bTerm', borrow);
-  pick('rTerm', rent);
+  pick('rCount', rent); pick('rTerm', rent);
   borrow(); rent();
 })();
 </script>
