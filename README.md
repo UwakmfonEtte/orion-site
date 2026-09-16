@@ -1,7 +1,7 @@
 # Orion Collective — waitlist site
 
 Waitlist and founding-pass site for **Orion**, a 1,555-piece collection minted at
-0.006 ETH and backed by a
+12 USDC and backed by a
 Liquid Backing Treasury.
 
 Static HTML with one serverless function. No build step, no framework, no
