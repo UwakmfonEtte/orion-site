@@ -710,8 +710,8 @@
     /* line-height:1 made the element box exactly the font size, and with
        background-clip:text the gradient is painted to that box - so glyph
        descenders (g, q, p, y) fell outside it, got no gradient, and with
-       text-fill-color:transparent rendered as nothing. @Oriongqgc read as
-       @Orionqqqc. The box has to be taller than the glyphs, not equal. */
+       text-fill-color:transparent rendered as nothing - a handle ending
+       in g or q lost its tail. The box has to be taller than the glyphs. */
     font-family: var(--serif); font-weight: 700; font-size: clamp(21px,6.6vw,38px);
     line-height: 1.24; padding-bottom: .06em; word-break: break-word;
     background: linear-gradient(96deg,#FFFBF0,#E0B978 52%,#9C7A2A);
@@ -1765,9 +1765,9 @@ function guilloche(cv) {
   }
 }
 
-const ORION_X = 'https://x.com/Oriongqgc';
+const ORION_X = 'https://x.com/LiquidOrion';
 const TASKS = [
-  ['Follow @Oriongqgc', 'The account minting the collection', ORION_X],
+  ['Follow @LiquidOrion', 'The account minting the collection', ORION_X],
   ['Quote the whitelist post', 'Opens X with your pass already written', null],
   ['Repost it', 'One tap', ORION_X],
   ['Like it', 'One tap', ORION_X],
