@@ -1778,13 +1778,14 @@ const ORION_X = 'https://x.com/LiquidOrion';
 const ORION_POST = 'https://x.com/LiquidOrion/status/2101003464276840682';
 const POST = ORION_POST || ORION_X;
 
-/* Pre-written for the quote task. Held as one string rather than built
-   inline so the copy can be edited without touching the intent URL. */
+/* Pre-written for the quote task. The budget is not 280: X appends the
+   quoted post URL as text and counts every URL as 23 characters whatever
+   its length, and oriongqgc.space auto-links too - so two links cost 46 of
+   the 280 and the copy has to fit in what is left. This runs 243. */
 const QUOTE_TEXT =
   'Just joined the Orion waitlist and claimed my pass.\n\n' +
   'Every Orion carries a redeemable floor value, and holders can borrow ' +
-  'against or burn their Orion for its share of the reserves whenever ' +
-  'they want.\n\n' +
+  'against or burn their Orion for its share of the reserves.\n\n' +
   'website is live now, grab your seat!\n\n' +
   'oriongqgc.space';
 
