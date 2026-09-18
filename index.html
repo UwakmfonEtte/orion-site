@@ -1768,20 +1768,38 @@ function guilloche(cv) {
 }
 
 const ORION_X = 'https://x.com/LiquidOrion';
+
+/* The whitelist post itself. Quote, repost, like and reply are all actions
+   on a POST, not on a profile - you cannot like an account - so those three
+   tasks were opening the profile and leaving people to find the right post
+   themselves. Paste the post URL here and all four line up. Until it is set
+   they fall back to the profile so nothing opens a dead link, but set it
+   before the waitlist goes out. */
+const ORION_POST = 'https://x.com/LiquidOrion/status/2101003464276840682';
+const POST = ORION_POST || ORION_X;
+
+/* Pre-written for the quote task. Held as one string rather than built
+   inline so the copy can be edited without touching the intent URL. */
+const QUOTE_TEXT =
+  'Just joined the Orion waitlist and claimed my pass.\n\n' +
+  'Every Orion carries a redeemable floor value, and holders can borrow ' +
+  'against or burn their Orion for its share of the reserves whenever ' +
+  'they want.\n\n' +
+  'website is live now, grab your seat!\n\n' +
+  'oriongqgc.space';
+
 const TASKS = [
   ['Follow @LiquidOrion', 'The account minting the collection', ORION_X],
-  ['Quote the whitelist post', 'Opens X with your pass already written', null],
-  ['Repost it', 'One tap', ORION_X],
-  ['Like it', 'One tap', ORION_X],
-  ['Leave a comment', 'Say something in the replies', ORION_X]
+  ['Quote the whitelist post', 'Opens X with the post already written', null],
+  ['Repost it', 'One tap', POST],
+  ['Like it', 'One tap', POST],
+  ['Leave a comment', 'Say something in the replies', POST]
 ];
 
 function step3() {
   setStep(3);
   const doneTasks = TASKS.map(() => false);
-  const txt = encodeURIComponent(
-    `Orion pass No. ${String(S2.pass).padStart(4,'0')} — ${S2.sign}.\n` +
-    `1,555 liquid constellations, every one backed by USDC.\n\n@${S2.handle}`);
+  const txt = encodeURIComponent(QUOTE_TEXT);
   body.innerHTML = `
     <h2>Claim it.</h2>
     <p class="sub">Five taps on X, then the wallet that should hold the mint.</p>
@@ -1823,7 +1841,10 @@ function step3() {
     refreshGate();
     // Each task owns its destination; the quote task is the one that needs
     // the intent URL with the pass already written into it.
-    const dest = TASKS[i][2] || ('https://x.com/intent/post?text=' + txt);
+    // Attaching the post URL is what turns the intent into a quote rather
+    // than a standalone post; without it X opens a plain compose box.
+    const dest = TASKS[i][2] || ('https://x.com/intent/post?text=' + txt +
+      (ORION_POST ? '&url=' + encodeURIComponent(ORION_POST) : ''));
     window.open(dest, '_blank', 'noopener');
   }));
   refreshGate();
