@@ -452,7 +452,10 @@
   /* Content rises a beat behind the plate it is printed on. */
   .card.struck .card-in > *,
   .card.struck .card-mid > * { animation: cardLine .6s var(--ease-out) both; }
-  @keyframes cardLine { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+  /* Opacity only. A transform here promotes each line to its own layer,
+     which is what broke the gradient handle on iOS; the rise was not worth
+     a compositing bug. */
+  @keyframes cardLine { from { opacity: 0; } to { opacity: 1; } }
   .card.struck .card-mid > *:nth-child(1) { animation-delay: .40s; }
   .card.struck .card-mid > *:nth-child(2) { animation-delay: .48s; }
   .card.struck .card-mid > *:nth-child(3) { animation-delay: .54s; }
@@ -707,15 +710,24 @@
   .card-kind { font-family: var(--mono); font-size: clamp(6.5px,1.7vw,8.5px); letter-spacing: .26em; text-transform: uppercase; text-align: right; color: rgba(220,224,232,.6); }
   .card-mid { margin-top: auto; }
   .card-handle {
-    /* line-height:1 made the element box exactly the font size, and with
-       background-clip:text the gradient is painted to that box - so glyph
-       descenders (g, q, p, y) fell outside it, got no gradient, and with
-       text-fill-color:transparent rendered as nothing - a handle ending
-       in g or q lost its tail. The box has to be taller than the glyphs. */
+    /* Solid gold, NOT a gradient clipped to the glyphs.
+
+       background-clip:text has failed here twice. First it ate the
+       descenders: line-height:1 made the painted box exactly the font size,
+       so the tails of g, q, p and y fell outside it and got no gradient.
+       Then iOS took the whole handle. -webkit-text-fill-color:transparent
+       always applies, but the clipped background stops being painted once
+       the element is composited - and this one sits inside a perspective,
+       on a 3D-transformed card, with a transform of its own from the reveal
+       animation. Transparent text over an unpainted background is nothing,
+       so the pass rendered with no handle on it at all.
+
+       The gradient bought very little at this size and the failure mode is
+       the worst on the site - somebody cannot see their own handle on their
+       own pass - so this keeps a real colour. 6.84:1 on the plate. */
     font-family: var(--serif); font-weight: 700; font-size: clamp(21px,6.6vw,38px);
     line-height: 1.24; padding-bottom: .06em; word-break: break-word;
-    background: linear-gradient(96deg,#FFFBF0,#E0B978 52%,#9C7A2A);
-    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    color: #E0B978;
   }
   .card-tier { font-family: var(--mono); font-size: clamp(7.5px,1.9vw,9.5px); letter-spacing: .26em; text-transform: uppercase; color: #A8CEFF; margin-top: 8px; }
   .card-rule { height: 1px; background: linear-gradient(90deg,rgba(224,185,120,.5),transparent); margin: clamp(10px,3%,16px) 0; }
