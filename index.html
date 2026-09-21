@@ -536,8 +536,12 @@
   }
 
   /* stats become medallions */
+  /* Three up, not auto-fit. There are six readings now, and auto-fit put
+     all six on one row at desktop width - which left each cell too narrow
+     for the ETH figures, so "7.775 ETH" rendered as "7.775 E" with the unit
+     clipped. Six splits evenly into two rows of three. */
   .readings {  display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px; border: none; margin: 0 0 46px; }
   .reading { border: 1px solid var(--rule); border-left: 1px solid var(--rule);
     background: linear-gradient(150deg,
@@ -930,7 +934,7 @@
     <div class="hero-wrap"><div class="hero-in">
       <h1>1,555 <i>Liquid Constellations</i></h1>
       <p class="lede">
-        Every Orion is backed by 12 USDC you can redeem on demand.
+        Every Orion is backed by 0.005 ETH you can redeem on demand.
       </p>
       <div class="acts">
         <button class="btn btn-holo" data-open>Join Waitlist</button>
@@ -1073,7 +1077,7 @@
                       font-weight="500" letter-spacing="1.2">BACKED</text>
                 <text x="210" y="160" text-anchor="middle" fill="var(--green)"
                       font-family="IBM Plex Mono, monospace" font-size="10"
-                      letter-spacing="1.2">12 USDC</text>
+                      letter-spacing="1.2">0.005 ETH</text>
               </g>
 
               <text x="210" y="266" text-anchor="middle" fill="var(--ink-3)"
@@ -1099,8 +1103,8 @@
 
       <dl class="readings">
         <div class="reading"><dt>Circulating supply</dt><dd>1,555</dd></div>
-        <div class="reading"><dt>Total backing</dt><dd>18,660<span>USDC</span></dd></div>
-        <div class="reading"><dt>Backing / Orion</dt><dd>12<span>USDC</span></dd></div>
+        <div class="reading"><dt>Total backing</dt><dd>7.775<span>ETH</span></dd></div>
+        <div class="reading"><dt>Backing / Orion</dt><dd>0.005<span>ETH</span></dd></div>
         <div class="reading"><dt>Redemption fee</dt><dd>5<span>%</span></dd></div>
         <div class="reading"><dt>Team allocation</dt><dd>0<span>%</span></dd></div>
         <div class="reading"><dt>Vault signers</dt><dd>2<span>of 3</span></dd></div>
@@ -1109,8 +1113,8 @@
       <div class="charts">
         <div class="chartbox">
           <span class="cap">Market floor vs backing floor</span>
-          <div class="val">12 <em>USDC backed at mint</em></div>
-          <svg class="chart" viewBox="0 0 460 236" role="img" aria-label="Market floor oscillates between roughly 13 and 20 USDC while the backing floor climbs steadily from 12 and never falls.">
+          <div class="val">0.005 <em>ETH backed at mint</em></div>
+          <svg class="chart" viewBox="0 0 460 236" role="img" aria-label="Market floor oscillates above the backing floor while the backing floor climbs steadily from 0.005 ETH and never falls.">
             <rect x="46" y="10" width="404" height="176" fill="none" stroke="var(--rule)" stroke-width="1"/>
 
             <!-- key inside the frame, as drawn -->
@@ -1122,9 +1126,9 @@
             </g>
 
             <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--ink-3)" text-anchor="end">
-              <text x="40" y="63">20</text><text x="40" y="94">18</text>
-              <text x="40" y="125">16</text><text x="40" y="156">14</text>
-              <text x="40" y="184">12</text>
+              <text x="40" y="63">.009</text><text x="40" y="94">.008</text>
+              <text x="40" y="125">.007</text><text x="40" y="156">.006</text>
+              <text x="40" y="184">.005</text>
             </g>
             <g class="grid-line" stroke-width="1" stroke-dasharray="2 4">
               <line x1="46" y1="60" x2="450" y2="60"/><line x1="46" y1="91" x2="450" y2="91"/>
@@ -1152,8 +1156,8 @@
 
         <div class="chartbox">
           <span class="cap">Backing per Orion</span>
-          <div class="val">12 <em>USDC · only ratchets up</em></div>
-          <svg class="chart" viewBox="0 0 460 236" role="img" aria-label="Backing per Orion climbing steadily from 12 USDC and never falling.">
+          <div class="val">0.005 <em>ETH · only ratchets up</em></div>
+          <svg class="chart" viewBox="0 0 460 236" role="img" aria-label="Backing per Orion climbing steadily from 0.005 ETH and never falling.">
             <rect x="46" y="10" width="404" height="176" fill="none" stroke="var(--rule)" stroke-width="1"/>
 
             <g font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--ink-3)">
@@ -1162,9 +1166,9 @@
             </g>
 
             <g font-family="IBM Plex Mono, monospace" font-size="8.5" fill="var(--ink-3)" text-anchor="end">
-              <text x="40" y="63">20</text><text x="40" y="94">18</text>
-              <text x="40" y="125">16</text><text x="40" y="156">14</text>
-              <text x="40" y="184">12</text>
+              <text x="40" y="63">.009</text><text x="40" y="94">.008</text>
+              <text x="40" y="125">.007</text><text x="40" y="156">.006</text>
+              <text x="40" y="184">.005</text>
             </g>
             <g class="grid-line" stroke-width="1" stroke-dasharray="2 4">
               <line x1="46" y1="60" x2="450" y2="60"/><line x1="46" y1="91" x2="450" y2="91"/>
@@ -1236,10 +1240,10 @@
         </div>
 
         <dl class="pu-outs">
-          <div class="pu-out"><dt>You borrow</dt><dd id="bGet">12.0000<small>USDC</small></dd></div>
+          <div class="pu-out"><dt>You borrow</dt><dd id="bGet">0.00500<small>ETH</small></dd></div>
           <div class="pu-out"><dt>Fixed rate</dt><dd>5<small>%</small></dd></div>
-          <div class="pu-out"><dt>Interest</dt><dd id="bInt">0.0493<small>USDC</small></dd></div>
-          <div class="pu-out"><dt>You repay</dt><dd id="bRepay">12.0493<small>USDC</small></dd></div>
+          <div class="pu-out"><dt>Interest</dt><dd id="bInt">0.00002<small>ETH</small></dd></div>
+          <div class="pu-out"><dt>You repay</dt><dd id="bRepay">0.00502<small>ETH</small></dd></div>
         </dl>
 
         <button class="btn btn-holo wide" aria-disabled="true">Open loan — after mint</button>
@@ -1273,8 +1277,8 @@
 
         <dl class="pu-outs">
           <div class="pu-out"><dt>Rate</dt><dd>10<small>% of backing / 30d</small></dd></div>
-          <div class="pu-out"><dt>Cost per Orion</dt><dd id="rEach">0.2800<small>USDC</small></dd></div>
-          <div class="pu-out"><dt>You pay</dt><dd id="rCost">0.2800<small>USDC</small></dd></div>
+          <div class="pu-out"><dt>Cost per Orion</dt><dd id="rEach">0.00050<small>ETH</small></dd></div>
+          <div class="pu-out"><dt>You pay</dt><dd id="rCost">0.00050<small>ETH</small></dd></div>
           <div class="pu-out"><dt>Holder perks</dt><dd class="ok">Full</dd></div>
         </dl>
 
@@ -1992,7 +1996,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
    the whole point, so it is computed the way it actually happens.
    ===================================================================== */
 (function () {
-  const SUP0 = 1555, TRE0 = 18660, FEE = 0.05;
+  const SUP0 = 1555, TRE0 = 7.775, FEE = 0.05;   // 1,555 x 0.005 ETH
   const burn = document.getElementById('burn');
   if (!burn) return;
   const out = document.getElementById('burnOut');
@@ -2016,14 +2020,14 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     const gain = (r.per / base - 1) * 100;
     out.textContent = k.toLocaleString();
     oS.textContent = r.sup.toLocaleString();
-    oT.innerHTML = r.tre.toFixed(2) + '<small>USDC</small>';
-    oB.innerHTML = r.per.toFixed(4) + '<small>USDC</small>';
+    oT.innerHTML = r.tre.toFixed(4) + '<small>ETH</small>';
+    oB.innerHTML = r.per.toFixed(5) + '<small>ETH</small>';
     oG.innerHTML = '+' + gain.toFixed(2) + '<small>%</small>';
     oBar.style.width = Math.min(100, gain * 6) + '%';
     oNote.textContent = k === 0
       ? 'At launch every Orion is backed by exactly its mint price.'
       : `${k.toLocaleString()} redeemed leaves ${r.sup.toLocaleString()} Orions, each backed by `
-        + `${r.per.toFixed(4)} USDC — ${gain.toFixed(2)}% more than at launch.`;
+        + `${r.per.toFixed(4)} ETH — ${gain.toFixed(2)}% more than at launch.`;
   }
   burn.addEventListener('input', paint);
   paint();
@@ -2140,7 +2144,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
    like the product rather than illustrating it.
    ===================================================================== */
 (function () {
-  const BACKING = 12, RATE = 0.05, RENT = 0.10;
+  const BACKING = 0.005, RATE = 0.05, RENT = 0.10;
   const $ = id => document.getElementById(id);
 
   function pick(group, onChange) {
@@ -2165,9 +2169,9 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     const days = val('bTerm', 'days');
     const principal = BACKING * orions;
     const interest = principal * RATE * (days / 365);
-    $('bGet').innerHTML = principal.toFixed(4) + '<small>USDC</small>';
-    $('bInt').innerHTML = interest.toFixed(4) + '<small>USDC</small>';
-    $('bRepay').innerHTML = (principal + interest).toFixed(4) + '<small>USDC</small>';
+    $('bGet').innerHTML = principal.toFixed(5) + '<small>ETH</small>';
+    $('bInt').innerHTML = interest.toFixed(5) + '<small>ETH</small>';
+    $('bRepay').innerHTML = (principal + interest).toFixed(5) + '<small>ETH</small>';
   }
 
   function rent() {
@@ -2175,8 +2179,8 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     const days  = val('rTerm', 'days');
     const count = val('rCount', 'orion');
     const each  = BACKING * RENT * (days / 30);
-    $('rEach').innerHTML = each.toFixed(4) + '<small>USDC</small>';
-    $('rCost').innerHTML = (each * count).toFixed(4) + '<small>USDC</small>';
+    $('rEach').innerHTML = each.toFixed(5) + '<small>ETH</small>';
+    $('rCost').innerHTML = (each * count).toFixed(5) + '<small>ETH</small>';
   }
 
   pick('bPick', borrow); pick('bTerm', borrow);
