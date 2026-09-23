@@ -259,7 +259,10 @@
   .reading dd span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 5px; }
 
   /* ---------- SECTIONS ---------- */
-  .sec { padding: clamp(58px,7vw,104px) 0; }
+  /* Was clamp(58px,7vw,104px), which put ~208px between two sections at
+     desktop width with the hairline divider floating dead centre of it -
+     so one gap read as two. The rhythm is still generous, just not a void. */
+  .sec { padding: clamp(46px,5vw,72px) 0; }
   .sec-top { display: flex; align-items: center; justify-content: space-between;
     gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
   .sec-h { font-family: var(--serif); font-weight: 700;
@@ -646,6 +649,10 @@
     background: var(--ink-3); }
   .statuscard.is-holder .dot { background: var(--verd);
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--verd) 20%, transparent); }
+  /* Under review is a real state now, and it is neither settled nor a no,
+     so it gets amber rather than falling through to the inert grey. */
+  .statuscard.is-review .dot { background: #C9962C;
+    box-shadow: 0 0 0 4px color-mix(in srgb, #C9962C 22%, transparent); }
   .statuscard .foot { padding: 14px 18px; border-top: 1px solid var(--rule);
     font-size: 13.5px; color: var(--ink-2); }
 
@@ -2059,8 +2066,14 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
     let rows = '';
     if (hasApplication && (isAccepted || isReview)) {
-      rows += `<div class="row"><dt>Pass</dt><dd>No. ${
-        String(d.pass || '0000').padStart(4, '0')}</dd></div>`;
+      // Only when there is a real pass. An approved handle with no waitlist
+      // row has pass null, and `d.pass || '0000'` printed that as "No. 0000"
+      // - a pass number that does not exist, on the page someone checks to
+      // find out whether they have one.
+      if (d.pass != null) {
+        rows += `<div class="row"><dt>Pass</dt><dd>No. ${
+          String(d.pass).padStart(4, '0')}</dd></div>`;
+      }
       rows += `<div class="row"><dt>Post</dt><dd>${
         d.verified ? 'verified' : 'awaiting check'}</dd></div>`;
     }
@@ -2072,12 +2085,10 @@ refreshCount();   // the API path needs no capability handshake to resolve first
             ? 'Your place is held. The mint date goes out on X.'
             : 'Your place is held. Your post is checked against the whitelist post before mint.')
         : isRejected
-          ? 'You are not on the selected list right now. If you have a valid referral, you can still get vouched for and reapply.'
+          ? 'You are not on the selected list right now. Watch @LiquidOrion for what comes next.'
           : 'Your application is under review. When the selected list is shared, chosen handles will move on to the list and others will be marked unaccepted.';
 
-    const cta = isRejected
-      ? '<div class="foot" style="padding-top:10px"><a href="#check" style="color:var(--green);font-weight:600;text-decoration:underline">Get vouched for</a></div>'
-      : '';
+    const cta = '';   // reserved for the next phase
 
     out.className = 'statuscard is-' + (state === 'none' ? 'none' : isAccepted ? 'holder' : isRejected ? 'none' : 'review');
     out.innerHTML =
@@ -2113,6 +2124,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
 
   price();
+  tallies();
 })();
 /* =====================================================================
    LIVE PASS — the card on the page is the same object the modal issues,
