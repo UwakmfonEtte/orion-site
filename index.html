@@ -535,26 +535,6 @@
       color-mix(in srgb, #fff 9%, transparent) 0%, transparent 34%);
   }
 
-  /* stats become medallions */
-  /* Three up, not auto-fit. There are six readings now, and auto-fit put
-     all six on one row at desktop width - which left each cell too narrow
-     for the ETH figures, so "7.775 ETH" rendered as "7.775 E" with the unit
-     clipped. Six splits evenly into two rows of three. */
-  .readings {  display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px; border: none; margin: 0 0 46px; }
-  .reading { border: 1px solid var(--rule); border-left: 1px solid var(--rule);
-    background: linear-gradient(150deg,
-      color-mix(in srgb, var(--green) 9%, var(--plate)), var(--plate) 58%);
-    padding: 26px 26px 24px; position: relative; overflow: hidden; }
-  .reading::after {
-    content: ""; position: absolute; right: -30px; bottom: -46px;
-    width: 110px; height: 110px; border-radius: 50%;
-    border: 16px solid color-mix(in srgb, var(--green) 10%, transparent);
-  }
-  .reading:first-child { border-left: 1px solid var(--rule); }
-  .reading dd { position: relative; }
-
   /* the model's meter fills like a vessel */
   .bar { height: 12px; border-radius: var(--r-pill); background: var(--raise);
     border: 1px solid var(--rule); }
@@ -668,19 +648,6 @@
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--verd) 20%, transparent); }
   .statuscard .foot { padding: 14px 18px; border-top: 1px solid var(--rule);
     font-size: 13.5px; color: var(--ink-2); }
-
-  /* Bordered cards with a real gap, not the 1px-gap-over-a-tinted-container
-     trick. That trick draws hairlines by letting the container show through,
-     which means any row the items do not fill shows a block of container
-     colour instead - and the tally count changes with the phase, so a part
-     empty row is the normal case here, not the exception. */
-  .tallies { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
-    gap: 12px; margin: 34px 0 0; }
-  .tally { background: var(--plate); border: 1px solid var(--rule); padding: 18px 20px; }
-  .tally dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em;
-    text-transform: uppercase; color: var(--ink-3); }
-  .tally dd { margin: 7px 0 0; font-family: var(--serif); font-weight: 700;
-    font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
 
   /* ---------- MODAL ---------- */
   .scrim {
@@ -1355,7 +1322,6 @@
 
       <div id="stOut" class="statuscard" hidden></div>
 
-      <dl class="tallies" id="tallies"></dl>
     </section>
 
     <section class="closer">
@@ -2009,7 +1975,7 @@ async function refreshCount() {
 refreshCount();   // the API path needs no capability handshake to resolve first
 
 /* =====================================================================
-   ETH PRICE, TALLIES, APPLICATION STATUS
+    ETH PRICE, APPLICATION STATUS
 
    The price never comes from the browser talking to Alchemy directly. A
    key shipped in front-end JavaScript is not a key, it is a published
@@ -2042,25 +2008,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       if (tvl) tvl.textContent = usd(ETH_TOTAL * p);
       if (tvlEth) tvlEth.textContent = ETH_TOTAL + ' ETH at ' + usd(p) + '/ETH';
       if (per) per.textContent = usd(ETH_PER * p);
-    } catch {}
-  }
-
-  async function tallies() {
-    const el = document.getElementById('tallies');
-    if (!el) return;
-    try {
-      const r = await fetch('/api/stats');
-      if (!r.ok) return;
-      const d = await r.json();
-      const rows = [
-        ['On the waitlist', d.waitlist],
-        ['Verified posts', d.verified],
-        ['Total supply', d.supply],
-      ];
-
-      el.innerHTML = rows.map(([k, v]) =>
-        `<div class="tally"><dt>${k}</dt><dd>${Number(v).toLocaleString()}</dd></div>`
-      ).join('');
     } catch {}
   }
 
@@ -2142,7 +2089,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
 
   price();
-  tallies();
 })();
 /* =====================================================================
    LIVE PASS — the card on the page is the same object the modal issues,
