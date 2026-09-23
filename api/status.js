@@ -3,7 +3,11 @@
  *
  *   { handle, state, pass, verified }
  *
- * state is "holder" if the handle is on the waitlist, "none" if not.
+ * state is one of:
+ *   - "accepted" when the handle is on the selected list
+ *   - "review" while the application is still pending judgement
+ *   - "unaccepted" when it was not selected
+ *   - "none" when there is no application on file
  *
  * WHAT THIS DELIBERATELY DOES NOT RETURN
  *
@@ -18,6 +22,29 @@ import { neon } from "@neondatabase/serverless";
 
 const CONN = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 const HANDLE_RE = /^[A-Za-z0-9_]{1,15}$/;
+const APPROVED_ENV_KEYS = ["APPROVED_HANDLES", "SELECTED_HANDLES", "ALLOWED_HANDLES"];
+
+function parseApprovedHandles() {
+  const raw = APPROVED_ENV_KEYS
+    .map((key) => process.env[key])
+    .find((value) => typeof value === "string" && value.trim().length > 0);
+
+  if (!raw) return new Set();
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return new Set(parsed.map((value) => String(value).trim().replace(/^@+/, "").toLowerCase()).filter(Boolean));
+    }
+  } catch {}
+
+  return new Set(
+    raw
+      .split(/[\n,\r\t\s]+/)
+      .map((value) => value.trim().replace(/^@+/, "").toLowerCase())
+      .filter((value) => HANDLE_RE.test(value))
+  );
+}
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {
@@ -29,7 +56,16 @@ export default async function handler(req, res) {
   if (!HANDLE_RE.test(handle)) {
     return res.status(400).json({ error: "invalid_handle" });
   }
-  if (!CONN) return res.status(200).json({ handle, state: "none" });
+
+  const approved = parseApprovedHandles();
+  const isApproved = approved.has(handle.toLowerCase());
+
+  if (!CONN) {
+    if (isApproved) {
+      return res.status(200).json({ handle, state: "accepted", pass: null, verified: false });
+    }
+    return res.status(200).json({ handle, state: "none", pass: null, verified: false });
+  }
 
   try {
     const sql = neon(CONN);
@@ -39,11 +75,26 @@ export default async function handler(req, res) {
 
     res.setHeader("Cache-Control", "public, s-maxage=20, stale-while-revalidate=60");
     if (!row) {
+      if (isApproved) {
+        return res.status(200).json({ handle, state: "accepted", pass: null, verified: false });
+      }
       return res.status(200).json({ handle, state: "none", pass: null, verified: false });
     }
+
+    if (isApproved) {
+      return res.status(200).json({
+        handle: row.handle,
+        state: "accepted",
+        pass: row.pass,
+        verified: Boolean(row.verified),
+      });
+    }
+
     return res.status(200).json({
-      handle: row.handle, state: "holder",
-      pass: row.pass, verified: row.verified,
+      handle: row.handle,
+      state: "review",
+      pass: row.pass,
+      verified: Boolean(row.verified),
     });
   } catch (err) {
     console.error("status lookup failed", err);

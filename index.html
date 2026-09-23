@@ -2072,27 +2072,46 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
   function render(d) {
-    const holder = d.state === 'holder';
-    const headline = holder ? 'on the list' : 'nothing on file';
+    const state = String(d.state || 'none').toLowerCase();
+    const isAccepted = state === 'accepted' || state === 'on_list' || state === 'holder';
+    const isRejected = state === 'rejected' || state === 'unaccepted' || state === 'declined';
+    const isReview = state === 'review' || state === 'pending' || state === 'under_review';
+    const hasApplication = state !== 'none';
+
+    const headline = state === 'none'
+      ? 'nothing on file'
+      : isAccepted
+        ? 'on the list'
+        : isRejected
+          ? 'unaccepted'
+          : 'under review';
 
     let rows = '';
-    if (holder) {
+    if (hasApplication && (isAccepted || isReview)) {
       rows += `<div class="row"><dt>Pass</dt><dd>No. ${
-        String(d.pass).padStart(4, '0')}</dd></div>`;
+        String(d.pass || '0000').padStart(4, '0')}</dd></div>`;
       rows += `<div class="row"><dt>Post</dt><dd>${
         d.verified ? 'verified' : 'awaiting check'}</dd></div>`;
     }
 
-    const foot = holder
-      ? (d.verified
-          ? 'Your place is held. The mint date goes out on X.'
-          : 'Your place is held. Your post is checked against the whitelist post before mint.')
-      : 'No application against that handle. Join the waitlist to start one.';
+    const foot = state === 'none'
+      ? 'No application against that handle. Join the waitlist to start one.'
+      : isAccepted
+        ? (d.verified
+            ? 'Your place is held. The mint date goes out on X.'
+            : 'Your place is held. Your post is checked against the whitelist post before mint.')
+        : isRejected
+          ? 'You are not on the selected list right now. If you have a valid referral, you can still get vouched for and reapply.'
+          : 'Your application is under review. When the selected list is shared, chosen handles will move on to the list and others will be marked unaccepted.';
 
-    out.className = 'statuscard is-' + (holder ? 'holder' : 'none');
+    const cta = isRejected
+      ? '<div class="foot" style="padding-top:10px"><a href="#check" style="color:var(--green);font-weight:600;text-decoration:underline">Get vouched for</a></div>'
+      : '';
+
+    out.className = 'statuscard is-' + (state === 'none' ? 'none' : isAccepted ? 'holder' : isRejected ? 'none' : 'review');
     out.innerHTML =
       `<div class="head"><span class="dot"></span>@${esc(d.handle)} — ${headline}</div>` +
-      rows + `<div class="foot">${foot}</div>`;
+      rows + `<div class="foot">${foot}</div>${cta}`;
     out.hidden = false;
   }
 
