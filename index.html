@@ -649,7 +649,7 @@
   .statuscard .foot { padding: 14px 18px; border-top: 1px solid var(--rule);
     font-size: 13.5px; color: var(--ink-2); }
 
-  .tallies { display: grid; grid-template-columns: minmax(150px, 1fr);
+  .tallies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px; margin: 34px 0 0; }
   .tally { background: var(--plate); border: 1px solid var(--rule); padding: 18px 20px; }
   .tally dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em;
@@ -1331,7 +1331,7 @@
       <div id="stOut" class="statuscard" hidden></div>
 
       <dl class="tallies" id="tallies">
-        <div class="tally"><dt>On the waitlist</dt><dd>0</dd></div>
+        <div class="tally"><dt>On the waitlist</dt><dd>...</dd></div>
       </dl>
 
     </section>
@@ -2027,10 +2027,11 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     const el = document.getElementById('tallies');
     if (!el) return;
     try {
-      const r = await fetch('/api/stats');
+      const r = await fetch('/api/count');
       if (!r.ok) return;
       const d = await r.json();
-      el.innerHTML = `<div class="tally"><dt>On the waitlist</dt><dd>${Number(d.waitlist || 0).toLocaleString()}</dd></div>`;
+      const count = Number.isFinite(Number(d.count)) ? Number(d.count) : 0;
+      el.innerHTML = `<div class="tally"><dt>On the waitlist</dt><dd>${count.toLocaleString()}</dd></div>`;
     } catch {}
   }
 
