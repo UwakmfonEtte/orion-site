@@ -1147,7 +1147,7 @@
 
       <dl class="readings">
         <div class="reading"><dt>Circulating supply</dt><dd>1,555</dd></div>
-        <div class="reading"><dt>Total backing</dt><dd>7.775<span>ETH</span></dd><small class="usd" id="tvlUsd"></small></div>
+        <div class="reading"><dt>Total backing</dt><dd id="tvlUsd">$20,993</dd><small class="usd" id="tvlEth">7.775 ETH</small></div>
         <div class="reading"><dt>Backing / Orion</dt><dd>0.005<span>ETH</span></dd><small class="usd" id="perUsd"></small></div>
         <div class="reading"><dt>Redemption fee</dt><dd>5<span>%</span></dd></div>
         <div class="reading"><dt>Team allocation</dt><dd>0<span>%</span></dd></div>
@@ -2026,6 +2026,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
   async function price() {
     const tvl = document.getElementById('tvlUsd');
+    const tvlEth = document.getElementById('tvlEth');
     const per = document.getElementById('perUsd');
     if (!tvl && !per) return;
     try {
@@ -2033,7 +2034,13 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       if (!r.ok) return;
       const { usd: p } = await r.json();
       if (!p) return;
-      if (tvl) tvl.textContent = usd(ETH_TOTAL * p) + ' at ' + usd(p) + '/ETH';
+      // Dollars lead on the treasury total - it is the "how big is this"
+      // number - while the ETH figure moves to the line beneath, where it
+      // stays exact. The markup ships with the fallback rate already
+      // rendered, so the headline is a real figure before this runs and
+      // still one if the lookup fails.
+      if (tvl) tvl.textContent = usd(ETH_TOTAL * p);
+      if (tvlEth) tvlEth.textContent = ETH_TOTAL + ' ETH at ' + usd(p) + '/ETH';
       if (per) per.textContent = usd(ETH_PER * p);
     } catch {}
   }
