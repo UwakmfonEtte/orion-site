@@ -263,10 +263,7 @@
   .reading dd span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 5px; }
 
   /* ---------- SECTIONS ---------- */
-  /* Was clamp(58px,7vw,104px), which put ~208px between two sections at
-     desktop width with the hairline divider floating dead centre of it -
-     so one gap read as two. The rhythm is still generous, just not a void. */
-  .sec { padding: clamp(46px,5vw,72px) 0; }
+  .sec { padding: clamp(58px,7vw,104px) 0; }
   .sec-top { display: flex; align-items: center; justify-content: space-between;
     gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
   .sec-h { font-family: var(--serif); font-weight: 700;
@@ -541,6 +538,31 @@
     background: linear-gradient(150deg,
       color-mix(in srgb, #fff 9%, transparent) 0%, transparent 34%);
   }
+
+  /* Stats become medallions. Restoring this because deleting it did more
+     than drop the look: the base .readings rule carries border-block, and
+     this is what overrode it with border:none. Without it a third hairline
+     appeared directly above the readings - one for the section edge, one in
+     the sec-top, one on the readings - and three rules stacked inside a
+     short run is what was reading as doubled spacing.
+
+     Three columns, not auto-fit: six readings on auto-fit all land on one
+     row at desktop width, which leaves each cell too narrow for the longer
+     values, and "$18,660" spills onto the $12 beside it. */
+  .readings {  display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px; border: none; margin: 0 0 46px; }
+  .reading { border: 1px solid var(--rule); border-left: 1px solid var(--rule);
+    background: linear-gradient(150deg,
+      color-mix(in srgb, var(--green) 9%, var(--plate)), var(--plate) 58%);
+    padding: 26px 26px 24px; position: relative; overflow: hidden; }
+  .reading::after {
+    content: ""; position: absolute; right: -30px; bottom: -46px;
+    width: 110px; height: 110px; border-radius: 50%;
+    border: 16px solid color-mix(in srgb, var(--green) 10%, transparent);
+  }
+  .reading:first-child { border-left: 1px solid var(--rule); }
+  .reading dd { position: relative; }
 
   /* the model's meter fills like a vessel */
   .bar { height: 12px; border-radius: var(--r-pill); background: var(--raise);
