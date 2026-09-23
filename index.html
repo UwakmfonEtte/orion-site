@@ -2474,3 +2474,15 @@ refreshCount();   // the API path needs no capability handshake to resolve first
   });
 })();
 </script>
+
+<!-- Vercel Web Analytics.
+
+     No package to install: for a plain HTML page the platform serves this
+     script itself at this path, once Analytics is switched on for the
+     project in the Vercel dashboard. Until it is, the request 404s and the
+     page is unaffected - the tag is deferred and nothing depends on it.
+
+     Cookieless, and it records no personal data, so it needs no consent
+     banner. Counting starts the day it is enabled: there is no way to
+     recover visits from before that. -->
+<script defer src="/_vercel/insights/script.js"></script>
