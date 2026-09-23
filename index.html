@@ -638,6 +638,50 @@
   footer { border-top: 1px solid var(--rule); padding: 26px 0; font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3); }
   footer .wrap { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 
+  /* ---------- APPLICATION STATUS ---------- */
+  /* The dollar figure sits under the ETH one rather than replacing it. ETH
+     is what the treasury actually holds and what a redemption pays out; the
+     dollar value is a convenience that moves every minute, so it reads as
+     the secondary number it is. */
+  .reading .usd { display: block; margin-top: 7px; font-family: var(--mono);
+    font-size: 10.5px; letter-spacing: .12em; color: var(--ink-3); }
+
+  .checkbar { display: flex; gap: 10px; align-items: stretch; max-width: 520px; }
+  .checkbar .field { flex: 1 1 auto; }
+  .checkbar .btn { flex: none; }
+  @media (max-width: 520px) { .checkbar { flex-direction: column; } }
+
+  .statuscard { margin-top: 22px; border: 1px solid var(--rule);
+    background: var(--plate); max-width: 560px; }
+  .statuscard .row { display: flex; justify-content: space-between; gap: 16px;
+    padding: 14px 18px; border-top: 1px solid var(--rule); font-size: 14.5px; }
+  .statuscard .row:first-child { border-top: none; }
+  .statuscard .row dt { font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--ink-3);
+    margin: 3px 0 0; }
+  .statuscard .row dd { margin: 0; text-align: right; }
+  .statuscard .head { display: flex; align-items: center; gap: 11px;
+    padding: 18px; font-family: var(--serif); font-weight: 700; font-size: 21px; }
+  .statuscard .dot { width: 10px; height: 10px; border-radius: 50%; flex: none;
+    background: var(--ink-3); }
+  .statuscard.is-holder .dot { background: var(--verd);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--verd) 20%, transparent); }
+  .statuscard .foot { padding: 14px 18px; border-top: 1px solid var(--rule);
+    font-size: 13.5px; color: var(--ink-2); }
+
+  /* Bordered cards with a real gap, not the 1px-gap-over-a-tinted-container
+     trick. That trick draws hairlines by letting the container show through,
+     which means any row the items do not fill shows a block of container
+     colour instead - and the tally count changes with the phase, so a part
+     empty row is the normal case here, not the exception. */
+  .tallies { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+    gap: 12px; margin: 34px 0 0; }
+  .tally { background: var(--plate); border: 1px solid var(--rule); padding: 18px 20px; }
+  .tally dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-3); }
+  .tally dd { margin: 7px 0 0; font-family: var(--serif); font-weight: 700;
+    font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+
   /* ---------- MODAL ---------- */
   .scrim {
     position: fixed; inset: 0; z-index: 100; padding: 20px;
@@ -1103,8 +1147,8 @@
 
       <dl class="readings">
         <div class="reading"><dt>Circulating supply</dt><dd>1,555</dd></div>
-        <div class="reading"><dt>Total backing</dt><dd>7.775<span>ETH</span></dd></div>
-        <div class="reading"><dt>Backing / Orion</dt><dd>0.005<span>ETH</span></dd></div>
+        <div class="reading"><dt>Total backing</dt><dd>7.775<span>ETH</span></dd><small class="usd" id="tvlUsd"></small></div>
+        <div class="reading"><dt>Backing / Orion</dt><dd>0.005<span>ETH</span></dd><small class="usd" id="perUsd"></small></div>
         <div class="reading"><dt>Redemption fee</dt><dd>5<span>%</span></dd></div>
         <div class="reading"><dt>Team allocation</dt><dd>0<span>%</span></dd></div>
         <div class="reading"><dt>Vault signers</dt><dd>2<span>of 3</span></dd></div>
@@ -1294,6 +1338,24 @@
         <button class="btn btn-holo wide" aria-disabled="true">Rent — after mint</button>
         <p class="note-line">The protocol rents Orions it already owns. You never lend your own.</p>
       </div>
+    </section>
+
+    <!-- ================= APPLICATION STATUS ================= -->
+    <section class="sec" id="check">
+      <div class="sec-top"><span class="cap">Application status</span></div>
+      <h2 class="sec-h">Check where you stand.</h2>
+
+      <div class="checkbar">
+        <div class="field"><span class="at">@</span>
+          <input id="stHandle" class="pad" type="text" placeholder="yourhandle"
+                 autocomplete="off" spellcheck="false" aria-label="Your X handle"></div>
+        <button class="btn btn-solid" id="stGo">Check</button>
+      </div>
+      <p class="micro">Press enter to query</p>
+
+      <div id="stOut" class="statuscard" hidden></div>
+
+      <dl class="tallies" id="tallies"></dl>
     </section>
 
     <section class="closer">
@@ -1945,6 +2007,117 @@ async function refreshCount() {
   el.textContent = 'Waitlist open';
 }
 refreshCount();   // the API path needs no capability handshake to resolve first
+
+/* =====================================================================
+   ETH PRICE, TALLIES, APPLICATION STATUS
+
+   The price never comes from the browser talking to Alchemy directly. A
+   key shipped in front-end JavaScript is not a key, it is a published
+   string anyone can read and bill to you, so /api/eth-price holds it and
+   this only ever sees a number.
+
+   Every one of these is decoration over a page that already reads fine
+   without them: a failed fetch leaves the markup as it was rather than
+   writing an error into the layout.
+   ===================================================================== */
+(function () {
+  const ETH_TOTAL = 7.775, ETH_PER = 0.005;
+  const usd = n => '$' + n.toLocaleString('en-US', { maximumFractionDigits: n < 100 ? 2 : 0 });
+
+  async function price() {
+    const tvl = document.getElementById('tvlUsd');
+    const per = document.getElementById('perUsd');
+    if (!tvl && !per) return;
+    try {
+      const r = await fetch('/api/eth-price');
+      if (!r.ok) return;
+      const { usd: p } = await r.json();
+      if (!p) return;
+      if (tvl) tvl.textContent = usd(ETH_TOTAL * p) + ' at ' + usd(p) + '/ETH';
+      if (per) per.textContent = usd(ETH_PER * p);
+    } catch {}
+  }
+
+  async function tallies() {
+    const el = document.getElementById('tallies');
+    if (!el) return;
+    try {
+      const r = await fetch('/api/stats');
+      if (!r.ok) return;
+      const d = await r.json();
+      const rows = [
+        ['On the waitlist', d.waitlist],
+        ['Verified posts', d.verified],
+        ['Total supply', d.supply],
+      ];
+
+      el.innerHTML = rows.map(([k, v]) =>
+        `<div class="tally"><dt>${k}</dt><dd>${Number(v).toLocaleString()}</dd></div>`
+      ).join('');
+    } catch {}
+  }
+
+  const inp = document.getElementById('stHandle');
+  const out = document.getElementById('stOut');
+  const go = document.getElementById('stGo');
+
+  const esc = v => String(v).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  function render(d) {
+    const holder = d.state === 'holder';
+    const headline = holder ? 'on the list' : 'nothing on file';
+
+    let rows = '';
+    if (holder) {
+      rows += `<div class="row"><dt>Pass</dt><dd>No. ${
+        String(d.pass).padStart(4, '0')}</dd></div>`;
+      rows += `<div class="row"><dt>Post</dt><dd>${
+        d.verified ? 'verified' : 'awaiting check'}</dd></div>`;
+    }
+
+    const foot = holder
+      ? (d.verified
+          ? 'Your place is held. The mint date goes out on X.'
+          : 'Your place is held. Your post is checked against the whitelist post before mint.')
+      : 'No application against that handle. Join the waitlist to start one.';
+
+    out.className = 'statuscard is-' + (holder ? 'holder' : 'none');
+    out.innerHTML =
+      `<div class="head"><span class="dot"></span>@${esc(d.handle)} — ${headline}</div>` +
+      rows + `<div class="foot">${foot}</div>`;
+    out.hidden = false;
+  }
+
+  async function check() {
+    if (!inp) return;
+    const h = inp.value.trim().replace(/^@+/, '');
+    if (!/^[A-Za-z0-9_]{1,15}$/.test(h)) {
+      out.className = 'statuscard';
+      out.innerHTML = '<div class="foot">Enter an X handle — letters, numbers and underscores, up to 15.</div>';
+      out.hidden = false;
+      return;
+    }
+    go.disabled = true;
+    try {
+      const r = await fetch('/api/status?handle=' + encodeURIComponent(h));
+      if (!r.ok) throw new Error('lookup');
+      render(await r.json());
+    } catch {
+      out.className = 'statuscard';
+      out.innerHTML = '<div class="foot">Could not reach the registry. Try again in a moment.</div>';
+      out.hidden = false;
+    } finally {
+      go.disabled = false;
+    }
+  }
+
+  if (go) go.addEventListener('click', check);
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') check(); });
+
+  price();
+  tallies();
+})();
 /* =====================================================================
    LIVE PASS — the card on the page is the same object the modal issues,
    driven by whatever is typed. Nothing is stored; it is all derived.
