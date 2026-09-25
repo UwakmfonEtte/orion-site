@@ -708,9 +708,6 @@
 
   .claim-how { margin: 10px 0 0; font-family: var(--mono); font-size: 9.5px;
     letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
-  .claim-prev { margin: 12px 0 0; padding: 12px 14px; background: var(--paper);
-    border: 1px solid var(--rule); font-family: var(--mono); font-size: 11.5px;
-    line-height: 1.7; color: var(--ink-3); white-space: pre-wrap; }
 
   .tallies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px; margin: 34px 0 0; }
@@ -1509,7 +1506,6 @@
           you are, show us the room, and say how many spots you need. Every claim
           gets checked by hand before anything is promised.</p>
         <button class="btn btn-solid" id="collabOpen">Request a collab</button>
-        <p class="collab-note">Eight questions &middot; about two minutes</p>
       </div>
     </section>
 
@@ -2429,16 +2425,16 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     const cta = isAccepted
       ? '<div class="claim">'
         + '<div class="cstepr" id="cs1"><span class="num">1</span>'
-        + '<div class="w"><b>Save your pass card</b>'
-        + '<span>The image you attach to the post.</span>'
+        + '<div class="w"><b>Download your pass card now</b>'
+        + '<span>You will attach this image to your post — get it before you continue.</span>'
         + '<button type="button" class="btn btn-solid btn-full" id="claimSave">'
         + 'Download the card</button></div></div>'
         + '<div class="cstepr is-off" id="cs2"><span class="num">2</span>'
-        + '<div class="w"><b>Post it and claim your pass</b>'
-        + '<span id="claimHow">Save the card first.</span>'
+        + '<div class="w"><b>Now post it to claim your pass</b>'
+        + '<span id="claimHow">Download your card above first.</span>'
         + '<button type="button" class="btn btn-full" id="claimPost" disabled>'
-        + 'Open the post</button></div></div>'
-        + '<p class="claim-prev">' + esc(CLAIM_TEXT) + '</p></div>'
+        + 'Make the post</button></div></div>'
+        + '</div>'
       : '';
 
     out.className = 'statuscard is-' + (state === 'none' ? 'none' : isAccepted ? 'holder' : isRejected ? 'none' : 'review');
@@ -2482,8 +2478,8 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       cs2.classList.remove('is-off');
       claim.disabled = false;
       how.textContent = canShareFile()
-        ? 'Card saved. The post carries it automatically.'
-        : 'Card saved. Attach it in the composer before you post.';
+        ? 'Card downloaded. Post now — it is attached automatically.'
+        : 'Card downloaded. Attach it in the composer, then post.';
     }
 
     save.addEventListener('click', () => {
