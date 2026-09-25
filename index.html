@@ -263,7 +263,11 @@
   .reading dd span { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-left: 5px; }
 
   /* ---------- SECTIONS ---------- */
-  .sec { padding: clamp(58px,7vw,104px) 0; }
+  /* 104px top and bottom put 208px between two sections, with the
+     section hairline sitting dead centre of it - which is what reads as two
+     gaps rather than one. Halved. The rule now sits close enough to the
+     content on either side to belong to it. */
+  .sec { padding: clamp(40px,3.6vw,56px) 0; }
   .sec-top { display: flex; align-items: center; justify-content: space-between;
     gap: 16px; margin-bottom: 26px; flex-wrap: wrap; }
   .sec-h { font-family: var(--serif); font-weight: 700;
@@ -639,7 +643,7 @@
     .win-body p { font-size: 14.5px; }
   }
 
-  .closer { padding: clamp(70px,9vw,120px) 0; text-align: center; }
+  .closer { padding: clamp(48px,5vw,76px) 0; text-align: center; }
   .closer h2 { font-family: var(--serif); font-weight: 700; font-size: clamp(34px,5.6vw,68px); line-height: 1.04; margin: 18px 0 0; }
   .closer h2 i { font-style: normal; color: var(--green); }
   .closer p { color: var(--ink-2); max-width: 44ch; margin: 20px auto 30px; }
@@ -736,6 +740,107 @@
   .score-of { font-family: var(--mono); font-size: 10px; letter-spacing: .2em; color: var(--ink-3); text-transform: uppercase; }
   .memo { border: 1px solid var(--rule); border-left: 2px solid var(--alarm); padding: 14px 16px; font-size: 14.5px; color: var(--ink-2); margin-bottom: 20px; }
   .memo.good { border-left-color: var(--verd); }
+
+  /* ---------- COLLAB REQUEST ---------- */
+  .collab-pitch { max-width: 58ch; }
+  .collab-pitch p { color: var(--ink-2); font-size: 16.5px; margin: 0 0 26px; }
+  .collab-note { font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-3); margin: 18px 0 0; }
+
+  .cscrim { position: fixed; inset: 0; z-index: 110; padding: 20px;
+    background: color-mix(in srgb, var(--paper) 78%, #000 22%);
+    backdrop-filter: blur(12px); display: grid; place-items: center;
+    overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity .28s; }
+  .cscrim.open { opacity: 1; pointer-events: auto; }
+  /* Centred, so it scales from its own centre - a modal is not anchored to
+     the button that opened it the way a popover is. From .98 rather than
+     nothing: things do not appear out of thin air. */
+  .csheet { width: min(620px,100%); margin: auto; background: var(--plate);
+    border: 1px solid var(--rule-hi); box-shadow: var(--shadow);
+    position: relative; transform: scale(.98) translateY(10px); opacity: .6;
+    transition: transform .3s cubic-bezier(.23,1,.32,1), opacity .3s ease-out; }
+  .cscrim.open .csheet { transform: none; opacity: 1; }
+
+  .ctop { display: flex; align-items: center; gap: 14px; padding: 18px 24px 0; }
+  .cstep { font-family: var(--mono); font-size: 10px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .cbar { height: 2px; background: var(--rule); margin: 14px 24px 0; overflow: hidden; }
+  .cbar i { display: block; height: 100%; width: 0; background: var(--green);
+    transition: width .32s cubic-bezier(.23,1,.32,1); }
+
+  .cbody { padding: 30px 24px 26px; min-height: 340px;
+    display: flex; flex-direction: column; }
+  /* Transitions, not keyframes: someone hammering Enter can retarget these
+     mid-flight instead of restarting them from zero. */
+  .q { transition: opacity .22s ease-out, transform .22s cubic-bezier(.23,1,.32,1); }
+  .q.in  { opacity: 0; transform: translateY(10px); }
+  .q.out { opacity: 0; transform: translateY(-8px); transition-duration: .14s; }
+
+  .q h3 { font-family: var(--serif); font-weight: 700; margin: 0 0 8px;
+    font-size: clamp(23px,3.6vw,31px); line-height: 1.14; text-wrap: balance; }
+  .q .hint { color: var(--ink-2); font-size: 15px; margin: 0 0 22px; }
+  .q .lbl2 { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--ink-3); display: block; margin: 16px 0 8px; }
+
+  .cfoot { display: flex; align-items: center; gap: 12px;
+    padding: 0 24px 24px; margin-top: auto; }
+  .cback { background: none; border: none; color: var(--ink-3); cursor: pointer;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .18em;
+    text-transform: uppercase; padding: 10px 2px; }
+  .cback:hover { color: var(--ink); }
+  .cnext { margin-left: auto; }
+  .ckey { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3); }
+  @media (max-width: 520px) { .ckey { display: none; } }
+
+  /* choice cards */
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .choice { border: 1px solid var(--rule-hi); background: var(--paper);
+    padding: 22px 18px; cursor: pointer; text-align: left; color: var(--ink);
+    font-family: var(--serif); font-weight: 700; font-size: 19px;
+    transition: border-color .18s ease, background .18s ease, transform .16s ease-out; }
+  .choice:active { transform: scale(.97); }
+  .choice.on { border-color: var(--green);
+    background: color-mix(in srgb, var(--green) 8%, var(--paper)); }
+  .choice small { display: block; font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3);
+    margin-top: 7px; font-weight: 400; }
+
+  /* image picker */
+  .drop { border: 1px dashed var(--rule-hi); background: var(--paper);
+    padding: 18px; display: flex; align-items: center; gap: 14px; cursor: pointer;
+    transition: border-color .18s ease, background .18s ease; }
+  .drop:hover, .drop.over { border-color: var(--green);
+    background: color-mix(in srgb, var(--green) 5%, var(--paper)); }
+  .drop input { display: none; }
+  .drop .ic { width: 38px; height: 38px; flex: none; border: 1px solid var(--rule-hi);
+    display: grid; place-items: center; color: var(--ink-3); font-size: 15px; }
+  .drop .tx { font-size: 14px; color: var(--ink-2); line-height: 1.4; }
+  .drop .tx b { display: block; color: var(--ink); font-size: 14.5px; font-weight: 600; }
+  .shot { display: flex; align-items: center; gap: 13px; border: 1px solid var(--rule);
+    padding: 10px; background: var(--paper); }
+  .shot img { width: 54px; height: 54px; object-fit: cover; flex: none; }
+  .shot .nm { font-family: var(--mono); font-size: 11px; color: var(--ink-2);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .shot button { margin-left: auto; background: none; border: none; cursor: pointer;
+    color: var(--ink-3); font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: .16em; text-transform: uppercase; }
+  .shot button:hover { color: var(--alarm); }
+
+  /* review */
+  .rev { border: 1px solid var(--rule); }
+  .rev div { display: flex; gap: 16px; justify-content: space-between;
+    padding: 12px 16px; border-top: 1px solid var(--rule); font-size: 14px; }
+  .rev div:first-child { border-top: none; }
+  .rev dt { font-family: var(--mono); font-size: 9.5px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-3); margin: 3px 0 0; flex: none; }
+  .rev dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .csheet, .q, .cbar i, .choice { transition-duration: .01ms !important; }
+    .csheet { transform: none; }
+    .q.in, .q.out { transform: none; }
+  }
 
   /* ---------- THE PASS ---------- */
   .card {
@@ -834,7 +939,7 @@
     .acts { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 24px; }
     .acts .btn { width: 100%; padding: 16px; font-size: 11px; }
 
-    .sec { padding: 40px 0; }
+    .sec { padding: 30px 0; }
     .sec-h { font-size: clamp(26px, 7.8vw, 34px); margin-bottom: 22px; letter-spacing: -.025em; }
     .sec-top { margin-bottom: 16px; }
     .sec-top .btn { width: 100%; }
@@ -865,7 +970,7 @@
     .chip { padding: 11px 16px; font-size: 11px; }   /* 44px touch target */
 
     .wins { grid-template-columns: 1fr; gap: 14px; }
-    .closer { padding: 56px 0; }
+    .closer { padding: 44px 0; }
     .closer h2 { font-size: clamp(30px, 8.5vw, 42px); }
     .closer .btn { width: 100%; }
 
@@ -1369,6 +1474,19 @@
 
     </section>
 
+    <!-- ================= COLLAB REQUEST ================= -->
+    <section class="sec" id="collab">
+      <div class="sec-top"><span class="cap">Collaborations</span></div>
+      <div class="collab-pitch">
+        <h2 class="sec-h">Bringing a constellation with you?</h2>
+        <p>Communities can request an allocation for their members. Tell us who
+          you are, show us the room, and say how many spots you need. Every claim
+          gets checked by hand before anything is promised.</p>
+        <button class="btn btn-solid" id="collabOpen">Request a collab</button>
+        <p class="collab-note">Eight questions &middot; about two minutes</p>
+      </div>
+    </section>
+
     <section class="closer">
       <span class="cap">Waitlist open · Mint date to be announced</span>
       <h2>Take your place<br>in the <i>sky</i>.</h2>
@@ -1390,6 +1508,18 @@
       <button class="x" id="closeBtn" aria-label="Close">✕</button>
     </div>
     <div id="body"></div>
+  </div>
+</div>
+
+<div class="cscrim" id="cscrim" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <div class="csheet">
+    <div class="ctop">
+      <span class="cstep" id="cStep">01 / 08</span>
+      <button class="x" id="cClose" aria-label="Close" style="margin-left:auto">&#10005;</button>
+    </div>
+    <div class="cbar"><i id="cFill"></i></div>
+    <div class="cbody" id="cBody"></div>
+    <div class="cfoot" id="cFoot"></div>
   </div>
 </div>
 
@@ -2498,6 +2628,306 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       dd.classList.add('bumped');
       setTimeout(function () { dd.classList.remove('bumped'); }, 180);
     }).observe(dd, { childList: true, characterData: true, subtree: true });
+  });
+})();
+
+/* =====================================================================
+   COLLAB REQUEST — one question per screen.
+
+   A single form with eight fields is a wall. Asked one at a time it is a
+   conversation, and each answer is small enough that nobody has to decide
+   where to start. The cost is machinery: a step index, per-step validation,
+   and a transition that has to survive someone holding down Enter.
+
+   Which is why the step change is a CSS transition rather than a keyframe -
+   a transition retargets from wherever it currently is, a keyframe restarts
+   from zero and stutters. Enter advances, the back link goes the other way,
+   Escape closes.
+
+   Screenshots are downscaled in the browser before they are ever uploaded:
+   1400px longest edge, re-encoded as JPEG, which takes a 6MB phone capture
+   to roughly 200KB. That is what makes storing them in Postgres reasonable,
+   and it means a slow connection is never asked to push megabytes.
+   ===================================================================== */
+(function () {
+  const scrim = document.getElementById('cscrim');
+  if (!scrim) return;
+  const bodyEl = document.getElementById('cBody');
+  const footEl = document.getElementById('cFoot');
+  const stepEl = document.getElementById('cStep');
+  const fillEl = document.getElementById('cFill');
+  const openBtn = document.getElementById('collabOpen');
+
+  const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  const LINK_OK = /^https?:\/\/(www\.|mobile\.)?(x\.com|twitter\.com|discord\.gg|discord\.com|t\.me|telegram\.me|telegram\.org)\//i;
+
+  const S = { community:'', repName:'', repContact:'', sizeClaim:'', sizeLink:'',
+              sizeImg:'', repLink:'', repImg:'', interestLink:'', interestImg:'',
+              collabPost:null, spots:'' };
+
+  const STEPS = [
+    { q:'Which community are you bringing?', hint:'The name its members would recognise.',
+      render:() => field('community','Community name','e.g. Night Sky DAO'),
+      check:() => S.community.trim() ? '' : 'Give the community a name.' },
+
+    { q:'And who are you?', hint:'The person we will be speaking to.',
+      render:() => field('repName','Your name','Your name'),
+      check:() => S.repName.trim() ? '' : 'We need a name to put to the request.' },
+
+    { q:'Where do we reach you?', hint:'X, Telegram or Discord — wherever you actually read messages.',
+      render:() => field('repContact','Your handle','@yourhandle'),
+      check:() => S.repContact.trim() ? '' : 'Leave us a way to reply.' },
+
+    { q:'How big is the community?', hint:'A number, and something that shows it.',
+      render:() => field('sizeClaim','Member count','e.g. 4,200 members')
+                 + field('sizeLink','Link that shows it','https://discord.gg/…')
+                 + imgField('sizeImg','Screenshot of the member count'),
+      check:() => !S.sizeClaim.trim() ? 'Roughly how many members?'
+                : !LINK_OK.test(S.sizeLink) ? 'An X, Discord or Telegram link, please.'
+                : '' },
+
+    { q:'Show us you speak for them.', hint:'A role, a pinned post, an admin view — whatever we can check.',
+      render:() => field('repLink','Link we can verify','https://x.com/…')
+                 + imgField('repImg','Screenshot of your role or post'),
+      check:() => LINK_OK.test(S.repLink) ? '' : 'An X, Discord or Telegram link, please.' },
+
+    { q:'Show us they are interested.', hint:'A poll, a thread, a channel talking about it.',
+      render:() => field('interestLink','Link to the conversation','https://t.me/…')
+                 + imgField('interestImg','Screenshot of the poll or thread'),
+      check:() => LINK_OK.test(S.interestLink) ? '' : 'An X, Discord or Telegram link, please.' },
+
+    { q:'Open to an official collab post?', hint:'A joint announcement from both accounts.',
+      render:() => '<div class="choices">'
+        + '<button type="button" class="choice' + (S.collabPost===true?' on':'') + '" data-yes>Yes<small>Announce together</small></button>'
+        + '<button type="button" class="choice' + (S.collabPost===false?' on':'') + '" data-no>No<small>Keep it quiet</small></button>'
+        + '</div>',
+      check:() => S.collabPost === null ? 'Pick one.' : '' },
+
+    { q:'How many whitelist spots?', hint:'What your community is asking for. We will come back with a number.',
+      render:() => field('spots','Spots requested','e.g. 50','inputmode="numeric"'),
+      check:() => { const n = Number(String(S.spots).replace(/[^0-9]/g,''));
+                    return n >= 1 && n <= 1555 ? '' : 'A number between 1 and 1,555.'; } },
+  ];
+
+  let i = 0, done = false, busy = false;
+
+  function field(key, label, ph, extra) {
+    return '<label class="lbl2" for="f_' + key + '">' + esc(label) + '</label>'
+      + '<div class="field"><input id="f_' + key + '" type="text" data-k="' + key + '"'
+      + ' placeholder="' + esc(ph) + '" autocomplete="off" spellcheck="false" '
+      + (extra || '') + ' value="' + esc(S[key]) + '"></div>';
+  }
+
+  function imgField(key, label) {
+    if (S[key]) {
+      return '<label class="lbl2">' + esc(label) + '</label>'
+        + '<div class="shot"><img src="' + S[key] + '" alt="">'
+        + '<span class="nm">Attached</span>'
+        + '<button type="button" data-drop="' + key + '">Replace</button></div>';
+    }
+    return '<label class="lbl2">' + esc(label) + ' <span style="opacity:.6">— optional</span></label>'
+      + '<label class="drop" data-zone="' + key + '">'
+      + '<span class="ic">&#8686;</span>'
+      + '<span class="tx"><b>Add a screenshot</b>Drop it here, or click to choose. PNG or JPG.</span>'
+      + '<input type="file" accept="image/png,image/jpeg,image/webp" data-file="' + key + '">'
+      + '</label>';
+  }
+
+  function downscale(file, max, q) {
+    max = max || 1400; q = q || 0.82;
+    return new Promise((ok, no) => {
+      if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return no(new Error('type'));
+      if (file.size > 25 * 1024 * 1024) return no(new Error('huge'));
+      const url = URL.createObjectURL(file), im = new Image();
+      im.onload = () => {
+        URL.revokeObjectURL(url);
+        const sc = Math.min(1, max / Math.max(im.width, im.height));
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(im.width * sc));
+        c.height = Math.max(1, Math.round(im.height * sc));
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+        ok(c.toDataURL('image/jpeg', q));
+      };
+      im.onerror = () => { URL.revokeObjectURL(url); no(new Error('decode')); };
+      im.src = url;
+    });
+  }
+
+  function paint(html, foot) {
+    const old = bodyEl.firstElementChild;
+    const swap = () => {
+      bodyEl.innerHTML = '<div class="q in">' + html + '</div>';
+      footEl.innerHTML = foot;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const el = bodyEl.firstElementChild;
+        if (el) el.classList.remove('in');
+      }));
+      wire();
+      const first = bodyEl.querySelector('input[type="text"]');
+      if (first) first.focus({ preventScroll: true });
+    };
+    if (old) { old.classList.add('out'); setTimeout(swap, 140); } else swap();
+  }
+
+  function progress() {
+    const total = STEPS.length + 1;
+    const n = Math.min(i + 1, total);
+    stepEl.textContent = String(n).padStart(2, '0') + ' / ' + String(total).padStart(2, '0');
+    fillEl.style.width = (n / total * 100) + '%';
+  }
+
+  function question() {
+    const st = STEPS[i];
+    progress();
+    paint(
+      '<h3 id="cTitle">' + esc(st.q) + '</h3><p class="hint">' + esc(st.hint) + '</p>'
+      + st.render() + '<p class="note" id="cErr"></p>',
+      (i > 0 ? '<button type="button" class="cback" id="cBack">&#8592; Back</button>' : '')
+      + '<span class="ckey">Press Enter</span>'
+      + '<button type="button" class="btn btn-solid cnext" id="cNext">'
+      + (i === STEPS.length - 1 ? 'Review' : 'Next') + '</button>');
+  }
+
+  function review() {
+    progress();
+    const rows = [
+      ['Community', S.community], ['Representative', S.repName],
+      ['Contact', S.repContact], ['Size', S.sizeClaim],
+      ['Size proof', S.sizeLink + (S.sizeImg ? '  + screenshot' : '')],
+      ['Your role', S.repLink + (S.repImg ? '  + screenshot' : '')],
+      ['Interest', S.interestLink + (S.interestImg ? '  + screenshot' : '')],
+      ['Collab post', S.collabPost ? 'Yes' : 'No'], ['Spots requested', S.spots],
+    ];
+    paint(
+      '<h3 id="cTitle">Does this look right?</h3>'
+      + '<p class="hint">We check every claim by hand before replying.</p>'
+      + '<dl class="rev">' + rows.map(r =>
+          '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('')
+      + '</dl><p class="note" id="cErr"></p>',
+      '<button type="button" class="cback" id="cBack">&#8592; Back</button>'
+      + '<button type="button" class="btn btn-solid cnext" id="cSend">Send request</button>');
+  }
+
+  function finish(name) {
+    done = true;
+    stepEl.textContent = 'Sent';
+    fillEl.style.width = '100%';
+    paint(
+      '<div class="center"><div class="seal"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+      + '<path d="M4 12.6 L9.4 18 L20 6.6" stroke="var(--verd)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>'
+      + '<h3 id="cTitle">Request received.</h3>'
+      + '<p class="hint" style="max-width:40ch;margin-inline:auto">We will look at '
+      + esc(name) + ' and come back to you on the contact you left.</p></div>',
+      '<button type="button" class="btn btn-full" id="cDone">Close</button>');
+  }
+
+  function wire() {
+    bodyEl.querySelectorAll('input[data-k]').forEach(el => {
+      el.addEventListener('input', () => { S[el.dataset.k] = el.value; err(''); });
+    });
+    bodyEl.querySelectorAll('[data-yes],[data-no]').forEach(el => {
+      el.addEventListener('click', () => {
+        S.collabPost = el.hasAttribute('data-yes');
+        bodyEl.querySelectorAll('.choice').forEach(c => c.classList.remove('on'));
+        el.classList.add('on'); err('');
+      });
+    });
+    bodyEl.querySelectorAll('[data-file]').forEach(inp => {
+      inp.addEventListener('change', () => {
+        const f = inp.files && inp.files[0];
+        if (!f) return;
+        downscale(f).then(d => { S[inp.dataset.file] = d; question(); })
+                    .catch(() => err('That image could not be read. Try a PNG or JPG.'));
+      });
+    });
+    bodyEl.querySelectorAll('[data-zone]').forEach(z => {
+      ['dragenter','dragover'].forEach(e => z.addEventListener(e, ev => {
+        ev.preventDefault(); z.classList.add('over');
+      }));
+      ['dragleave','drop'].forEach(e => z.addEventListener(e, () => z.classList.remove('over')));
+      z.addEventListener('drop', ev => {
+        ev.preventDefault();
+        const f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+        if (!f) return;
+        downscale(f).then(d => { S[z.dataset.zone] = d; question(); })
+                    .catch(() => err('That image could not be read. Try a PNG or JPG.'));
+      });
+    });
+    bodyEl.querySelectorAll('[data-drop]').forEach(b => {
+      b.addEventListener('click', () => { S[b.dataset.drop] = ''; question(); });
+    });
+    const back = document.getElementById('cBack');
+    if (back) back.addEventListener('click', prev);
+    const next = document.getElementById('cNext');
+    if (next) next.addEventListener('click', advance);
+    const send = document.getElementById('cSend');
+    if (send) send.addEventListener('click', submit);
+    const fin = document.getElementById('cDone');
+    if (fin) fin.addEventListener('click', close);
+  }
+
+  function err(m) { const e = document.getElementById('cErr'); if (e) e.textContent = m; }
+
+  function advance() {
+    const bad = STEPS[i].check();
+    if (bad) return err(bad);
+    i += 1;
+    if (i < STEPS.length) question(); else review();
+  }
+  function prev() { if (i === 0) return; i -= 1; question(); }
+
+  function submit() {
+    if (busy) return;
+    busy = true;
+    const b = document.getElementById('cSend');
+    b.disabled = true; b.textContent = 'Sending…';
+    const payload = Object.assign({}, S, {
+      spots: Number(String(S.spots).replace(/[^0-9]/g, '')),
+    });
+    fetch('/api/collab', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(r => {
+      if (r.ok) return finish(S.community);
+      return r.json().catch(() => ({})).then(d => { throw new Error(d.error || 'failed'); });
+    }).catch(e => {
+      b.disabled = false; b.textContent = 'Send request';
+      err(({
+        rate_limited:    'Too many requests from this connection. Try again in an hour.',
+        image_too_large: 'One of the screenshots is too large. Remove it and try again.',
+        bad_link:        'One of the links was rejected. Use X, Discord or Telegram.',
+        bad_spots:       'The number of spots has to be between 1 and 1,555.',
+        too_large:       'That request was too large. Try fewer screenshots.',
+        not_configured:  'Collab requests are not open yet.',
+      })[e.message] || 'Could not send that. Check your connection and try again.');
+    }).then(() => { busy = false; });
+  }
+
+  function open() {
+    i = 0; done = false;
+    scrim.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    question();
+  }
+  function close() {
+    scrim.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  openBtn.addEventListener('click', open);
+  document.getElementById('cClose').addEventListener('click', close);
+  scrim.addEventListener('click', e => { if (e.target === scrim) close(); });
+  addEventListener('keydown', e => {
+    if (!scrim.classList.contains('open')) return;
+    if (e.key === 'Escape') return close();
+    if (e.key === 'Enter' && !e.shiftKey && !done) {
+      const a = document.activeElement;
+      if (a && a.tagName === 'BUTTON' && a.classList.contains('choice')) return;
+      e.preventDefault();
+      if (document.getElementById('cSend')) submit(); else advance();
+    }
   });
 })();
 </script>
