@@ -688,6 +688,24 @@
 
   .claim { padding: 16px 18px 18px; border-top: 1px solid var(--rule);
     background: color-mix(in srgb, var(--green) 6%, transparent); }
+  .cstepr { display: flex; gap: 13px; align-items: flex-start; padding: 14px 0; }
+  .cstepr + .cstepr { border-top: 1px solid var(--rule); }
+  .cstepr .num { width: 24px; height: 24px; flex: none; border-radius: 50%;
+    border: 1px solid var(--rule-hi); display: grid; place-items: center;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+    transition: background .2s ease, color .2s ease, border-color .2s ease; }
+  .cstepr.is-done .num { background: var(--verd); border-color: var(--verd);
+    color: var(--paper); font-size: 0; }
+  /* The digit is replaced, not overlaid - font-size: 0 above hides it. The
+     tick is written as a CSS escape so the glyph survives whatever writes
+     this file; it arrived here once already as mojibake. */
+  .cstepr.is-done .num::after { content: "\2713"; font-size: 13px; line-height: 1; }
+  .cstepr .w { flex: 1; min-width: 0; }
+  .cstepr b { display: block; font-size: 15px; font-weight: 600; }
+  .cstepr span { display: block; font-size: 13px; color: var(--ink-3); margin-top: 2px; }
+  .cstepr .btn { margin-top: 11px; }
+  .cstepr.is-off b, .cstepr.is-off span { opacity: .55; }
+
   .claim-how { margin: 10px 0 0; font-family: var(--mono); font-size: 9.5px;
     letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
   .claim-prev { margin: 12px 0 0; padding: 12px 14px; background: var(--paper);
@@ -2410,11 +2428,16 @@ refreshCount();   // the API path needs no capability handshake to resolve first
        in control of what goes out under their own name. */
     const cta = isAccepted
       ? '<div class="claim">'
-        + '<button type="button" class="btn btn-solid btn-full" id="claimPost">'
-        + 'Post it and claim your pass</button>'
-        + '<button type="button" class="btn btn-full" id="claimSave" '
-        + 'style="margin-top:8px">Download the card</button>'
-        + '<p class="claim-how" id="claimHow"></p>'
+        + '<div class="cstepr" id="cs1"><span class="num">1</span>'
+        + '<div class="w"><b>Save your pass card</b>'
+        + '<span>The image you attach to the post.</span>'
+        + '<button type="button" class="btn btn-solid btn-full" id="claimSave">'
+        + 'Download the card</button></div></div>'
+        + '<div class="cstepr is-off" id="cs2"><span class="num">2</span>'
+        + '<div class="w"><b>Post it and claim your pass</b>'
+        + '<span id="claimHow">Save the card first.</span>'
+        + '<button type="button" class="btn btn-full" id="claimPost" disabled>'
+        + 'Open the post</button></div></div>'
         + '<p class="claim-prev">' + esc(CLAIM_TEXT) + '</p></div>'
       : '';
 
@@ -2444,33 +2467,59 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       } catch { return false; }
     };
 
-    how.textContent = canShareFile()
-      ? 'Your pass card goes with the post.'
-      : 'The card downloads first — attach it to the post.';
+    const cs1 = document.getElementById('cs1');
+    const cs2 = document.getElementById('cs2');
+    let saved = false;
 
-    claim.addEventListener('click', () => {
-      claim.disabled = true;
-      const before = claim.textContent;
-      claim.textContent = 'Preparing your card…';
-      file().then(f => {
-        if (canShareFile()) {
-          return navigator.share({ files: [f], text: CLAIM_TEXT })
-            .catch(() => {});                 // a cancelled share sheet is not an error
-        }
-        // No file sharing here, so hand over the PNG and open the composer.
-        saveBlob(f, f.name);
-        window.open('https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
-                    '_blank', 'noopener');
-      }).catch(() => {
-        window.open('https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
-                    '_blank', 'noopener');
-      }).then(() => { claim.disabled = false; claim.textContent = before; });
-    });
+    /* Step two stays shut until the card is actually in their hands. The
+       post carries no image on its own, so someone who skips the download
+       ends up publishing a bare claim and only finds out afterwards. One
+       locked button is cheaper than that. */
+    function unlock() {
+      if (saved) return;
+      saved = true;
+      cs1.classList.add('is-done');
+      cs2.classList.remove('is-off');
+      claim.disabled = false;
+      how.textContent = canShareFile()
+        ? 'Card saved. The post carries it automatically.'
+        : 'Card saved. Attach it in the composer before you post.';
+    }
 
     save.addEventListener('click', () => {
       save.disabled = true;
-      file().then(f => saveBlob(f, f.name)).then(() => { save.disabled = false; });
+      const t = save.textContent;
+      save.textContent = 'Drawing your card…';
+      file().then(f => saveBlob(f, f.name))
+            .then(() => { save.disabled = false; save.textContent = 'Download again'; unlock(); })
+            .catch(() => { save.disabled = false; save.textContent = t; });
     });
+
+    const composer = () => window.open(
+      'https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
+      '_blank', 'noopener');
+
+    claim.addEventListener('click', () => {
+      /* The card is already saved by step one, so this never downloads
+         again - it either hands the file to the share sheet or opens the
+         composer for them to attach it.
+
+         Only AbortError means "they changed their mind"; every other
+         rejection means the share did not happen, and the composer has to
+         open or the button silently does nothing. Desktop Chrome reports
+         canShare true and can still refuse the share itself, which is
+         exactly that case. */
+      if (!canShareFile()) return composer();
+
+      claim.disabled = true;
+      const before = claim.textContent;
+      claim.textContent = 'Preparing…';
+      file()
+        .then(f => navigator.share({ files: [f], text: CLAIM_TEXT }))
+        .catch(e => { if (!e || e.name !== 'AbortError') composer(); })
+        .then(() => { claim.disabled = false; claim.textContent = before; });
+    });
+
   }
 
   async function check() {
