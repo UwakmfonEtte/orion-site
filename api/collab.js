@@ -40,7 +40,7 @@ async function ensureSchema(sql) {
       size_claim    text        NOT NULL,
       size_link     text        NOT NULL,
       size_img      text,
-      rep_link      text        NOT NULL,
+      rep_link      text,
       rep_img       text,
       interest_link text        NOT NULL,
       interest_img  text,
@@ -49,6 +49,9 @@ async function ensureSchema(sql) {
       reviewed      boolean     NOT NULL DEFAULT false,
       submitted_at  timestamptz NOT NULL DEFAULT now()
     )`;
+  // The "prove your role" step was removed from the form - this column
+  // predates that and existing deployments still have it NOT NULL.
+  await sql`ALTER TABLE collab ALTER COLUMN rep_link DROP NOT NULL`;
   await sql`CREATE INDEX IF NOT EXISTS collab_submitted_idx ON collab (submitted_at)`;
   await sql`
     CREATE TABLE IF NOT EXISTS collab_hits (
@@ -115,16 +118,21 @@ export default async function handler(req, res) {
   const collabPost  = body.collabPost === true || body.collabPost === "yes";
 
   const sizeLink     = link(body.sizeLink);
-  const repLink      = link(body.repLink);
+  // No longer collected from the form - the person submitting has already
+  // introduced themselves, and in practice it's a collab manager applying
+  // on the community's behalf, so a separate "prove your role" link only
+  // added friction. Kept nullable server-side for any request that still
+  // sends one.
+  const repLink      = body.repLink ? link(body.repLink) : null;
   const interestLink = link(body.interestLink);
 
   const sizeImg     = image(body.sizeImg);
-  const repImg      = image(body.repImg);
+  const repImg      = body.repImg ? image(body.repImg) : null;
   const interestImg = image(body.interestImg);
 
   if (!community || !repName || !repContact) return res.status(400).json({ error: "missing_fields" });
   if (!sizeClaim) return res.status(400).json({ error: "missing_size" });
-  if (!sizeLink || !repLink || !interestLink) return res.status(400).json({ error: "bad_link" });
+  if (!sizeLink || !interestLink) return res.status(400).json({ error: "bad_link" });
   if (!Number.isFinite(spots) || spots < 1 || spots > 1555) return res.status(400).json({ error: "bad_spots" });
   if (sizeImg === "TOO_LARGE" || repImg === "TOO_LARGE" || interestImg === "TOO_LARGE") {
     return res.status(413).json({ error: "image_too_large" });

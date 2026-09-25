@@ -1063,7 +1063,7 @@
 <div class="shift">
   <span id="railRead" hidden></span>
   <header class="top">
-    <a class="brand" href="#top"><svg class="mark" viewBox="0 0 200 210" aria-hidden="true">
+    <a class="brand" href="/" data-route="top"><svg class="mark" viewBox="0 0 200 210" aria-hidden="true">
       <defs>
         <radialGradient id="ringG" cx="36%" cy="28%" r="78%">
           <stop offset="0" stop-color="#FFFFFF"/><stop offset="52%" stop-color="#F2F2F2"/>
@@ -1093,10 +1093,10 @@
       <path d="M158 74 C162 90 160 108 152 122 C160 106 162 88 160 74 Z" fill="#fff" opacity=".7"/>
     </svg><span>Orion</span></a>
     <nav>
-      <a href="#stake">Stake</a>
-      <a href="#lbt">LBT</a>
-      <a href="#borrow">Borrow</a>
-      <a href="#rent">Rent</a>
+      <a href="/stake" data-route="stake">Stake</a>
+      <a href="/lbt" data-route="lbt">LBT</a>
+      <a href="/borrow" data-route="borrow">Borrow</a>
+      <a href="/rent" data-route="rent">Rent</a>
     </nav>
     <button class="btn" aria-disabled="true" title="Wallet connection is not live yet">Connect Wallet</button>
     <button class="swap" id="swap" aria-label="Switch between sky and chart">
@@ -1502,9 +1502,9 @@
       <div class="sec-top"><span class="cap">Collaborations</span></div>
       <div class="collab-pitch">
         <h2 class="sec-h">Bringing a constellation with you?</h2>
-        <p>Communities can request an allocation for their members. Tell us who
-          you are, show us the room, and say how many spots you need. Every claim
-          gets checked by hand before anything is promised.</p>
+        <p>Communities can request an allocation for their members. Introduce
+          your communities to us and say how many spots you need. All requests
+          are reviewed.</p>
         <button class="btn btn-solid" id="collabOpen">Request a collab</button>
       </div>
     </section>
@@ -2953,11 +2953,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
                 : !LINK_OK.test(S.sizeLink) ? 'An X, Discord or Telegram link, please.'
                 : '' },
 
-    { q:'Show us you speak for them.', hint:'A role, a pinned post, an admin view — whatever we can check.',
-      render:() => field('repLink','Link we can verify','https://x.com/…')
-                 + imgField('repImg','Screenshot of your role or post'),
-      check:() => LINK_OK.test(S.repLink) ? '' : 'An X, Discord or Telegram link, please.' },
-
     { q:'Show us they are interested.', hint:'A poll, a thread, a channel talking about it.',
       render:() => field('interestLink','Link to the conversation','https://t.me/…')
                  + imgField('interestImg','Screenshot of the poll or thread'),
@@ -3061,7 +3056,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       ['Community', S.community], ['Representative', S.repName],
       ['Contact', S.repContact], ['Size', S.sizeClaim],
       ['Size proof', S.sizeLink + (S.sizeImg ? '  + screenshot' : '')],
-      ['Your role', S.repLink + (S.repImg ? '  + screenshot' : '')],
       ['Interest', S.interestLink + (S.interestImg ? '  + screenshot' : '')],
       ['Collab post', S.collabPost ? 'Yes' : 'No'], ['Spots requested', S.spots],
     ];
@@ -3170,15 +3164,21 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     }).then(() => { busy = false; });
   }
 
+  /* /collab-form is a real path, not a hash - open() and close() keep the
+     address bar in sync with it so the link is shareable either way round:
+     someone can land straight on the form, and someone who opens it by
+     clicking can copy the URL out of the bar afterwards. */
   function open() {
     i = 0; done = false;
     scrim.classList.add('open');
     document.body.style.overflow = 'hidden';
     question();
+    if (location.pathname !== '/collab-form') history.pushState(null, '', '/collab-form');
   }
   function close() {
     scrim.classList.remove('open');
     document.body.style.overflow = '';
+    if (location.pathname === '/collab-form') history.pushState(null, '', '/collab');
   }
 
   openBtn.addEventListener('click', open);
@@ -3194,6 +3194,60 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       if (document.getElementById('cSend')) submit(); else advance();
     }
   });
+
+  window.orionCollabOpen = open;
+})();
+</script>
+
+<script>
+/* =====================================================================
+   PLAIN PATHS INSTEAD OF HASHES
+
+   /stake, /lbt, /borrow, /rent, /collab, /collab-form all used to be
+   #fragments. A fragment never leaves the browser, so a fresh visit to
+   oriongqgc.space/#collab-form loaded the plain homepage and only jumped
+   once the inline script ran - and a link with no fragment handler (an
+   old bookmark, a search result) had no way to land on a section at all.
+
+   vercel.json now rewrites every one of these paths to this same
+   index.html, so the page itself has to do the routing: intercept clicks
+   on the nav so they don't trigger a full reload, keep history.pushState
+   in sync so the back button still works, and re-run the same routing on
+   load so a hard refresh or a cold link lands in the right place too.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var SECTIONS = ['stake', 'lbt', 'borrow', 'rent', 'collab'];
+
+  function route(path, instant) {
+    path = path.replace(/^\/+|\/+$/g, '');
+    if (path === 'collab-form') {
+      if (window.orionCollabOpen) window.orionCollabOpen();
+      return;
+    }
+    if (!path || path === 'top') {
+      window.scrollTo({ top: 0, behavior: instant ? 'auto' : 'smooth' });
+      return;
+    }
+    if (SECTIONS.indexOf(path) === -1) return;
+    var el = document.getElementById(path);
+    if (el) el.scrollIntoView({ behavior: instant ? 'auto' : 'smooth', block: 'start' });
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a[data-route]');
+    if (!a) return;
+    e.preventDefault();
+    var r = a.getAttribute('data-route');
+    var path = r === 'top' ? '/' : '/' + r;
+    if (location.pathname !== path) history.pushState(null, '', path);
+    route(r, false);
+  });
+
+  addEventListener('popstate', function () { route(location.pathname, false); });
+
+  // A stray old #fragment link still resolves, on top of the new path.
+  route(location.hash ? location.hash.slice(1) : location.pathname, true);
 })();
 </script>
 
