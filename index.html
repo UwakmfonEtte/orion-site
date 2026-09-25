@@ -688,6 +688,8 @@
 
   .claim { padding: 16px 18px 18px; border-top: 1px solid var(--rule);
     background: color-mix(in srgb, var(--green) 6%, transparent); }
+  .claim-how { margin: 10px 0 0; font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
   .claim-prev { margin: 12px 0 0; padding: 12px 14px; background: var(--paper);
     border: 1px solid var(--rule); font-family: var(--mono); font-size: 11.5px;
     line-height: 1.7; color: var(--ink-3); white-space: pre-wrap; }
@@ -2020,7 +2022,8 @@ const POST = ORION_POST || ORION_X;
    "Who needs a vouch?" is an invitation, deliberately not a promise: the
    vouching phase is not live, and when it is, each holder gets three. */
 const CLAIM_TEXT =
-  "I\'m in \u2014 accepted to the Orion whitelist.\n\n" +
+  "I\'m in!!\n" +
+  "I\'ve been accepted to the Orion Waitlist and I have claimed my pass.\n\n" +
   '1,555 Liquid Constellations. $12 mint, date TBD. Every Orion is backed ' +
   'by a treasury you can redeem from at any time.\n\n' +
   'Who needs a vouch?\n\n' +
@@ -2225,6 +2228,143 @@ refreshCount();   // the API path needs no capability handshake to resolve first
   const esc = v => String(v).replace(/[&<>"']/g,
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
+
+  /* ------------------------------------------------------------------
+     THE PASS, DRAWN TO A CANVAS
+
+     X's web intent carries text and nothing else - there is no media
+     parameter, and attaching an image programmatically needs the paid API
+     with OAuth. So the card cannot simply ride along on desktop.
+
+     navigator.share can carry files, though, and on a phone that opens the
+     system share sheet with the image already attached: pick X and the post
+     arrives with the card on it. That is where most of these will be sent
+     from, so that is the path worth having. Desktop falls back to
+     downloading the PNG and opening the composer, which is two actions
+     instead of one but always works.
+
+     The card is redrawn here rather than screenshotted off the page. A DOM
+     capture would need a library, and would still come out at whatever size
+     the viewport happened to be; this renders at a fixed 1600x1009, which
+     is sharp on a timeline and identical for everybody.
+     ------------------------------------------------------------------ */
+  function passOf(handle, knownPass) {
+    const h = hashOf(handle);
+    return {
+      handle: handle,
+      pass: knownPass != null ? knownPass : (h % SUPPLY) + 1,
+      serial: 'ORI-' + h.toString(16).toUpperCase().padStart(8, '0').slice(0, 4) + '-'
+              + ((h * 2654435761) >>> 0).toString(16).toUpperCase().slice(0, 4),
+      sign: IAU[(h >>> 7) % IAU.length],
+    };
+  }
+
+  function drawPass(p) {
+    const W = 1600, H = Math.round(W / 1.586);
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const g = cv.getContext('2d');
+    const S = W / 720;                       // the CSS card is 720 wide
+
+    // plate
+    const bg = g.createLinearGradient(0, 0, W * 0.62, H);
+    bg.addColorStop(0, '#2E3340'); bg.addColorStop(0.32, '#161A23');
+    bg.addColorStop(0.60, '#0D1016'); bg.addColorStop(1, '#252A35');
+    g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+    // the same engraving as the live card, at 30% like the DOM version
+    const eng = document.createElement('canvas');
+    eng.width = 720; eng.height = 454;
+    guilloche(eng);
+    g.globalAlpha = 0.30;
+    g.drawImage(eng, 0, 0, W, H);
+    g.globalAlpha = 1;
+
+    // scrim, so the lower half stays legible over the engraving
+    const sc = g.createLinearGradient(0, 0, 0, H);
+    sc.addColorStop(0.34, 'rgba(10,12,16,0)');
+    sc.addColorStop(0.62, 'rgba(10,12,16,.55)');
+    sc.addColorStop(1, 'rgba(10,12,16,.82)');
+    g.fillStyle = sc; g.fillRect(0, 0, W, H);
+
+    // inner gold hairline
+    g.strokeStyle = 'rgba(224,185,120,.26)';
+    g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
+
+    const pad = 28 * S;
+    const track = (t, px) => t.split('').join(String.fromCharCode(8202));
+
+    // top row
+    g.fillStyle = '#DCE0E8';
+    g.font = '700 ' + (18 * S) + 'px Manrope, system-ui, sans-serif';
+    g.textBaseline = 'top';
+    letter(g, 'ORION COLLECTIVE', pad, pad, 3.6 * S);
+
+    g.fillStyle = 'rgba(220,224,232,.6)';
+    g.font = '500 ' + (8.5 * S) + 'px "IBM Plex Mono", monospace';
+    right(g, 'FOUNDING', W - pad, pad, 2.2 * S);
+    right(g, 'PASS', W - pad, pad + 13 * S, 2.2 * S);
+
+    // handle
+    const gold = g.createLinearGradient(pad, 0, W * 0.72, 0);
+    gold.addColorStop(0, '#FFFBF0'); gold.addColorStop(0.52, '#E0B978');
+    gold.addColorStop(1, '#9C7A2A');
+    g.fillStyle = gold;
+    g.font = '700 ' + (38 * S) + 'px Manrope, system-ui, sans-serif';
+    g.textBaseline = 'alphabetic';
+    g.fillText('@' + p.handle, pad, H - 96 * S);
+
+    // constellation
+    g.fillStyle = '#A8CEFF';
+    g.font = '500 ' + (9.5 * S) + 'px "IBM Plex Mono", monospace';
+    letterBase(g, (p.sign + '  ·  ONE OF EIGHTY-EIGHT').toUpperCase(),
+               pad, H - 72 * S, 2.4 * S);
+
+    // rule
+    const rl = g.createLinearGradient(pad, 0, W - pad, 0);
+    rl.addColorStop(0, 'rgba(224,185,120,.5)'); rl.addColorStop(1, 'rgba(224,185,120,0)');
+    g.fillStyle = rl; g.fillRect(pad, H - 58 * S, W - pad * 2, 1.4 * S);
+
+    // footer
+    g.font = '400 ' + (9 * S) + 'px "IBM Plex Mono", monospace';
+    g.fillStyle = 'rgba(220,224,232,.62)';
+    letterBase(g, 'NO. ' + String(p.pass).padStart(4, '0') + ' OF 1,555',
+               pad, H - 36 * S, 1.6 * S);
+    letterBase(g, p.serial, pad, H - 20 * S, 1.6 * S);
+    g.fillStyle = 'rgba(224,185,120,.85)';
+    rightBase(g, 'FOUNDING PASS', W - pad, H - 36 * S, 1.6 * S);
+    rightBase(g, '2026', W - pad, H - 20 * S, 1.6 * S);
+
+    return cv;
+  }
+
+  /* Canvas has no letter-spacing before Chrome 99 and none at all in older
+     Safari, and the card leans on it heavily - so the tracked lines are
+     drawn a glyph at a time. */
+  function letter(g, t, x, y, sp) {
+    for (const ch of t) { g.fillText(ch, x, y); x += g.measureText(ch).width + sp; }
+  }
+  function letterBase(g, t, x, y, sp) { letter(g, t, x, y, sp); }
+  function widthOf(g, t, sp) {
+    let w = 0; for (const ch of t) w += g.measureText(ch).width + sp;
+    return w - sp;
+  }
+  function right(g, t, x, y, sp)     { letter(g, t, x - widthOf(g, t, sp), y, sp); }
+  function rightBase(g, t, x, y, sp) { letter(g, t, x - widthOf(g, t, sp), y, sp); }
+
+  function cardBlob(p) {
+    return (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
+      .then(() => new Promise(res => drawPass(p).toBlob(res, 'image/png')));
+  }
+
+  function saveBlob(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+
   function render(d) {
     const state = String(d.state || 'none').toLowerCase();
     const isAccepted = state === 'accepted' || state === 'on_list' || state === 'holder';
@@ -2269,8 +2409,12 @@ refreshCount();   // the API path needs no capability handshake to resolve first
        stale and every browser blocks the window. This also leaves the person
        in control of what goes out under their own name. */
     const cta = isAccepted
-      ? '<div class="claim"><button type="button" class="btn btn-solid btn-full" id="claimPost">'
+      ? '<div class="claim">'
+        + '<button type="button" class="btn btn-solid btn-full" id="claimPost">'
         + 'Post it and claim your pass</button>'
+        + '<button type="button" class="btn btn-full" id="claimSave" '
+        + 'style="margin-top:8px">Download the card</button>'
+        + '<p class="claim-how" id="claimHow"></p>'
         + '<p class="claim-prev">' + esc(CLAIM_TEXT) + '</p></div>'
       : '';
 
@@ -2281,9 +2425,51 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     out.hidden = false;
 
     const claim = document.getElementById('claimPost');
-    if (claim) claim.addEventListener('click', () => {
-      window.open('https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
-                  '_blank', 'noopener');
+    const save  = document.getElementById('claimSave');
+    const how   = document.getElementById('claimHow');
+    if (!claim) return;
+
+    const p = passOf(d.handle, d.pass);
+    const file = () => cardBlob(p).then(bl =>
+      new File([bl], 'orion-pass-' + String(p.pass).padStart(4, '0') + '.png',
+               { type: 'image/png' }));
+
+    /* Only claim the share sheet when the browser will actually take the
+       file. canShare is the honest test - support for share WITHOUT files
+       is common and would drop the card silently. */
+    const canShareFile = () => {
+      try {
+        return !!(navigator.canShare && navigator.share &&
+          navigator.canShare({ files: [new File([new Blob()], 'x.png', { type: 'image/png' })] }));
+      } catch { return false; }
+    };
+
+    how.textContent = canShareFile()
+      ? 'Your pass card goes with the post.'
+      : 'The card downloads first — attach it to the post.';
+
+    claim.addEventListener('click', () => {
+      claim.disabled = true;
+      const before = claim.textContent;
+      claim.textContent = 'Preparing your card…';
+      file().then(f => {
+        if (canShareFile()) {
+          return navigator.share({ files: [f], text: CLAIM_TEXT })
+            .catch(() => {});                 // a cancelled share sheet is not an error
+        }
+        // No file sharing here, so hand over the PNG and open the composer.
+        saveBlob(f, f.name);
+        window.open('https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
+                    '_blank', 'noopener');
+      }).catch(() => {
+        window.open('https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
+                    '_blank', 'noopener');
+      }).then(() => { claim.disabled = false; claim.textContent = before; });
+    });
+
+    save.addEventListener('click', () => {
+      save.disabled = true;
+      file().then(f => saveBlob(f, f.name)).then(() => { save.disabled = false; });
     });
   }
 
