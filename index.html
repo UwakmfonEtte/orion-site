@@ -686,6 +686,12 @@
   .statuscard .foot { padding: 14px 18px; border-top: 1px solid var(--rule);
     font-size: 13.5px; color: var(--ink-2); }
 
+  .claim { padding: 16px 18px 18px; border-top: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--green) 6%, transparent); }
+  .claim-prev { margin: 12px 0 0; padding: 12px 14px; background: var(--paper);
+    border: 1px solid var(--rule); font-family: var(--mono); font-size: 11.5px;
+    line-height: 1.7; color: var(--ink-3); white-space: pre-wrap; }
+
   .tallies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px; margin: 34px 0 0; }
   .tally { background: var(--plate); border: 1px solid var(--rule); padding: 18px 20px; }
@@ -2006,6 +2012,20 @@ const POST = ORION_POST || ORION_X;
    quoted post URL as text and counts every URL as 23 characters whatever
    its length, and oriongqgc.space auto-links too - so two links cost 46 of
    the 280 and the copy has to fit in what is left. This runs 243. */
+/* Sent by anyone who checks and finds they are accepted. Mint detail is
+   the supply and the price, with the date still open, because that is all
+   that is settled. 205 characters against the 280 limit - oriongqgc.space
+   auto-links and X counts any URL as 23 whatever its length.
+
+   "Who needs a vouch?" is an invitation, deliberately not a promise: the
+   vouching phase is not live, and when it is, each holder gets three. */
+const CLAIM_TEXT =
+  "I\'m in \u2014 accepted to the Orion whitelist.\n\n" +
+  '1,555 Liquid Constellations. $12 mint, date TBD. Every Orion is backed ' +
+  'by a treasury you can redeem from at any time.\n\n' +
+  'Who needs a vouch?\n\n' +
+  'oriongqgc.space';
+
 const QUOTE_TEXT =
   'Just joined the Orion waitlist and claimed my pass.\n\n' +
   'Every Orion carries a redeemable floor value, and holders can borrow ' +
@@ -2244,13 +2264,27 @@ refreshCount();   // the API path needs no capability handshake to resolve first
           ? 'You are not on the selected list right now. Watch @LiquidOrion for what comes next.'
           : 'Your application is under review. When the selected list is shared, chosen handles will move on to the list and others will be marked unaccepted.';
 
-    const cta = '';   // reserved for the next phase
+    /* A button, not an automatic pop-up. The status arrives from an async
+       fetch, so by the time it resolves the click that started it has gone
+       stale and every browser blocks the window. This also leaves the person
+       in control of what goes out under their own name. */
+    const cta = isAccepted
+      ? '<div class="claim"><button type="button" class="btn btn-solid btn-full" id="claimPost">'
+        + 'Post it and claim your pass</button>'
+        + '<p class="claim-prev">' + esc(CLAIM_TEXT) + '</p></div>'
+      : '';
 
     out.className = 'statuscard is-' + (state === 'none' ? 'none' : isAccepted ? 'holder' : isRejected ? 'none' : 'review');
     out.innerHTML =
       `<div class="head"><span class="dot"></span>@${esc(d.handle)} — ${headline}</div>` +
       rows + `<div class="foot">${foot}</div>${cta}`;
     out.hidden = false;
+
+    const claim = document.getElementById('claimPost');
+    if (claim) claim.addEventListener('click', () => {
+      window.open('https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
+                  '_blank', 'noopener');
+    });
   }
 
   async function check() {
