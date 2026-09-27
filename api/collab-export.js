@@ -70,7 +70,8 @@ export default async function handler(req, res) {
   try {
     const rows = await sql`
       SELECT id, community, rep_name, rep_contact, size_claim, size_link,
-             rep_link, interest_link, collab_post, spots, reviewed, submitted_at,
+             rep_link, interest_link, collab_post, spots, price_opinion,
+             article_take, reviewed, submitted_at,
              (size_img IS NOT NULL)     AS has_size_img,
              (rep_img IS NOT NULL)      AS has_rep_img,
              (interest_img IS NOT NULL) AS has_interest_img
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
     const cols = ["id", "community", "rep_name", "rep_contact", "size_claim",
                   "size_link", "size_img_url", "rep_link", "rep_img_url",
                   "interest_link", "interest_img_url", "collab_post", "spots",
-                  "reviewed", "submitted_at"];
+                  "price_opinion", "article_take", "reviewed", "submitted_at"];
     const csv = [cols.join(","),
                  ...shaped.map(r => cols.map(c => csvCell(r[c])).join(","))].join("\n");
 

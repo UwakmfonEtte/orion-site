@@ -743,14 +743,15 @@
   .sheet h2 { font-family: var(--serif); font-weight: 700; font-size: clamp(28px,4.6vw,38px); line-height: 1.08; margin: 0 0 10px; }
   .sheet .sub { color: var(--ink-2); margin: 0 0 24px; font-size: 15.5px; }
 
-  input[type="text"] {
+  input[type="text"], .field textarea {
     width: 100%; padding: 15px 16px; background: var(--paper);
     border: 1px solid var(--rule-hi); color: var(--ink);
     font-family: var(--mono); font-size: 14.5px; transition: border-color .2s;
   }
+  .field textarea { resize: vertical; line-height: 1.5; }
   input.pad { padding-left: 36px; }
-  input::placeholder { color: var(--ink-3); opacity: .7; }
-  input:focus { border-color: var(--green); outline: none; }
+  input::placeholder, textarea::placeholder { color: var(--ink-3); opacity: .7; }
+  input:focus, textarea:focus { border-color: var(--green); outline: none; }
   .field { position: relative; }
   .field .at { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-family: var(--mono); color: var(--ink-3); pointer-events: none; }
   .micro { font-family: var(--mono); font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-3); margin: 12px 0 20px; }
@@ -1002,7 +1003,7 @@
       min-height: 100%; border: none; width: 100%; border-radius: 0; }
     .sheet h2 { font-size: 26px; }
     .score-val { font-size: 42px; }
-    input[type="text"] { font-size: 16px; }   /* below 16px iOS zooms on focus */
+    input[type="text"], .field textarea { font-size: 16px; }   /* below 16px iOS zooms on focus */
   }
 
   @media (max-width: 400px) {
@@ -2930,7 +2931,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
   const S = { community:'', repName:'', repContact:'', sizeClaim:'', sizeLink:'',
               sizeImg:'', repLink:'', repImg:'', interestLink:'', interestImg:'',
-              collabPost:null, spots:'' };
+              collabPost:null, spots:'', priceOpinion:'', articleTake:'' };
 
   const STEPS = [
     { q:'Which community are you bringing?', hint:'The name its members would recognise.',
@@ -2958,6 +2959,12 @@ refreshCount();   // the API path needs no capability handshake to resolve first
                  + imgField('interestImg','Screenshot of the poll or thread'),
       check:() => LINK_OK.test(S.interestLink) ? '' : 'An X, Discord or Telegram link, please.' },
 
+    { q:'Quick check before we go further.', hint:'Anyone requesting a collab has already read this. In your own words, what is Orion?',
+      multiline: true,
+      render:() => '<p class="hint" style="margin-bottom:10px"><a href="https://x.com/LiquidOrion/status/2102387941221838881" target="_blank" rel="noopener">x.com/LiquidOrion/status/2102387941221838881 ↗</a></p>'
+                 + textField('articleTake','What is Orion about?','e.g. It is a…'),
+      check:() => S.articleTake.trim().length >= 15 ? '' : 'A sentence or two on what Orion is about, please.' },
+
     { q:'Open to an official collab post?', hint:'A joint announcement from both accounts.',
       render:() => '<div class="choices">'
         + '<button type="button" class="choice' + (S.collabPost===true?' on':'') + '" data-yes>Yes<small>Announce together</small></button>'
@@ -2969,6 +2976,11 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       render:() => field('spots','Spots requested','e.g. 50','inputmode="numeric"'),
       check:() => { const n = Number(String(S.spots).replace(/[^0-9]/g,''));
                     return n >= 1 && n <= 1555 ? '' : 'A number between 1 and 1,555.'; } },
+
+    { q:'What do you think of $12 to mint, for 1,555 items?', hint:'Too expensive, too low, or about right — and what you would set it at.',
+      multiline: true,
+      render:() => textField('priceOpinion','Your take','e.g. Too low, I would set it closer to $18'),
+      check:() => S.priceOpinion.trim() ? '' : 'Tell us what you think, even briefly.' },
   ];
 
   let i = 0, done = false, busy = false;
@@ -2978,6 +2990,12 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       + '<div class="field"><input id="f_' + key + '" type="text" data-k="' + key + '"'
       + ' placeholder="' + esc(ph) + '" autocomplete="off" spellcheck="false" '
       + (extra || '') + ' value="' + esc(S[key]) + '"></div>';
+  }
+
+  function textField(key, label, ph) {
+    return '<label class="lbl2" for="f_' + key + '">' + esc(label) + '</label>'
+      + '<div class="field"><textarea id="f_' + key + '" data-k="' + key + '" rows="3"'
+      + ' placeholder="' + esc(ph) + '" spellcheck="true">' + esc(S[key]) + '</textarea></div>';
   }
 
   function imgField(key, label) {
@@ -3025,7 +3043,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
         if (el) el.classList.remove('in');
       }));
       wire();
-      const first = bodyEl.querySelector('input[type="text"]');
+      const first = bodyEl.querySelector('input[type="text"], textarea');
       if (first) first.focus({ preventScroll: true });
     };
     if (old) { old.classList.add('out'); setTimeout(swap, 140); } else swap();
@@ -3045,7 +3063,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       '<h3 id="cTitle">' + esc(st.q) + '</h3><p class="hint">' + esc(st.hint) + '</p>'
       + st.render() + '<p class="note" id="cErr"></p>',
       (i > 0 ? '<button type="button" class="cback" id="cBack">&#8592; Back</button>' : '')
-      + '<span class="ckey">Press Enter</span>'
+      + (st.multiline ? '' : '<span class="ckey">Press Enter</span>')
       + '<button type="button" class="btn btn-solid cnext" id="cNext">'
       + (i === STEPS.length - 1 ? 'Review' : 'Next') + '</button>');
   }
@@ -3057,7 +3075,9 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       ['Contact', S.repContact], ['Size', S.sizeClaim],
       ['Size proof', S.sizeLink + (S.sizeImg ? '  + screenshot' : '')],
       ['Interest', S.interestLink + (S.interestImg ? '  + screenshot' : '')],
+      ['Read the article', S.articleTake],
       ['Collab post', S.collabPost ? 'Yes' : 'No'], ['Spots requested', S.spots],
+      ['On the $12 price', S.priceOpinion],
     ];
     paint(
       '<h3 id="cTitle">Does this look right?</h3>'
@@ -3083,7 +3103,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
   }
 
   function wire() {
-    bodyEl.querySelectorAll('input[data-k]').forEach(el => {
+    bodyEl.querySelectorAll('input[data-k], textarea[data-k]').forEach(el => {
       el.addEventListener('input', () => { S[el.dataset.k] = el.value; err(''); });
     });
     bodyEl.querySelectorAll('[data-yes],[data-no]').forEach(el => {
@@ -3158,6 +3178,8 @@ refreshCount();   // the API path needs no capability handshake to resolve first
         image_too_large: 'One of the screenshots is too large. Remove it and try again.',
         bad_link:        'One of the links was rejected. Use X, Discord or Telegram.',
         bad_spots:       'The number of spots has to be between 1 and 1,555.',
+        missing_price_opinion: 'Let us know what you think of the $12 price before sending.',
+        missing_article_take: 'Tell us what Orion is about, in a sentence or two, before sending.',
         too_large:       'That request was too large. Try fewer screenshots.',
         not_configured:  'Collab requests are not open yet.',
       })[e.message] || 'Could not send that. Check your connection and try again.');
@@ -3190,6 +3212,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     if (e.key === 'Enter' && !e.shiftKey && !done) {
       const a = document.activeElement;
       if (a && a.tagName === 'BUTTON' && a.classList.contains('choice')) return;
+      if (a && a.tagName === 'TEXTAREA') return;   // let Enter make a new line
       e.preventDefault();
       if (document.getElementById('cSend')) submit(); else advance();
     }

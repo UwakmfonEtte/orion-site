@@ -46,12 +46,17 @@ async function ensureSchema(sql) {
       interest_img  text,
       collab_post   boolean     NOT NULL,
       spots         integer     NOT NULL,
+      price_opinion text,
+      article_take  text,
       reviewed      boolean     NOT NULL DEFAULT false,
       submitted_at  timestamptz NOT NULL DEFAULT now()
     )`;
   // The "prove your role" step was removed from the form - this column
   // predates that and existing deployments still have it NOT NULL.
   await sql`ALTER TABLE collab ALTER COLUMN rep_link DROP NOT NULL`;
+  // price_opinion and article_take arrived after this table did on some deployments.
+  await sql`ALTER TABLE collab ADD COLUMN IF NOT EXISTS price_opinion text`;
+  await sql`ALTER TABLE collab ADD COLUMN IF NOT EXISTS article_take text`;
   await sql`CREATE INDEX IF NOT EXISTS collab_submitted_idx ON collab (submitted_at)`;
   await sql`
     CREATE TABLE IF NOT EXISTS collab_hits (
@@ -116,6 +121,8 @@ export default async function handler(req, res) {
   const sizeClaim   = text(body.sizeClaim, 40);
   const spots       = Math.floor(Number(body.spots));
   const collabPost  = body.collabPost === true || body.collabPost === "yes";
+  const priceOpinion = text(body.priceOpinion, 600);
+  const articleTake  = text(body.articleTake, 600);
 
   const sizeLink     = link(body.sizeLink);
   // No longer collected from the form - the person submitting has already
@@ -134,6 +141,8 @@ export default async function handler(req, res) {
   if (!sizeClaim) return res.status(400).json({ error: "missing_size" });
   if (!sizeLink || !interestLink) return res.status(400).json({ error: "bad_link" });
   if (!Number.isFinite(spots) || spots < 1 || spots > 1555) return res.status(400).json({ error: "bad_spots" });
+  if (!priceOpinion) return res.status(400).json({ error: "missing_price_opinion" });
+  if (articleTake.length < 15) return res.status(400).json({ error: "missing_article_take" });
   if (sizeImg === "TOO_LARGE" || repImg === "TOO_LARGE" || interestImg === "TOO_LARGE") {
     return res.status(413).json({ error: "image_too_large" });
   }
@@ -155,10 +164,10 @@ export default async function handler(req, res) {
     const [row] = await sql`
       INSERT INTO collab (community, rep_name, rep_contact, size_claim, size_link,
                           size_img, rep_link, rep_img, interest_link, interest_img,
-                          collab_post, spots)
+                          collab_post, spots, price_opinion, article_take)
       VALUES (${community}, ${repName}, ${repContact}, ${sizeClaim}, ${sizeLink},
               ${sizeImg}, ${repLink}, ${repImg}, ${interestLink}, ${interestImg},
-              ${collabPost}, ${spots})
+              ${collabPost}, ${spots}, ${priceOpinion}, ${articleTake})
       RETURNING id`;
 
     res.setHeader("Cache-Control", "no-store");
