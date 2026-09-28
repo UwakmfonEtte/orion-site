@@ -121,7 +121,6 @@ export default async function handler(req, res) {
   const sizeClaim   = text(body.sizeClaim, 40);
   const spots       = Math.floor(Number(body.spots));
   const collabPost  = body.collabPost === true || body.collabPost === "yes";
-  const priceOpinion = text(body.priceOpinion, 600);
   const articleTake  = text(body.articleTake, 600);
 
   const sizeLink     = link(body.sizeLink);
@@ -141,7 +140,6 @@ export default async function handler(req, res) {
   if (!sizeClaim) return res.status(400).json({ error: "missing_size" });
   if (!sizeLink || !interestLink) return res.status(400).json({ error: "bad_link" });
   if (!Number.isFinite(spots) || spots < 1 || spots > 1555) return res.status(400).json({ error: "bad_spots" });
-  if (!priceOpinion) return res.status(400).json({ error: "missing_price_opinion" });
   if (articleTake.length < 15) return res.status(400).json({ error: "missing_article_take" });
   if (sizeImg === "TOO_LARGE" || repImg === "TOO_LARGE" || interestImg === "TOO_LARGE") {
     return res.status(413).json({ error: "image_too_large" });
@@ -164,10 +162,10 @@ export default async function handler(req, res) {
     const [row] = await sql`
       INSERT INTO collab (community, rep_name, rep_contact, size_claim, size_link,
                           size_img, rep_link, rep_img, interest_link, interest_img,
-                          collab_post, spots, price_opinion, article_take)
+                          collab_post, spots, article_take)
       VALUES (${community}, ${repName}, ${repContact}, ${sizeClaim}, ${sizeLink},
               ${sizeImg}, ${repLink}, ${repImg}, ${interestLink}, ${interestImg},
-              ${collabPost}, ${spots}, ${priceOpinion}, ${articleTake})
+              ${collabPost}, ${spots}, ${articleTake})
       RETURNING id`;
 
     res.setHeader("Cache-Control", "no-store");

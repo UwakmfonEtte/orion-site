@@ -2931,7 +2931,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
   const S = { community:'', repName:'', repContact:'', sizeClaim:'', sizeLink:'',
               sizeImg:'', repLink:'', repImg:'', interestLink:'', interestImg:'',
-              collabPost:null, spots:'', priceOpinion:'', articleTake:'' };
+              collabPost:null, spots:'', articleTake:'' };
 
   const STEPS = [
     { q:'Which community are you bringing?', hint:'The name its members would recognise.',
@@ -2976,11 +2976,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       render:() => field('spots','Spots requested','e.g. 50','inputmode="numeric"'),
       check:() => { const n = Number(String(S.spots).replace(/[^0-9]/g,''));
                     return n >= 1 && n <= 1555 ? '' : 'A number between 1 and 1,555.'; } },
-
-    { q:'What do you think of $12 to mint, for 1,555 items?', hint:'Too expensive, too low, or about right — and what you would set it at.',
-      multiline: true,
-      render:() => textField('priceOpinion','Your take','e.g. Too low, I would set it closer to $18'),
-      check:() => S.priceOpinion.trim() ? '' : 'Tell us what you think, even briefly.' },
   ];
 
   let i = 0, done = false, busy = false;
@@ -3077,7 +3072,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       ['Interest', S.interestLink + (S.interestImg ? '  + screenshot' : '')],
       ['Read the article', S.articleTake],
       ['Collab post', S.collabPost ? 'Yes' : 'No'], ['Spots requested', S.spots],
-      ['On the $12 price', S.priceOpinion],
     ];
     paint(
       '<h3 id="cTitle">Does this look right?</h3>'
@@ -3178,7 +3172,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
         image_too_large: 'One of the screenshots is too large. Remove it and try again.',
         bad_link:        'One of the links was rejected. Use X, Discord or Telegram.',
         bad_spots:       'The number of spots has to be between 1 and 1,555.',
-        missing_price_opinion: 'Let us know what you think of the $12 price before sending.',
         missing_article_take: 'Tell us what Orion is about, in a sentence or two, before sending.',
         too_large:       'That request was too large. Try fewer screenshots.',
         not_configured:  'Collab requests are not open yet.',
