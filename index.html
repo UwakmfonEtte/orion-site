@@ -1511,7 +1511,7 @@
     </section>
 
     <section class="closer">
-      <span class="cap">Waitlist open · Mint date to be announced</span>
+      <span class="cap">Waitlist closed · Watch the official page for updates</span>
       <h2>Take your place<br>in the <i>sky</i>.</h2>
       <button class="btn btn-holo" data-open>Join Waitlist</button>
     </section>
@@ -1917,8 +1917,20 @@ const label = document.getElementById('stepLabel');
 const ticks = [1,2,3].map(i => document.getElementById('t' + i));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+const WAITLIST_CLOSED = true;
+
 const setStep = n => { label.textContent = `Step ${n} / 3`; ticks.forEach((t,i)=>t.className='tick'+(i<n?' on':'')); };
-const open  = () => { scrim.classList.add('open'); document.body.style.overflow='hidden'; setStep(1); step1(); };
+const closedNotice = () => {
+  label.textContent = '';
+  ticks.forEach(t => t.className = 'tick');
+  body.innerHTML = '<h3>Waitlist closed</h3>'
+    + '<p class="hint">Waitlist has been closed. Pay attention to the official page for more info.</p>';
+};
+const open  = () => {
+  scrim.classList.add('open'); document.body.style.overflow='hidden';
+  if (WAITLIST_CLOSED) return closedNotice();
+  setStep(1); step1();
+};
 const close = () => { scrim.classList.remove('open'); document.body.style.overflow=''; };
 document.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', open));
 document.getElementById('closeBtn').addEventListener('click', close);
@@ -2174,7 +2186,7 @@ function done() {
 async function refreshCount() {
   const el = document.getElementById('claimCount');
   const show = n => el.textContent = n ? `${n} pass${n === 1 ? '' : 'es'} claimed`
-                                       : 'Waitlist open';
+                                       : 'Waitlist closed';
   try {
     if (DB) {
       const snap = await DB.collection('waitlist').limit(1000).get();
@@ -2183,7 +2195,7 @@ async function refreshCount() {
     const r = await fetch('/api/count');
     if (r.ok) return show((await r.json()).count || 0);
   } catch {}
-  el.textContent = 'Waitlist open';
+  el.textContent = 'Waitlist closed';
 }
 refreshCount();   // the API path needs no capability handshake to resolve first
 

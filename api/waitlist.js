@@ -72,11 +72,16 @@ function hashIp(ip) {
   return createHash("sha256").update(salt + "|" + ip).digest("hex").slice(0, 32);
 }
 
+/** Flip to false to reopen. Kept as a single switch rather than removing the
+ *  route, so closing needs no schema change and reopening is a one-line revert. */
+const WAITLIST_CLOSED = true;
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "method_not_allowed" });
   }
+  if (WAITLIST_CLOSED) return res.status(403).json({ error: "waitlist_closed" });
   if (!CONN) {
     console.error("DATABASE_URL is not set — connect a Neon database in Vercel");
     return res.status(500).json({ error: "not_configured" });
