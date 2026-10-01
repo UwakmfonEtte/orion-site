@@ -709,6 +709,14 @@
   .claim-how { margin: 10px 0 0; font-family: var(--mono); font-size: 9.5px;
     letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
 
+  .vouch { padding: 16px 18px 18px; border-top: 1px solid var(--rule); }
+  .vouch h3 { margin: 0 0 6px; font-size: 16px; }
+  .vouch p { margin: 0 0 12px; color: var(--ink-2); font-size: 13px; }
+  .vouch .field { margin-bottom: 10px; }
+  .vouch-proof { white-space: pre-wrap; padding: 12px; border: 1px solid var(--rule);
+    background: var(--raise); font-family: var(--mono); font-size: 12px; }
+  .vouch a { color: var(--green); font-weight: 600; }
+
   .tallies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px; margin: 34px 0 0; }
   .tally { background: var(--plate); border: 1px solid var(--rule); padding: 18px 20px; }
@@ -973,6 +981,8 @@
     .reading { padding: 16px 16px 15px; }
     .reading dd { font-size: 26px; }
     .reading::after { display: none; }
+
+    .tallies { grid-template-columns: 1fr; }
 
     .charts { grid-template-columns: 1fr; gap: 14px; }
     .chartbox { padding: 16px; }
@@ -1859,7 +1869,7 @@ document.getElementById('swap').addEventListener('click', () => {
 /* =====================================================================
    WAITLIST
    ===================================================================== */
-const SUPPLY = 1600;
+const SUPPLY = 1555;
 
 /* All 88 IAU-recognised constellations. Each pass is assigned one, derived
    from the handle — deterministic, so a handle always yields the same
@@ -2041,20 +2051,11 @@ const POST = ORION_POST || ORION_X;
    quoted post URL as text and counts every URL as 23 characters whatever
    its length, and oriongqgc.space auto-links too - so two links cost 46 of
    the 280 and the copy has to fit in what is left. This runs 243. */
-/* Sent by anyone who checks and finds they are accepted. Mint detail is
-   the supply and the price, with the date still open, because that is all
-   that is settled. 205 characters against the 280 limit - oriongqgc.space
-   auto-links and X counts any URL as 23 whatever its length.
-
-   "Who needs a vouch?" is an invitation, deliberately not a promise: the
-   vouching phase is not live, and when it is, each holder gets three. */
-const CLAIM_TEXT =
-  "I\'m in!!\n" +
-  "I\'ve been accepted to the Orion Waitlist and I have claimed my pass.\n\n" +
-  '1,555 Liquid Constellations. $12 mint, date TBD. Every Orion is backed ' +
-  'by a treasury you can redeem from at any time.\n\n' +
-  'Who needs a vouch?\n\n' +
-  'oriongqgc.space';
+const claimText = pass =>
+  `Just got accepted into @LiquidOrion\n\n` +
+  `1,555 supply • $12 mint • $18,666 Liquid backed\n\n` +
+  `ORION Pass #${String(pass).padStart(4, '0')} sealed.\n\n` +
+  `Who needs a vouch?`;
 
 const QUOTE_TEXT =
   'Just joined the Orion waitlist and claimed my pass.\n\n' +
@@ -2243,8 +2244,9 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       const r = await fetch('/api/count');
       if (!r.ok) return;
       const d = await r.json();
-      const count = Number.isFinite(Number(d.count)) ? Number(d.count) : 0;
-      el.innerHTML = `<div class="tally"><dt>On the waitlist</dt><dd>${count.toLocaleString()}</dd></div>`;
+      const count = d.count == null ? null : Number(d.count);
+      const display = Number.isFinite(count) ? count.toLocaleString() : '—';
+      el.innerHTML = `<div class="tally"><dt>On the waitlist</dt><dd>${display}</dd></div>`;
     } catch {}
   }
 
@@ -2394,13 +2396,19 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
   function render(d) {
     const state = String(d.state || 'none').toLowerCase();
-    const isAccepted = state === 'accepted' || state === 'on_list' || state === 'holder';
+    const isHeld = state === 'held';
+    const isNominated = state === 'nominated';
+    const isAccepted = state === 'accepted' || state === 'on_list' || state === 'holder' || isHeld;
     const isRejected = state === 'rejected' || state === 'unaccepted' || state === 'declined';
     const isReview = state === 'review' || state === 'pending' || state === 'under_review';
     const hasApplication = state !== 'none';
 
     const headline = state === 'none'
       ? 'nothing on file'
+      : isHeld
+        ? 'three verified vouches — pass held'
+        : isNominated
+          ? `${Number(d.vouches || 0)} of ${Number(d.required || 3)} verified vouches`
       : isAccepted
         ? 'on the list'
         : isRejected
@@ -2416,19 +2424,26 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       if (d.pass != null) {
         rows += `<div class="row"><dt>Pass</dt><dd>No. ${
           String(d.pass).padStart(4, '0')}</dd></div>`;
+        rows += `<div class="row"><dt>Post</dt><dd>${
+          d.verified ? 'verified' : 'awaiting check'}</dd></div>`;
       }
-      rows += `<div class="row"><dt>Post</dt><dd>${
-        d.verified ? 'verified' : 'awaiting check'}</dd></div>`;
+    }
+    if (isHeld || isNominated) {
+      rows += `<div class="row"><dt>Verified vouches</dt><dd>${Number(d.vouches || 0)} / ${Number(d.required || 3)}</dd></div>`;
     }
 
     const foot = state === 'none'
-      ? 'No application against that handle. Join the waitlist to start one.'
+      ? 'No application or vouches on file. Ask an eligible Orion member to vouch for you.'
+      : isHeld
+        ? 'Three distinct verified vouches are confirmed. Your pass is held, and you can now vouch for up to three other accounts.'
+        : isNominated
+          ? `You need ${Math.max(0, Number(d.required || 3) - Number(d.vouches || 0))} more distinct verified vouch${Number(d.required || 3) - Number(d.vouches || 0) === 1 ? '' : 'es'} to qualify for a pass.`
       : isAccepted
         ? (d.verified
             ? 'Your place is held. The mint date goes out on X.'
-            : 'Your place is held. Your post is checked against the whitelist post before mint.')
+            : 'Your selected place is held. Your post is checked against the whitelist post before mint.')
         : isRejected
-          ? 'You are not on the selected list right now. Watch @LiquidOrion for what comes next.'
+          ? 'You are not on the selected list. Three distinct verified vouches can qualify you for a pass.'
           : 'Your application is under review. When the selected list is shared, chosen handles will move on to the list and others will be marked unaccepted.';
 
     /* A button, not an automatic pop-up. The status arrives from an async
@@ -2450,11 +2465,92 @@ refreshCount();   // the API path needs no capability handshake to resolve first
         + '</div>'
       : '';
 
+    const vouchUi = d.canVouch
+      ? '<div class="vouch">'
+        + '<h3>Vouch for someone</h3>'
+        + `<p id="vouchRemaining">${Number(d.remaining || 0)} sponsorship${Number(d.remaining || 0) === 1 ? '' : 's'} remaining. A vouch is recorded after your X proof is verified.</p>`
+        + (Number(d.remaining || 0) > 0
+          ? '<div class="field"><span class="at">@</span><input id="vouchNominee" class="pad" type="text" placeholder="theirhandle" autocomplete="off" spellcheck="false" aria-label="Nominee X handle"></div>'
+            + '<button type="button" class="btn btn-solid" id="vouchPrepare">Prepare vouch</button>'
+            + '<div id="vouchProofArea" hidden></div>'
+            + '<p class="note" id="vouchMessage" role="status"></p>'
+          : '<p>You have used all three sponsorships.</p>')
+        + '</div>'
+      : '';
+
     out.className = 'statuscard is-' + (state === 'none' ? 'none' : isAccepted ? 'holder' : isRejected ? 'none' : 'review');
     out.innerHTML =
       `<div class="head"><span class="dot"></span>@${esc(d.handle)} — ${headline}</div>` +
-      rows + `<div class="foot">${foot}</div>${cta}`;
+      rows + `<div class="foot">${foot}</div>${cta}${vouchUi}`;
     out.hidden = false;
+
+    const prepare = document.getElementById('vouchPrepare');
+    if (prepare) {
+      const nomineeInput = document.getElementById('vouchNominee');
+      const proofArea = document.getElementById('vouchProofArea');
+      const message = document.getElementById('vouchMessage');
+      const sendVouch = async payload => {
+        const response = await fetch('/api/vouch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'server_error');
+        return data;
+      };
+      const errorText = error => ({
+        invalid_handle: 'Enter a valid X handle.',
+        not_eligible_to_vouch: 'This account is not eligible to vouch yet.',
+        witness_exhausted: 'You have used all three sponsorships.',
+        already_holds_pass: 'That account already has a pass.',
+        already_vouched: 'You have already vouched for that account.',
+        proof_not_yours: 'The proof post must be published by your X account.',
+        proof_missing_code: 'The proof post is missing the pair-specific code.',
+        proof_not_found: 'Could not verify that X post. Check the link and try again.',
+      })[error] || 'Could not process the vouch. Try again shortly.';
+
+      prepare.addEventListener('click', async () => {
+        const nominee = nomineeInput.value.trim().replace(/^@+/, '');
+        if (!/^[A-Za-z0-9_]{1,15}$/.test(nominee)) {
+          message.textContent = 'Enter a valid X handle.';
+          return;
+        }
+        prepare.disabled = true;
+        message.textContent = '';
+        try {
+          const data = await sendVouch({ action: 'code', witness: d.handle, nominee });
+          const postUrl = 'https://x.com/intent/post?text=' + encodeURIComponent(data.text);
+          proofArea.innerHTML = `<p class="vouch-proof">${esc(data.text)}</p>`
+            + `<p><a href="${postUrl}" target="_blank" rel="noopener">Post proof on X</a></p>`
+            + '<label class="lbl" for="vouchProofUrl">Link to your proof post</label>'
+            + '<div class="field"><input id="vouchProofUrl" type="text" placeholder="https://x.com/you/status/…" autocomplete="off" spellcheck="false"></div>'
+            + '<button type="button" class="btn btn-solid" id="vouchConfirm">Verify and save vouch</button>';
+          proofArea.hidden = false;
+          document.getElementById('vouchConfirm').addEventListener('click', async event => {
+            const confirm = event.currentTarget;
+            const proofUrl = document.getElementById('vouchProofUrl').value.trim();
+            confirm.disabled = true;
+            try {
+              const result = await sendVouch({ action: 'confirm', witness: d.handle, nominee, proofUrl });
+              message.textContent = `Vouch verified and saved. @${nominee} has ${result.vouches} of ${result.required} verified vouches${result.held ? ' and now qualifies to vouch onward' : ''}.`;
+              const remaining = Math.max(0, Number(result.remaining) || 0);
+              document.getElementById('vouchRemaining').textContent = `${remaining} sponsorship${remaining === 1 ? '' : 's'} remaining.`;
+              if (remaining === 0) {
+                proofArea.hidden = true;
+                prepare.disabled = true;
+              }
+            } catch (error) {
+              message.textContent = errorText(error.message);
+              confirm.disabled = false;
+            }
+          });
+        } catch (error) {
+          message.textContent = errorText(error.message);
+          prepare.disabled = false;
+        }
+      });
+    }
 
     const claim = document.getElementById('claimPost');
     const save  = document.getElementById('claimSave');
@@ -2505,7 +2601,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     });
 
     const composer = () => window.open(
-      'https://x.com/intent/post?text=' + encodeURIComponent(CLAIM_TEXT),
+      'https://x.com/intent/post?text=' + encodeURIComponent(claimText(p.pass)),
       '_blank', 'noopener');
 
     claim.addEventListener('click', () => {
@@ -2524,7 +2620,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       const before = claim.textContent;
       claim.textContent = 'Preparing…';
       file()
-        .then(f => navigator.share({ files: [f], text: CLAIM_TEXT }))
+        .then(f => navigator.share({ files: [f], text: claimText(p.pass) }))
         .catch(e => { if (!e || e.name !== 'AbortError') composer(); })
         .then(() => { claim.disabled = false; claim.textContent = before; });
     });
