@@ -2434,7 +2434,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       : isAccepted
         ? (d.verified
             ? 'Your place is held. The mint date goes out on X.'
-            : 'Your selected place is held. Your post is checked against the whitelist post before mint.')
+            : '')
         : isRejected
           ? 'You are not on the selected list. Three distinct verified vouches can qualify you for a pass.'
           : 'Your application is under review. When the selected list is shared, chosen handles will move on to the list and others will be marked unaccepted.';
@@ -2461,20 +2461,20 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     const vouchUi = d.canVouch
       ? '<div class="vouch">'
         + '<h3>Vouch for someone</h3>'
-        + `<p id="vouchRemaining">${Number(d.remaining || 0)} sponsorship${Number(d.remaining || 0) === 1 ? '' : 's'} remaining. A vouch is recorded after your X proof is verified.</p>`
+        + `<p id="vouchRemaining">${Number(d.remaining || 0)} vouch${Number(d.remaining || 0) === 1 ? '' : 'es'} remaining. A vouch is recorded after your X proof is verified.</p>`
         + (Number(d.remaining || 0) > 0
           ? '<div class="field"><span class="at">@</span><input id="vouchNominee" class="pad" type="text" placeholder="theirhandle" autocomplete="off" spellcheck="false" aria-label="Nominee X handle"></div>'
             + '<button type="button" class="btn btn-solid" id="vouchPrepare">Prepare vouch</button>'
             + '<div id="vouchProofArea" hidden></div>'
             + '<p class="note" id="vouchMessage" role="status"></p>'
-          : '<p>You have used all three sponsorships.</p>')
+          : '<p>You have used all three vouches.</p>')
         + '</div>'
       : '';
 
     out.className = 'statuscard is-' + (state === 'none' ? 'none' : isAccepted ? 'holder' : isRejected ? 'none' : 'review');
     out.innerHTML =
       `<div class="head"><span class="dot"></span>@${esc(d.handle)} — ${headline}</div>` +
-      rows + `<div class="foot">${foot}</div>${cta}${vouchUi}`;
+      rows + (foot ? `<div class="foot">${foot}</div>` : '') + `${cta}${vouchUi}`;
     out.hidden = false;
 
     const prepare = document.getElementById('vouchPrepare');
@@ -2495,7 +2495,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       const errorText = error => ({
         invalid_handle: 'Enter a valid X handle.',
         not_eligible_to_vouch: 'This account is not eligible to vouch yet.',
-        witness_exhausted: 'You have used all three sponsorships.',
+        witness_exhausted: 'You have used all three vouches.',
         already_holds_pass: 'That account already has a pass.',
         already_vouched: 'You have already vouched for that account.',
         proof_not_yours: 'The proof post must be published by your X account.',
@@ -2528,7 +2528,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
               const result = await sendVouch({ action: 'confirm', witness: d.handle, nominee, proofUrl });
               message.textContent = `Vouch verified and saved. @${nominee} has ${result.vouches} of ${result.required} verified vouches${result.held ? ' and now qualifies to vouch onward' : ''}.`;
               const remaining = Math.max(0, Number(result.remaining) || 0);
-              document.getElementById('vouchRemaining').textContent = `${remaining} sponsorship${remaining === 1 ? '' : 's'} remaining.`;
+              document.getElementById('vouchRemaining').textContent = `${remaining} vouch${remaining === 1 ? '' : 'es'} remaining.`;
               if (remaining === 0) {
                 proofArea.hidden = true;
                 prepare.disabled = true;
