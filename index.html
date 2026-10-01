@@ -2417,16 +2417,9 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
     let rows = '';
     if (hasApplication && (isAccepted || isReview)) {
-      // Only when there is a real pass. An approved handle with no waitlist
-      // row has pass null, and `d.pass || '0000'` printed that as "No. 0000"
-      // - a pass number that does not exist, on the page someone checks to
-      // find out whether they have one.
-      if (d.pass != null) {
-        rows += `<div class="row"><dt>Pass</dt><dd>No. ${
-          String(d.pass).padStart(4, '0')}</dd></div>`;
-        rows += `<div class="row"><dt>Post</dt><dd>${
-          d.verified ? 'verified' : 'awaiting check'}</dd></div>`;
-      }
+      const pass = d.pass != null ? Number(d.pass) : (hashOf(d.handle) % SUPPLY) + 1;
+      rows += `<div class="row"><dt>Pass</dt><dd>No. ${
+        String(pass).padStart(4, '0')}</dd></div>`;
     }
     if (isHeld || isNominated) {
       rows += `<div class="row"><dt>Verified vouches</dt><dd>${Number(d.vouches || 0)} / ${Number(d.required || 3)}</dd></div>`;
@@ -2454,12 +2447,12 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       ? '<div class="claim">'
         + '<div class="cstepr" id="cs1"><span class="num">1</span>'
         + '<div class="w"><b>Download your pass card now</b>'
-        + '<span>You will attach this image to your post — get it before you continue.</span>'
+        + '<span>The pass is yours. Make a tweet to claim it for yourself</span>'
         + '<button type="button" class="btn btn-solid btn-full" id="claimSave">'
         + 'Download the card</button></div></div>'
         + '<div class="cstepr is-off" id="cs2"><span class="num">2</span>'
         + '<div class="w"><b>Now post it to claim your pass</b>'
-        + '<span id="claimHow">Download your card above first.</span>'
+        + '<span id="claimHow">Attach the downloaded image to your post</span>'
         + '<button type="button" class="btn btn-full" id="claimPost" disabled>'
         + 'Make the post</button></div></div>'
         + '</div>'
@@ -2554,7 +2547,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
     const claim = document.getElementById('claimPost');
     const save  = document.getElementById('claimSave');
-    const how   = document.getElementById('claimHow');
     if (!claim) return;
 
     const p = passOf(d.handle, d.pass);
@@ -2586,9 +2578,6 @@ refreshCount();   // the API path needs no capability handshake to resolve first
       cs1.classList.add('is-done');
       cs2.classList.remove('is-off');
       claim.disabled = false;
-      how.textContent = canShareFile()
-        ? 'Card downloaded. Post now — it is attached automatically.'
-        : 'Card downloaded. Attach it in the composer, then post.';
     }
 
     save.addEventListener('click', () => {
