@@ -953,7 +953,7 @@
 
   /* ---------- PHONE ---------- */
   @media (max-width: 760px) {
-    :root { --gut: 18px; }
+    :root { --gut: 20px; }
     body { font-size: 16px; }
 
     /* the nav capsule ate a third of a small screen */
@@ -971,13 +971,13 @@
     .acts { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 24px; }
     .acts .btn { width: 100%; padding: 16px; font-size: 11px; }
 
-    .sec { padding: 30px 0; }
-    .sec-h { font-size: clamp(26px, 7.8vw, 34px); margin-bottom: 22px; letter-spacing: -.025em; }
-    .sec-top { margin-bottom: 16px; }
+    .sec { padding: 44px 0; }
+    .sec-h { font-size: clamp(26px, 7.8vw, 34px); margin-bottom: 24px; letter-spacing: -.025em; }
+    .sec-top { margin-bottom: 20px; }
     .sec-top .btn { width: 100%; }
 
     /* stat tiles: two up, tighter, numbers still the loudest thing */
-    .readings { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 26px; }
+    .readings { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
     .reading { padding: 16px 16px 15px; }
     .reading dd { font-size: 26px; }
     .reading::after { display: none; }
@@ -1517,6 +1517,9 @@
           your communities to us and say how many spots you need. All requests
           are reviewed.</p>
         <button class="btn btn-solid" id="collabOpen">Request a collab</button>
+        <dl class="tallies" id="collabTallies">
+          <div class="tally" id="collabTally"><dt>Communities applied</dt><dd>&hellip;</dd></div>
+        </dl>
       </div>
     </section>
 
@@ -2250,6 +2253,18 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     } catch {}
   }
 
+  async function collabTally() {
+    const el = document.getElementById('collabTally');
+    if (!el) return;
+    try {
+      const r = await fetch('/api/collab-count');
+      if (!r.ok) return;
+      const d = await r.json();
+      const count = d.count == null ? null : Number(d.count);
+      el.querySelector('dd').textContent = Number.isFinite(count) ? count.toLocaleString() : '—';
+    } catch {}
+  }
+
   const inp = document.getElementById('stHandle');
   const out = document.getElementById('stOut');
   const go = document.getElementById('stGo');
@@ -2644,6 +2659,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
 
   price();
   tallies();
+  collabTally();
 })();
 /* =====================================================================
    LIVE PASS — the card on the page is the same object the modal issues,
