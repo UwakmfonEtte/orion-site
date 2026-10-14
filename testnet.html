@@ -258,6 +258,11 @@
       <div class="tally"><dt>Points claimed so far</dt><dd id="pClaimed">&mdash;</dd></div>
       <div class="tally"><dt>Rewards waiting</dt><dd id="pRewards">&mdash;</dd></div>
     </dl>
+    <dl class="pts" style="margin-top:12px">
+      <div class="tally"><dt>Staked in total</dt><dd id="pStakedAll">&mdash;</dd></div>
+      <div class="tally"><dt>Staked by you</dt><dd id="pStakedMine">&mdash;</dd></div>
+      <div class="tally"><dt>Share of Orions staked</dt><dd id="pStakedShare">&mdash;</dd></div>
+    </dl>
     <p style="margin:16px 0 0"><button class="btn primary" id="claimBtn" disabled>Claim rewards</button></p>
     <p class="status" id="rewStatus" role="status" aria-live="polite"></p>
   </section>
@@ -363,6 +368,7 @@ document.getElementById('swap').addEventListener('click', () => {
   const now = () => Math.floor(Date.now() / 1000) + skew;
   const words = h => (h && h.length > 2 ? h.slice(2).match(/.{64}/g) || [] : []);
   const addrOf = w => '0x' + w.slice(24);
+  const addrFrom = h => { const w = words(h); return w.length ? addrOf(w[0]) : null; };   // an empty answer is no address, not a crash
   const same = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
   const ZERO = '0x0000000000000000000000000000000000000000';
 
@@ -397,16 +403,32 @@ document.getElementById('swap').addEventListener('click', () => {
   const interestFor = (p, d) => (p * RATE_BPS * BigInt(d)) / (365n * 10000n);
 
   /* ---------- reads ---------- */
+  // One batch, answered by id. A call that reverted comes back as null. A batch that
+  // comes back short, malformed or rate-limited is an ERROR, never a shorter list:
+  // answers matched by position would slide into the wrong slots.
   async function rpcOnce(calls) {
     const body = calls.map((c, i) => ({ jsonrpc: '2.0', id: i, method: c.method, params: c.params }));
     const r = await fetch(CFG.rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error('rpc ' + r.status);
     const out = await r.json();
-    out.sort((a, b) => a.id - b.id);
-    return out.map(o => (o.error ? null : o.result));
+    if (!Array.isArray(out)) throw new Error('rpc answer is not a batch');
+    const res = new Array(calls.length).fill(undefined);
+    for (const o of out) {
+      if (o && Number.isInteger(o.id) && o.id >= 0 && o.id < calls.length) res[o.id] = o.error ? null : (o.result === undefined ? null : o.result);
+    }
+    if (res.some(x => x === undefined)) throw new Error('rpc batch came back short');
+    return res;
+  }
+  async function rpcRetry(calls) {
+    let err;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try { return await rpcOnce(calls); } catch (e) { err = e; await new Promise(ok => setTimeout(ok, 350 * (attempt + 1))); }
+    }
+    throw err;
   }
   async function rpc(calls) {
     const res = [];
-    for (let i = 0; i < calls.length; i += 40) res.push(...await rpcOnce(calls.slice(i, i + 40)));
+    for (let i = 0; i < calls.length; i += 40) res.push(...await rpcRetry(calls.slice(i, i + 40)));
     return res;
   }
   const ethCall = (to, data) => ({ method: 'eth_call', params: [{ to, data }, 'latest'] });
@@ -444,8 +466,36 @@ document.getElementById('swap').addEventListener('click', () => {
           [CFG.lending, SEL.repaymentsBy], [CFG.lending, SEL.liquidatedOf], [CFG.treasury, SEL.redeemedBy], [CFG.rental, SEL.rentalsBy], [CFG.staking, SEL.pointsClaimed]])
         calls.push(ethCall(to, sel + encAddr(acct)));                                                // 21..28
     }
-    let r;
-    try { r = await rpc(calls); } catch { return paint('Could not reach the testnet. Retrying…'); }
+    // Read everything first and apply it only if every read came back whole. A failed
+    // or empty answer must never be painted as zeros or leave the page half-updated:
+    // the last good numbers stay on screen and the next refresh tries again.
+    let r, xr, t, ids;
+    try {
+      r = await rpc(calls);
+      if (r.some(x => x === null || x === '0x')) throw new Error('incomplete read');
+      ids = Array.from({ length: Number(num(r[0])) }, (_, i) => i + 1);
+      xr = await rpc([
+        { method: 'eth_getBalance', params: [CFG.splitter, 'latest'] },
+        { method: 'eth_getBalance', params: [CFG.yield, 'latest'] },
+        ethCall(CFG.staking, SEL.totalDistributed),
+        ethCall(CFG.staking, SEL.epochCount),
+        ethCall(CFG.staking, SEL.totalStaked),
+        acct ? ethCall(CFG.staking, SEL.pendingRewards + encAddr(acct)) : ethCall(CFG.staking, SEL.epochCount),
+      ]);
+      if (xr.some(x => x === null || x === '0x')) throw new Error('incomplete read');
+      const tcalls = [];
+      for (const id of ids) {
+        tcalls.push(ethCall(CFG.nft, SEL.ownerOf + encUint(id)));
+        tcalls.push(ethCall(CFG.staking, SEL.stakerOf + encUint(id)));
+        tcalls.push(ethCall(CFG.lending, SEL.loans + encUint(id)));
+        tcalls.push(ethCall(CFG.rental, SEL.slots + encUint(id)));
+      }
+      t = ids.length ? await rpc(tcalls) : [];
+      // ownerOf legitimately reverts for a burned Orion; the other three never do
+      for (let i = 0; i < ids.length; i++) if (!t[i * 4 + 1] || !t[i * 4 + 2] || !t[i * 4 + 3]) throw new Error('incomplete read');
+    } catch { return paint('Could not reach the testnet. Retrying…'); }
+    const stale = $('mintStatus');
+    if (stale.textContent.startsWith('Could not reach')) say(stale, '');
 
     S.minted = Number(num(r[0]));
     S.price = num(r[1]) || S.price;
@@ -461,7 +511,7 @@ document.getElementById('swap').addEventListener('click', () => {
     S.maxBorrow = [num(r[9]), cap, S.balance].reduce((a, b) => (b < a ? b : a));
     const lw = words(r[10]);
     S.listedIds = lw.length > 2 ? lw.slice(2, 2 + Number(BigInt('0x' + lw[1]))).map(w => Number(BigInt('0x' + w))) : [];
-    S.owner = r[11] ? addrOf(words(r[11])[0]) : null;
+    S.owner = addrFrom(r[11]);
     S.rentCost = { 7: num(r[12]), 30: num(r[13]), 90: num(r[14]) };
     if (acct) {
       S.mintedByMe = Number(num(r[15]));
@@ -473,32 +523,15 @@ document.getElementById('swap').addEventListener('click', () => {
       S.hist.onLoan = Math.max(0, S.hist.borrows - S.hist.repaid - S.hist.lost);
     }
 
-    const xr = await rpc([
-      { method: 'eth_getBalance', params: [CFG.splitter, 'latest'] },
-      { method: 'eth_getBalance', params: [CFG.yield, 'latest'] },
-      ethCall(CFG.staking, SEL.totalDistributed),
-      ethCall(CFG.staking, SEL.epochCount),
-      ethCall(CFG.staking, SEL.totalStaked),
-      acct ? ethCall(CFG.staking, SEL.pendingRewards + encAddr(acct)) : ethCall(CFG.staking, SEL.epochCount),
-    ]);
     S.poolBal = num(xr[0]); S.yieldBal = num(xr[1]); S.paid = num(xr[2]);
     S.epochs = Number(num(xr[3])); S.stakedNow = Number(num(xr[4]));
     S.rewards = acct ? num(xr[5]) : 0n;
 
-    const ids = Array.from({ length: S.minted }, (_, i) => i + 1);
-    const tcalls = [];
-    for (const id of ids) {
-      tcalls.push(ethCall(CFG.nft, SEL.ownerOf + encUint(id)));
-      tcalls.push(ethCall(CFG.staking, SEL.stakerOf + encUint(id)));
-      tcalls.push(ethCall(CFG.lending, SEL.loans + encUint(id)));
-      tcalls.push(ethCall(CFG.rental, SEL.slots + encUint(id)));
-    }
     S.tokens = {};
     if (ids.length) {
-      const t = await rpc(tcalls);
       ids.forEach((id, i) => {
-        const ow = t[i * 4] ? addrOf(words(t[i * 4])[0]) : ZERO;
-        const st = t[i * 4 + 1] ? addrOf(words(t[i * 4 + 1])[0]) : ZERO;
+        const ow = addrFrom(t[i * 4]) || ZERO;
+        const st = addrFrom(t[i * 4 + 1]) || ZERO;
         const lw2 = words(t[i * 4 + 2]);
         const sw = words(t[i * 4 + 3]);
         S.tokens[id] = {
@@ -714,6 +747,10 @@ document.getElementById('swap').addEventListener('click', () => {
     $('pStake').textContent = S.account ? pts(S.stakePts) : '—';
     $('pRewards').innerHTML = S.account ? eth(S.rewards) + '<small>ETH</small>' : '&mdash;';
     $('pClaimed').textContent = S.account && S.hist ? pts(S.hist.pointsClaimed) : '—';
+    const inCirc = S.minted - S.redeemed - S.defaulted;
+    $('pStakedAll').textContent = S.stakedNow;
+    $('pStakedMine').textContent = S.account && S.hist ? S.hist.staked : '—';
+    $('pStakedShare').textContent = inCirc > 0 ? (Math.round(S.stakedNow * 1000 / inCirc) / 10) + '%' : '—';
     $('claimBtn').disabled = S.busy || !S.account || S.rewards === 0n;
     $('rPool').innerHTML = eth(S.poolBal) + '<small>ETH</small>';
     $('rYield').innerHTML = eth(S.yieldBal) + '<small>ETH</small>';
@@ -797,9 +834,14 @@ document.getElementById('swap').addEventListener('click', () => {
       else if (active) { tag = '<span class="tag">Rented</span>'; info = `Free again in ${left(t.slot.until)}`; }
       else {
         tag = '<span class="tag">Available</span>';
-        info = `${eth(S.rentCost[term])} ETH for ${term} days`;
-        acts = [7, 30, 90].map(d => `<button class="chip s${d === term ? ' on' : ''}" data-act="rterm" data-id="${id}:${d}">${d}d</button>`).join('') +
-               btn('rent', id, 'Rent', 'primary') + (isOwner() ? btn('delist', id, 'Take back') : '');
+        if (isOwner()) {
+          info = 'Your listing. Others rent it for ' + eth(S.rentCost[7]) + ' ETH a week.';
+          acts = btn('delist', id, 'Take back');
+        } else {
+          info = `${eth(S.rentCost[term])} ETH for ${term} days`;
+          acts = [7, 30, 90].map(d => `<button class="chip s${d === term ? ' on' : ''}" data-act="rterm" data-id="${id}:${d}">${d}d</button>`).join('') +
+                 btn('rent', id, 'Rent', 'primary');
+        }
       }
       const d = document.createElement('div'); d.className = 'own';
       d.innerHTML = `<img src="/testnet/img/${id}.jpg" alt="Orion No. ${four(id)}" loading="lazy">` +
