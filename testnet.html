@@ -207,7 +207,7 @@
     <div class="mint">
       <div class="preview"><img id="previewImg" alt="Your next Orion" src="/testnet/img/1.jpg"></div>
       <div class="panel">
-        <div class="count"><b id="mintedN">0</b><span>of <span id="supplyN">50</span> minted</span></div>
+        <div class="count"><b id="mintedN">0</b><span>of <span id="supplyN">150</span> minted</span></div>
         <div class="bar"><i id="mintedBar"></i></div>
         <div class="row">
           <span class="lab">Quantity</span>
@@ -332,14 +332,14 @@ document.getElementById('swap').addEventListener('click', () => {
     chainId: '0xb626',                       // 46630
     rpc: 'https://rpc.testnet.chain.robinhood.com',
     explorer: 'https://explorer.testnet.chain.robinhood.com',
-    nft:      '0xc72cc5790D5f79EDb6bcae5555DD1DB02fd6D37c',
-    treasury: '0x030042Af21fb960d8258a7979f1642b7627f653e',
-    staking:  '0x6Fe80D4B80D9335eC9a55F79C385ae5a3c392dfa',
-    lending:  '0x665F42Ad16606C750430b2DAc4A99E02f4fD8287',
-    rental:   '0x4C5F8Bd11d216E2dBdde93A8F7B7B6DC5AD585Bb',
-    yield:    '0xC38c889756859672677E0576BD33289A512f3210',
-    splitter: '0xAAD5Cd6e82a2F5B8b263Cc2c901f007c2dB4C400',
-    maxSupply: 50,
+    nft:      '0xc52a729DdDa409f4930a56102BF5291471D6b2ce',
+    treasury: '0x06FA8a26adf55117Dc6f97b30477b4e5B054A3ea',
+    staking:  '0xcF3Caa2E69CB57BfBe9aDc6D0CB519f9BC995E5D',
+    lending:  '0xC300bc5E852B90fbeEe340F903f8Ca26361e2CfA',
+    rental:   '0x757E5B600DAcEB1B2ce6a9cfE5f4Ffe0CD501711',
+    yield:    '0x28Ef76f9f2Cfa30A30427E654D2d5A6FF4692bB6',
+    splitter: '0x659a01BB2C1D1112d2f9Ee640ee125377eA768dE',
+    maxSupply: 150,
     maxPerWallet: 2,
   };
   const SEL = {
@@ -469,7 +469,7 @@ document.getElementById('swap').addEventListener('click', () => {
     // Read everything first and apply it only if every read came back whole. A failed
     // or empty answer must never be painted as zeros or leave the page half-updated:
     // the last good numbers stay on screen and the next refresh tries again.
-    let r, xr, t, ids;
+    let r, xr, ow, deep, dt, ids;
     try {
       r = await rpc(calls);
       if (r.some(x => x === null || x === '0x')) throw new Error('incomplete read');
@@ -483,16 +483,20 @@ document.getElementById('swap').addEventListener('click', () => {
         acct ? ethCall(CFG.staking, SEL.pendingRewards + encAddr(acct)) : ethCall(CFG.staking, SEL.epochCount),
       ]);
       if (xr.some(x => x === null || x === '0x')) throw new Error('incomplete read');
-      const tcalls = [];
-      for (const id of ids) {
-        tcalls.push(ethCall(CFG.nft, SEL.ownerOf + encUint(id)));
-        tcalls.push(ethCall(CFG.staking, SEL.stakerOf + encUint(id)));
-        tcalls.push(ethCall(CFG.lending, SEL.loans + encUint(id)));
-        tcalls.push(ethCall(CFG.rental, SEL.slots + encUint(id)));
+      // One read per Orion for who holds it (a burned one legitimately reverts). Only the
+      // ones sitting in the staking, lending or rental contract need a closer look, so a
+      // full collection costs one read each, not four.
+      ow = ids.length ? await rpc(ids.map(id => ethCall(CFG.nft, SEL.ownerOf + encUint(id)))) : [];
+      const mods = [CFG.staking, CFG.lending, CFG.rental].map(a => a.toLowerCase());
+      deep = ids.filter((id, i) => { const a = addrFrom(ow[i]); return a && mods.includes(a.toLowerCase()); });
+      const dcalls = [];
+      for (const id of deep) {
+        dcalls.push(ethCall(CFG.staking, SEL.stakerOf + encUint(id)));
+        dcalls.push(ethCall(CFG.lending, SEL.loans + encUint(id)));
+        dcalls.push(ethCall(CFG.rental, SEL.slots + encUint(id)));
       }
-      t = ids.length ? await rpc(tcalls) : [];
-      // ownerOf legitimately reverts for a burned Orion; the other three never do
-      for (let i = 0; i < ids.length; i++) if (!t[i * 4 + 1] || !t[i * 4 + 2] || !t[i * 4 + 3]) throw new Error('incomplete read');
+      dt = deep.length ? await rpc(dcalls) : [];
+      if (dt.some(x => !x)) throw new Error('incomplete read');
     } catch { return paint('Could not reach the testnet. Retrying…'); }
     const stale = $('mintStatus');
     if (stale.textContent.startsWith('Could not reach')) say(stale, '');
@@ -528,21 +532,18 @@ document.getElementById('swap').addEventListener('click', () => {
     S.rewards = acct ? num(xr[5]) : 0n;
 
     S.tokens = {};
-    if (ids.length) {
-      ids.forEach((id, i) => {
-        const ow = addrFrom(t[i * 4]) || ZERO;
-        const st = addrFrom(t[i * 4 + 1]) || ZERO;
-        const lw2 = words(t[i * 4 + 2]);
-        const sw = words(t[i * 4 + 3]);
-        S.tokens[id] = {
-          owner: ow, stakedBy: st,
-          loan: lw2.length === 5 ? { borrower: addrOf(lw2[0]), principal: BigInt('0x' + lw2[1]), interest: BigInt('0x' + lw2[2]),
-                                      due: Number(BigInt('0x' + lw2[3])), open: BigInt('0x' + lw2[4]) === 1n } : null,
-          slot: sw.length === 4 ? { listed: BigInt('0x' + sw[0]) === 1n, renter: addrOf(sw[1]),
-                                     start: Number(BigInt('0x' + sw[2])), until: Number(BigInt('0x' + sw[3])) } : null,
-        };
+    ids.forEach((id, i) => { S.tokens[id] = { owner: addrFrom(ow[i]) || ZERO, stakedBy: ZERO, loan: null, slot: null }; });
+    deep.forEach((id, k) => {
+      const lw2 = words(dt[k * 3 + 1]);
+      const sw = words(dt[k * 3 + 2]);
+      Object.assign(S.tokens[id], {
+        stakedBy: addrFrom(dt[k * 3]) || ZERO,
+        loan: lw2.length === 5 ? { borrower: addrOf(lw2[0]), principal: BigInt('0x' + lw2[1]), interest: BigInt('0x' + lw2[2]),
+                                    due: Number(BigInt('0x' + lw2[3])), open: BigInt('0x' + lw2[4]) === 1n } : null,
+        slot: sw.length === 4 ? { listed: BigInt('0x' + sw[0]) === 1n, renter: addrOf(sw[1]),
+                                   start: Number(BigInt('0x' + sw[2])), until: Number(BigInt('0x' + sw[3])) } : null,
       });
-    }
+    });
     paint();
   }
 

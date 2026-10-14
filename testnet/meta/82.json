@@ -1,0 +1,26 @@
+{
+  "name": "Orion Testnet 82",
+  "description": "Orion testnet pass. A test edition of 150 used to try the mint, the Liquid Backing Treasury and redemption before launch. It has no value.",
+  "image": "https://oriongqgc.space/testnet/img/82.jpg",
+  "external_url": "https://oriongqgc.space/testnet",
+  "attributes": [
+    {
+      "trait_type": "Constellation",
+      "value": "Hydrus"
+    },
+    {
+      "trait_type": "Edition",
+      "value": "Testnet"
+    },
+    {
+      "trait_type": "Number",
+      "display_type": "number",
+      "value": 82,
+      "max_value": 150
+    },
+    {
+      "trait_type": "Serial",
+      "value": "ORI-2722-89FA"
+    }
+  ]
+}

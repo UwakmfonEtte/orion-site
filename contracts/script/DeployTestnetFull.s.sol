@@ -22,7 +22,7 @@ import {OrionRoyaltySplitter} from "../src/OrionRoyaltySplitter.sol";
  * script to use.
  *
  * DAY is 86400, a real day, so a 30-day loan is 30 days and points come in
- * whole 24-hour steps. Supply is 50, two per wallet.
+ * whole 24-hour steps. Supply is 150, two per wallet.
  *
  * Money flows wired here:
  *   mint ----------------------------> Liquid Backing Treasury
@@ -33,7 +33,7 @@ import {OrionRoyaltySplitter} from "../src/OrionRoyaltySplitter.sol";
 contract DeployTestnetFull is Script {
     uint256 constant MINT_PRICE = 0.001 ether;
     uint256 constant DAY = 86400;
-    uint256 constant MAX_SUPPLY = 50;
+    uint256 constant MAX_SUPPLY = 150;
     uint256 constant MAX_PER_WALLET = 2;
     string constant BASE_URI = "https://oriongqgc.space/testnet/meta/";
 

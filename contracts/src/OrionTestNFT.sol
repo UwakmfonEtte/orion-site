@@ -12,7 +12,7 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
  * @title OrionTestNFT
  * @notice Testnet stand-in for OrionNFT: same money flow, none of the
  *         allowlist. Public mint with a supply and a per-wallet cap fixed at
- *         construction (50 and 2 on the public testnet), so anyone with a
+ *         construction (150 and 2 on the public testnet), so anyone with a
  *         faucet drip can walk the whole mint -> treasury -> redeem loop.
  *
  * Everything that matters to the treasury is identical to the real contract:

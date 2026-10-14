@@ -22,12 +22,12 @@
   <canvas id="view"></canvas>
   <div class="bar">
     <button id="prev">&larr; Prev</button><button id="next">Next &rarr;</button>
-    <span>1 to 50</span>
+    <span>1 to 150</span>
   </div>
   <div class="grid" id="grid"></div>
 </main>
 <script>
-const SUPPLY = 50;
+const SUPPLY = 150;
 const IAU = ['Andromeda','Antlia','Apus','Aquarius','Aquila','Ara','Aries','Auriga',
 'Bootes','Caelum','Camelopardalis','Cancer','Canes Venatici','Canis Major',
 'Canis Minor','Capricornus','Carina','Cassiopeia','Centaurus','Cepheus','Cetus',
@@ -43,7 +43,8 @@ const IAU = ['Andromeda','Antlia','Apus','Aquarius','Aquila','Ara','Aries','Auri
 
 function hashOf(s) { let h = 5381; for (const c of s.toLowerCase()) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h; }
 
-// Token n -> its pass. 37 is coprime with 88, so all 50 constellations differ.
+// Token n -> its pass. 37 is coprime with 88, so the first 88 tokens each get a different
+// constellation; after that they repeat (the serial still differs).
 function passOf(n) {
   const h = hashOf('orion-testnet-' + n);
   return { n,

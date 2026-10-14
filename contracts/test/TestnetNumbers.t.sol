@@ -7,7 +7,7 @@ import {OrionTreasury} from "../src/OrionTreasury.sol";
 import {OrionLending} from "../src/OrionLending.sol";
 import {OrionRental} from "../src/OrionRental.sol";
 
-/// The public testnet exactly as deployed: price 0.001 ETH, 50 Orions, 2 per
+/// The public testnet exactly as deployed: price 0.001 ETH, 150 Orions, 2 per
 /// wallet (two are minted here and the owner closes the mint), real
 /// 86400-second days. Every figure is written out by hand, so a change to any
 /// formula shows up here as a number that no longer matches.
@@ -28,7 +28,7 @@ contract TestnetNumbersTest is Test {
     function setUp() public {
         vm.warp(1_700_000_000);
         treasury = new OrionTreasury(owner);
-        nft = new OrionTestNFT(owner, payable(address(treasury)), PRICE, 50, 2);
+        nft = new OrionTestNFT(owner, payable(address(treasury)), PRICE, 150, 2);
         lending = new OrionLending(address(nft), address(treasury), DAY);
         rental = new OrionRental(owner, address(nft), address(treasury), DAY);
         vm.startPrank(owner);
@@ -143,20 +143,20 @@ contract TestnetNumbersTest is Test {
 
     // ---- the 50 / 2 limits ------------------------------------------------
 
-    function test_supplyIsFiftyAndTwoPerWallet() public {
+    function test_supplyIsOneFiftyAndTwoPerWallet() public {
         OrionTreasury t2 = new OrionTreasury(owner);
-        OrionTestNFT n2 = new OrionTestNFT(owner, payable(address(t2)), PRICE, 50, 2);
+        OrionTestNFT n2 = new OrionTestNFT(owner, payable(address(t2)), PRICE, 150, 2);
         vm.prank(owner);
         t2.setNftContract(address(n2));
-        assertEq(n2.MAX_SUPPLY(), 50);
+        assertEq(n2.MAX_SUPPLY(), 150);
         assertEq(n2.MAX_PER_WALLET(), 2);
-        for (uint160 i = 1; i <= 25; i++) {             // 25 wallets x 2 = 50
+        for (uint160 i = 1; i <= 75; i++) {             // 75 wallets x 2 = 150
             address w = address(i + 5000);
             vm.deal(w, 1 ether);
             vm.prank(w);
             n2.mint{value: PRICE * 2}(2);
         }
-        assertEq(n2.totalMinted(), 50);
+        assertEq(n2.totalMinted(), 150);
         assertTrue(n2.mintClosed());                     // sold out closes it
         address late = address(9999);
         vm.deal(late, 1 ether);
@@ -167,7 +167,7 @@ contract TestnetNumbersTest is Test {
 
     function test_aWalletCannotTakeThree() public {
         OrionTreasury t2 = new OrionTreasury(owner);
-        OrionTestNFT n2 = new OrionTestNFT(owner, payable(address(t2)), PRICE, 50, 2);
+        OrionTestNFT n2 = new OrionTestNFT(owner, payable(address(t2)), PRICE, 150, 2);
         vm.prank(owner);
         t2.setNftContract(address(n2));
         vm.deal(carol, 1 ether);

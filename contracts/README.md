@@ -9,7 +9,7 @@ testnet (see below).
 | Contract | Job |
 | --- | --- |
 | `OrionNFT.sol` | The mainnet mint. ERC-721, capped at 1,555, Merkle allowlist, price locked after the first mint, every wei goes to the treasury. |
-| `OrionTestNFT.sol` | Testnet stand-in: public mint, supply and per-wallet cap set at deploy (50 and 2 on the public testnet). Same money flow. |
+| `OrionTestNFT.sol` | Testnet stand-in: public mint, supply and per-wallet cap set at deploy (150 and 2 on the public testnet). Same money flow. |
 | `OrionTreasury.sol` | Multisig-owned vault. Redemption burns an Orion and pays its share of the assets less a 5% fee that stays behind, so backing per Orion only rises. Also the balance sheet the modules plug into. |
 | `OrionStaking.sol` | Stake an Orion, earn 100 points for every full 24 hours (whole days, no per-second drip). Unstake anytime: unstaking pays your waiting rewards and cashes in the points of the Orions that leave, in the same transaction. Shares the Yield Treasury's realized profit among current stakers by points. |
 | `OrionLending.sol` | Borrow ETH against an Orion, up to the redeem value. The 5%-a-year interest is taken up front: you receive the value less the interest and repay only the value. Unpaid past the due date plus a 3-day grace, anyone can liquidate and the Orion is burned. |
@@ -48,7 +48,7 @@ the Merkle root can be changed by the owner.
 ## Robinhood Chain testnet
 
 `script/DeployTestnetFull.s.sol` deploys and wires everything with real 86400-second days:
-a 30-day loan is 30 days and points arrive in whole 24-hour steps. Supply is 50, two per wallet. The test
+a 30-day loan is 30 days and points arrive in whole 24-hour steps. Supply is 150, two per wallet. The test
 site is `testnet.html` in the site root. `test/TestnetNumbers.t.sol` pins the deployed
 configuration's figures to the wei.
 

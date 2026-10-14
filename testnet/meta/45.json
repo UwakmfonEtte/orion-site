@@ -1,6 +1,6 @@
 {
   "name": "Orion Testnet 45",
-  "description": "Orion testnet pass. A test edition of 50 used to try the mint, the Liquid Backing Treasury and redemption before launch. It has no value.",
+  "description": "Orion testnet pass. A test edition of 150 used to try the mint, the Liquid Backing Treasury and redemption before launch. It has no value.",
   "image": "https://oriongqgc.space/testnet/img/45.jpg",
   "external_url": "https://oriongqgc.space/testnet",
   "attributes": [
@@ -16,7 +16,7 @@
       "trait_type": "Number",
       "display_type": "number",
       "value": 45,
-      "max_value": 50
+      "max_value": 150
     },
     {
       "trait_type": "Serial",
