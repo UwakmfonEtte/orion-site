@@ -1,0 +1,26 @@
+{
+  "name": "Orion Testnet 2",
+  "description": "Orion testnet pass. A test edition of 50 used to try the mint, the Liquid Backing Treasury and redemption before launch. It has no value.",
+  "image": "https://oriongqgc.space/testnet/img/2.jpg",
+  "external_url": "https://oriongqgc.space/testnet",
+  "attributes": [
+    {
+      "trait_type": "Constellation",
+      "value": "Scutum"
+    },
+    {
+      "trait_type": "Edition",
+      "value": "Testnet"
+    },
+    {
+      "trait_type": "Number",
+      "display_type": "number",
+      "value": 2,
+      "max_value": 50
+    },
+    {
+      "trait_type": "Serial",
+      "value": "ORI-08F1-2398"
+    }
+  ]
+}

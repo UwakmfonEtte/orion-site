@@ -1,5 +1,16 @@
 {
   "rewrites": [
-    { "source": "/((?!api/|_vercel/).*)", "destination": "/index.html" }
+    {
+      "source": "/testnet",
+      "destination": "/testnet.html"
+    },
+    {
+      "source": "/testnet/meta/:id",
+      "destination": "/testnet/meta/:id.json"
+    },
+    {
+      "source": "/((?!api/|_vercel/).*)",
+      "destination": "/index.html"
+    }
   ]
 }

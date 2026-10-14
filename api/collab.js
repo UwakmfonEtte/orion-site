@@ -101,11 +101,16 @@ function image(v) {
   return v;
 }
 
+/** Flip to false to reopen. Kept as a single switch rather than removing the
+ *  route, so closing needs no schema change and reopening is a one-line revert. */
+const COLLAB_CLOSED = true;
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "method_not_allowed" });
   }
+  if (COLLAB_CLOSED) return res.status(403).json({ error: "collab_closed" });
   if (!CONN) return res.status(500).json({ error: "not_configured" });
 
   let body = req.body;

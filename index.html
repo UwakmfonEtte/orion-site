@@ -144,6 +144,7 @@
     transition: border-color .25s, background .25s, color .25s;
   }
   .btn:hover { border-color: var(--green); color: var(--mint); }
+  a.btn { display: inline-block; text-decoration: none; text-align: center; }
   .btn-solid { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 500; }
 
   /* Holographic run around the box on hover, per the brand's gradient set.
@@ -1108,6 +1109,7 @@
       <a href="/lbt" data-route="lbt">LBT</a>
       <a href="/borrow" data-route="borrow">Borrow</a>
       <a href="/rent" data-route="rent">Rent</a>
+      <a href="/testnet">Testnet</a>
     </nav>
     <button class="btn" aria-disabled="true" title="Wallet connection is not live yet">Connect Wallet</button>
     <button class="swap" id="swap" aria-label="Switch between sky and chart">
@@ -1130,6 +1132,7 @@
       <div class="acts">
         <button class="btn btn-holo" data-open>Join Waitlist</button>
         <button class="btn" aria-disabled="true">Mint Soon</button>
+        <a class="btn" href="/testnet">Try the Testnet</a>
       </div>
       </div>
     </div>
@@ -1510,7 +1513,7 @@
 
     <!-- ================= COLLAB REQUEST ================= -->
     <section class="sec" id="collab">
-      <div class="sec-top"><span class="cap">Collaborations</span></div>
+      <div class="sec-top"><span class="cap">Collaborations closed · Watch the official page for updates</span></div>
       <div class="collab-pitch">
         <h2 class="sec-h">Bringing a constellation with you?</h2>
         <p>Communities can request an allocation for their members. Introduce
@@ -3292,6 +3295,18 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     }).then(() => { busy = false; });
   }
 
+  const COLLAB_CLOSED = true;
+
+  function closedNotice() {
+    stepEl.textContent = '';
+    fillEl.style.width = '0%';
+    paint(
+      '<h3 id="cTitle">Collab requests closed</h3>'
+      + '<p class="hint">Collab requests have closed. Watch the official page for when they reopen.</p>',
+      ''
+    );
+  }
+
   /* /collab-form is a real path, not a hash - open() and close() keep the
      address bar in sync with it so the link is shareable either way round:
      someone can land straight on the form, and someone who opens it by
@@ -3300,6 +3315,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     i = 0; done = false;
     scrim.classList.add('open');
     document.body.style.overflow = 'hidden';
+    if (COLLAB_CLOSED) return closedNotice();
     question();
     if (location.pathname !== '/collab-form') history.pushState(null, '', '/collab-form');
   }

@@ -168,7 +168,7 @@ contract OrionTreasuryTest is Test {
         treasury.redeem(1);
         vm.stopPrank();
 
-        assertEq(alice.balance - before, 1 ether);
+        assertEq(alice.balance - before, 0.95 ether);   // 1 ETH share less the 5% fee
         assertEq(nft.ownerOf(1), treasury.BURN_ADDRESS());
         assertTrue(treasury.redeemed(1));
         assertEq(treasury.redeemedCount(), 1);
@@ -213,8 +213,30 @@ contract OrionTreasuryTest is Test {
         treasury.redeem(1);
         vm.stopPrank();
 
-        assertEq(alice.balance - before, 10 ether);
-        assertEq(address(treasury).balance, 0);
+        assertEq(alice.balance - before, 9.5 ether);     // 10 ETH share less the 5% fee
+        assertEq(address(treasury).balance, 0.5 ether);  // the fee stays behind
+    }
+
+    function test_redemptionFeeStaysAndRatchetsBackingUp() public {
+        _wire();
+        nft.mint(alice, 1);
+        nft.mint(bob, 2);
+        vm.deal(address(treasury), 10 ether);          // 2 tokens, 5 ETH backing each
+
+        assertEq(treasury.backingPerToken(), 5 ether);
+        assertEq(treasury.redeemValue(), 4.75 ether);  // what a burn would pay today
+
+        vm.startPrank(alice);
+        nft.approve(address(treasury), 1);
+        uint256 before = alice.balance;
+        treasury.redeem(1);
+        vm.stopPrank();
+
+        assertEq(alice.balance - before, 4.75 ether);
+        // 10 - 4.75 = 5.25 ETH left for one remaining token: it went UP from 5.
+        assertEq(address(treasury).balance, 5.25 ether);
+        assertEq(treasury.backingPerToken(), 5.25 ether);
+        assertGt(treasury.backingPerToken(), 5 ether);
     }
 
     function test_cannotRedeemSameTokenTwice() public {

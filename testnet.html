@@ -1,0 +1,853 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Orion Testnet</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='13' r='11' fill='%23F2F2F2'/%3E%3Ccircle cx='16' cy='13' r='5.8' fill='%23050505'/%3E%3Cpath d='M9 21c-1 5-1 8 0 9 1-2 2-5 2-9zM16 23c-1 5-1 8 0 9 1-1 1-4 1-9zM23 21c-1 4-1 7 0 8 1-2 1-4 1-8z' fill='%235DCAA5'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:#FBFBFA; --plate:#FFFFFF; --raise:#F1F3F1;
+    --rule:#E3E5E2; --rule-hi:#C2C7C3;
+    --ink:#0A0C0B; --ink-2:#3B423E; --ink-3:#676E6A;
+    --green:#17795A; --mint:#0F6047; --alarm:#B23C22; --warn:#9A6A14;
+    --holo: linear-gradient(90deg,#AFA9EC,#7F77DD,#5DCAA5,#F0E48C,#F0997B,#ED93B1,#AFA9EC);
+    --serif:"Manrope",-apple-system,"Segoe UI",system-ui,sans-serif;
+    --sans:"Manrope",-apple-system,"Segoe UI",system-ui,sans-serif;
+    --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+    --r-pill:999px; --r-panel:16px; --r-inset:12px;
+    --gut:clamp(22px,4.4vw,64px); --maxw:1080px;
+    --ease-out:cubic-bezier(.16,.84,.3,1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#050505; --plate:#0C100E; --raise:#151B18;
+      --rule:#212A26; --rule-hi:#384540;
+      --ink:#F4F6F4; --ink-2:#CBD0CC; --ink-3:#939A95;
+      --green:#5DCAA5; --mint:#9FE1CB; --alarm:#F0997B; --warn:#E3B764;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#050505; --plate:#0C100E; --raise:#151B18;
+    --rule:#212A26; --rule-hi:#384540;
+    --ink:#F4F6F4; --ink-2:#CBD0CC; --ink-3:#939A95;
+    --green:#5DCAA5; --mint:#9FE1CB; --alarm:#F0997B; --warn:#E3B764;
+  }
+
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    font-size:16.5px; line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    transition:background .5s ease, color .5s ease; }
+  a { color:inherit; text-decoration:none; }
+  :focus-visible { outline:2px solid var(--green); outline-offset:3px; }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding-inline:var(--gut); }
+  .cap { font-family:var(--mono); font-size:10.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--ink-3); }
+
+  .top { position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:14px;
+    padding:14px var(--gut); border-bottom:1px solid var(--rule);
+    background:color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter:blur(18px); }
+  .top .brand { display:flex; align-items:center; gap:10px; font-family:var(--serif); font-weight:700;
+    font-size:15px; letter-spacing:.25em; text-transform:uppercase; color:var(--ink); }
+  .top .brand .mark { width:26px; height:auto; display:block; }
+  .net { font-family:var(--mono); font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink-3); border:1px solid var(--rule-hi); border-radius:var(--r-pill); padding:5px 12px; white-space:nowrap; }
+  .net i { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--ink-3); margin-right:7px; vertical-align:middle; }
+  .net.ok i { background:var(--green); }
+  .net.bad { color:var(--alarm); border-color:var(--alarm); }
+  .net.bad i { background:var(--alarm); }
+  .spacer { margin-left:auto; }
+  @media (max-width:560px) { .net { display:none; } .top .brand span { display:none; } }
+
+  .btn { font-family:var(--mono); font-size:10.5px; letter-spacing:.2em; text-transform:uppercase;
+    padding:11px 20px; border:1px solid var(--rule-hi); background:transparent; color:var(--ink); cursor:pointer;
+    transition:border-color .2s, background .2s, color .2s, transform .16s var(--ease-out), opacity .2s; }
+  .btn:hover:not(:disabled) { border-color:var(--green); color:var(--mint); }
+  .btn:active:not(:disabled) { transform:scale(.97); }
+  .btn:disabled { cursor:not-allowed; opacity:.45; }
+  .btn.sm { padding:8px 12px; font-size:9.5px; letter-spacing:.14em; }
+  .btn.primary { background:var(--green); border-color:var(--green); color:#050505; font-weight:500; }
+  .btn.primary:hover:not(:disabled) { background:var(--mint); border-color:var(--mint); color:#050505; }
+  .btn.locked { opacity:.5; }
+  .btn-holo { position:relative; z-index:0; background:var(--green); color:#050505; border-color:var(--green); font-weight:500; }
+  .btn-holo::before { content:""; position:absolute; inset:-2px; z-index:-1; background:var(--holo);
+    background-size:300% 100%; opacity:0; transition:opacity .3s; }
+  .btn-holo:hover:not(:disabled) { background:var(--mint); border-color:var(--mint); color:#050505; }
+  .btn-holo:hover:not(:disabled)::before, .btn-holo:focus-visible::before { opacity:1; animation:holoRun 3.2s linear infinite; }
+  @keyframes holoRun { to { background-position:300% 0; } }
+  .btn.wide { width:100%; padding:16px; }
+  .wallet .btn.connected { border-color:var(--green); color:var(--green); }
+  .wallet .dot { width:7px; height:7px; border-radius:50%; background:var(--ink-3); display:inline-block; margin-right:8px; vertical-align:middle; }
+  .wallet .btn.connected .dot { background:var(--green); }
+
+  .swap { width:34px; height:34px; padding:0; display:grid; place-items:center; border:1px solid var(--rule-hi);
+    background:transparent; cursor:pointer; color:var(--ink-2); }
+  .swap:hover { border-color:var(--green); color:var(--mint); }
+  .swap .moon { display:none; }
+  :root[data-theme="dark"] .swap .sun, :root:not([data-theme="light"]) .swap .sun { display:block; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .swap .sun { display:none; }
+    :root:not([data-theme="light"]) .swap .moon { display:block; }
+  }
+  :root[data-theme="dark"] .swap .sun { display:none; }
+  :root[data-theme="dark"] .swap .moon { display:block; }
+  :root[data-theme="light"] .swap .sun { display:block; }
+  :root[data-theme="light"] .swap .moon { display:none; }
+
+  .sec { padding:clamp(34px,4vw,56px) 0; border-top:1px solid var(--rule); }
+  .sec:first-of-type { border-top:none; padding-top:clamp(28px,4vw,48px); }
+  .sec-h { font-family:var(--serif); font-weight:700; font-size:clamp(26px,3.2vw,38px); line-height:1.08;
+    margin:0 0 8px; text-wrap:balance; }
+  .sec-sub { margin:0 0 24px; color:var(--ink-3); font-size:14.5px; }
+
+  [hidden] { display:none !important; }
+  .banner { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    border:1px solid var(--rule-hi); border-radius:var(--r-inset); padding:12px 16px; margin-bottom:26px;
+    font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--ink-2); }
+  .banner.open { border-color:var(--warn); }
+  .banner.closed { border-color:var(--green); }
+  .banner b { color:var(--ink); font-weight:500; }
+
+  .mint { display:grid; grid-template-columns:1.1fr 1fr; gap:clamp(24px,4vw,56px); align-items:center; }
+  @media (max-width:820px) { .mint { grid-template-columns:1fr; } }
+  .preview img { width:100%; height:auto; display:block; border-radius:16px;
+    box-shadow:0 30px 70px -30px rgba(0,0,0,.65); aspect-ratio:1.586; background:var(--raise); }
+  .panel { border:1px solid var(--rule); border-radius:var(--r-panel); padding:clamp(20px,3vw,30px);
+    background:linear-gradient(160deg, color-mix(in srgb, var(--ink) 4%, var(--plate)), var(--plate) 55%); }
+  .count { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .count b { font-family:var(--serif); font-size:34px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1; }
+  .count span { font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3); }
+  .bar { height:5px; background:var(--rule); overflow:hidden; border-radius:3px; margin-bottom:22px; }
+  .bar i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--green),var(--mint)); transition:width .5s var(--ease-out); }
+  .row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; padding:14px 0; border-top:1px solid var(--rule); }
+  .lab { font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3); min-width:84px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { font-family:var(--mono); font-size:12px; letter-spacing:.1em; padding:8px 16px; border-radius:var(--r-pill);
+    cursor:pointer; border:1px solid var(--rule-hi); background:transparent; color:var(--ink-2); transition:all .2s; }
+  .chip.s { font-size:10.5px; padding:6px 12px; }
+  .chip:hover:not(:disabled) { border-color:var(--green); color:var(--ink); }
+  .chip.on { background:var(--green); border-color:var(--green); color:#050505; font-weight:500; }
+  .chip:disabled { opacity:.35; cursor:not-allowed; }
+  .val { font-family:var(--serif); font-weight:700; font-size:22px; font-variant-numeric:tabular-nums; }
+  .val small { font-family:var(--mono); font-size:10px; color:var(--ink-3); margin-left:5px; font-weight:400; }
+  .mint-btn { margin-top:18px; }
+  .status { min-height:22px; margin:14px 0 0; font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--ink-3); line-height:1.6; }
+  .status.err { color:var(--alarm); }
+  .status.good { color:var(--green); }
+  .status a { text-decoration:underline; text-underline-offset:3px; }
+
+  .owned, .rentals { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px; align-items:start; }
+  .own { border:1px solid var(--rule); border-radius:var(--r-panel); overflow:hidden; background:var(--plate); display:flex; flex-direction:column; }
+  .own img { width:100%; height:auto; display:block; aspect-ratio:1.586; background:var(--raise); }
+  .own .meta { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:12px 14px 4px; }
+  .own .no { font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-2); }
+  .tag { font-family:var(--mono); font-size:9px; letter-spacing:.16em; text-transform:uppercase; color:var(--ink-3);
+    border:1px solid var(--rule-hi); border-radius:var(--r-pill); padding:3px 9px; white-space:nowrap; }
+  .tag.stk { color:var(--green); border-color:var(--green); }
+  .tag.loan { color:var(--warn); border-color:var(--warn); }
+  .tag.late { color:var(--alarm); border-color:var(--alarm); }
+  .own .info { padding:0 14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; color:var(--ink-3); min-height:18px; }
+  .own .acts { display:flex; gap:8px; flex-wrap:wrap; padding:10px 14px 14px; margin-top:auto; }
+  .own .acts .btn, .own .acts .chip { flex:1 1 auto; text-align:center; }
+  .own .box { margin:8px 14px 0; padding:12px; border:1px solid var(--rule); border-radius:var(--r-inset); background:var(--raise);
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.04em; color:var(--ink-2); }
+  .own .box .chips { margin:8px 0 10px; }
+  .empty { margin:0; color:var(--ink-3); font-size:15px; }
+
+  .tallies { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:820px) { .tallies { grid-template-columns:1fr 1fr; } }
+  .tally { background:var(--plate); border:1px solid var(--rule); padding:18px 20px; }
+  .tally dt { font-family:var(--mono); font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--ink-3); }
+  .tally dd { margin:7px 0 0; font-family:var(--serif); font-weight:700; font-size:clamp(22px,2.6vw,28px); line-height:1.1; font-variant-numeric:tabular-nums; }
+  .tally dd small { font-family:var(--mono); font-size:10px; color:var(--ink-3); margin-left:4px; font-weight:400; }
+  .pts { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:640px) { .pts { grid-template-columns:1fr; } }
+
+
+  footer { border-top:1px solid var(--rule); padding:26px 0; font-family:var(--mono); font-size:9.5px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); }
+  footer .wrap { display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  footer a:hover { color:var(--green); }
+
+  @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation:none !important; transition:none !important; } }
+  @media (max-width:760px) { :root { --gut:20px; } .sec { padding:32px 0; } }
+</style>
+
+<header class="top">
+  <a class="brand" href="/">
+    <svg class="mark" viewBox="0 0 200 210" aria-hidden="true">
+      <defs>
+        <radialGradient id="ringG" cx="36%" cy="28%" r="78%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="52%" stop-color="#F2F2F2"/><stop offset="100%" stop-color="#C2C2C2"/></radialGradient>
+        <linearGradient id="dripG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FE3C2"/><stop offset="52%" stop-color="#5DCAA5"/><stop offset="100%" stop-color="#42AE87" stop-opacity="0"/></linearGradient>
+        <radialGradient id="poolG"><stop offset="0" stop-color="#5DCAA5" stop-opacity=".55"/><stop offset="100%" stop-color="#5DCAA5" stop-opacity="0"/></radialGradient>
+      </defs>
+      <ellipse cx="100" cy="168" rx="62" ry="13" fill="url(#poolG)"/>
+      <g fill="url(#dripG)">
+        <path d="M44 108 C40 132 38 148 42 156 C46 148 50 130 52 108 Z"/><path d="M66 120 C60 152 58 178 64 192 C70 176 74 148 76 120 Z"/>
+        <path d="M100 128 C94 160 92 192 100 208 C108 192 110 160 106 128 Z"/><path d="M132 120 C128 148 130 176 136 190 C142 176 144 150 140 120 Z"/>
+        <path d="M156 106 C152 128 152 144 158 154 C162 144 164 128 162 106 Z"/><path d="M86 132 C82 150 82 164 86 172 C90 164 92 150 92 132 Z"/>
+      </g>
+      <circle cx="100" cy="88" r="70" fill="url(#ringG)"/><circle cx="100" cy="88" r="70" fill="none" stroke="#9a9a9a" stroke-width=".8" opacity=".6"/>
+      <circle cx="100" cy="88" r="37" fill="var(--paper)"/><circle cx="100" cy="88" r="37" fill="none" stroke="#8a8a8a" stroke-width=".8" opacity=".5"/>
+      <path d="M52 62 C60 40 78 26 96 24 C80 30 64 44 58 66 Z" fill="#fff" opacity=".95"/><path d="M158 74 C162 90 160 108 152 122 C160 106 162 88 160 74 Z" fill="#fff" opacity=".7"/>
+    </svg>
+    <span>Orion</span>
+  </a>
+  <span class="net" id="net"><i></i><span id="netText">Robinhood testnet</span></span>
+  <div class="wallet spacer"><button class="btn" id="walletBtn"><span class="dot"></span><span id="walletLabel">Connect Wallet</span></button></div>
+  <button class="swap" id="swap" aria-label="Switch between sky and chart">
+    <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="4.4"/><path d="M12 1.6v3M12 19.4v3M1.6 12h3M19.4 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/></svg>
+    <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 14.4A8.6 8.6 0 1 1 9.6 4a6.9 6.9 0 0 0 10.4 10.4z"/></svg>
+  </button>
+</header>
+
+<main class="wrap">
+  <section class="sec">
+    <div class="banner" id="banner"></div>
+    <div class="mint">
+      <div class="preview"><img id="previewImg" alt="Your next Orion" src="/testnet/img/1.jpg"></div>
+      <div class="panel">
+        <div class="count"><b id="mintedN">0</b><span>of <span id="supplyN">50</span> minted</span></div>
+        <div class="bar"><i id="mintedBar"></i></div>
+        <div class="row">
+          <span class="lab">Quantity</span>
+          <div class="chips" id="qty"></div>
+        </div>
+        <div class="row">
+          <span class="lab">Price</span>
+          <span class="val" id="priceEach">0.001<small>ETH each</small></span>
+        </div>
+        <div class="row">
+          <span class="lab">You pay</span>
+          <span class="val" id="priceTotal">0.001<small>ETH</small></span>
+        </div>
+        <button class="btn btn-holo wide mint-btn" id="mintBtn" disabled>Mint</button>
+        <p class="status" id="mintStatus" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Your Orions</h2>
+    <p class="sec-sub">Stake one to earn points, borrow against one, or redeem it.</p>
+    <dl class="tallies" id="hist" style="margin-bottom:10px">
+      <div class="tally"><dt>Minted</dt><dd id="hMinted">&mdash;</dd></div>
+      <div class="tally"><dt>In your wallet</dt><dd id="hWallet">&mdash;</dd></div>
+      <div class="tally"><dt>Staked</dt><dd id="hStaked">&mdash;</dd></div>
+      <div class="tally"><dt>Out on a loan</dt><dd id="hLoan">&mdash;</dd></div>
+      <div class="tally"><dt>Redeemed</dt><dd id="hRedeemed">&mdash;</dd></div>
+      <div class="tally"><dt>Lost to unpaid loans</dt><dd id="hLost">&mdash;</dd></div>
+    </dl>
+    <p class="status" id="hNote" style="min-height:0;margin:0 0 22px"></p>
+    <div class="owned" id="owned"><p class="empty">Connect your wallet to see yours.</p></div>
+    <p class="status" id="actStatus" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Rent an Orion</h2>
+    <p class="sec-sub">The protocol rents out Orions it owns. You get the perks, never the token. Renting earns no points: points are for staking your own Orion.</p>
+    <div class="rentals" id="rentals"><p class="empty">Nothing listed for rent yet.</p></div>
+    <p class="status" id="rentStatus" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Points and rewards</h2>
+    <p class="sec-sub">Each staked Orion earns 100 points for every full 24 hours, counted in whole days. Realized profit from the yield treasury is shared among people staking, by points. No lock-up: unstake any time. Unstaking claims in the same step: your waiting rewards are paid to you and the points of the Orion you take out are cashed in, so they start from zero if you stake it again. Adding or removing an Orion also drops the unfinished day for the others, so stake together.</p>
+    <dl class="pts">
+      <div class="tally"><dt>Your points</dt><dd id="pStake">&mdash;</dd></div>
+      <div class="tally"><dt>Points claimed so far</dt><dd id="pClaimed">&mdash;</dd></div>
+      <div class="tally"><dt>Rewards waiting</dt><dd id="pRewards">&mdash;</dd></div>
+    </dl>
+    <p style="margin:16px 0 0"><button class="btn primary" id="claimBtn" disabled>Claim rewards</button></p>
+    <p class="status" id="rewStatus" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">The treasury</h2>
+    <dl class="tallies">
+      <div class="tally"><dt>Assets</dt><dd id="tAssets">&mdash;</dd></div>
+      <div class="tally"><dt>Lent out</dt><dd id="tLent">&mdash;</dd></div>
+      <div class="tally"><dt>In circulation</dt><dd id="tCirc">&mdash;</dd></div>
+      <div class="tally"><dt>Backing each</dt><dd id="tBack">&mdash;</dd></div>
+      <div class="tally"><dt>Redeem pays</dt><dd id="tRedeem">&mdash;</dd></div>
+      <div class="tally"><dt>Loan up to</dt><dd id="tBorrow">&mdash;</dd></div>
+    </dl>
+  </section>
+
+  <section class="sec">
+    <h2 class="sec-h">Royalties</h2>
+    <p class="sec-sub">10% of every resale. 80% goes into the treasury, 20% into the yield treasury, which trades and shares realized profit with stakers.</p>
+    <dl class="tallies">
+      <div class="tally"><dt>Royalty pool</dt><dd id="rPool">&mdash;</dd></div>
+      <div class="tally"><dt>Yield treasury</dt><dd id="rYield">&mdash;</dd></div>
+      <div class="tally"><dt>Paid to stakers</dt><dd id="rEpochs">&mdash;</dd></div>
+    </dl>
+    <p style="margin:16px 0 0"><button class="btn" id="releaseBtn" disabled>Release royalties</button></p>
+    <p class="status" id="royStatus" role="status" aria-live="polite"></p>
+    <div class="panel" id="ownerTools" style="margin-top:18px" hidden>
+      <div class="cap" style="margin-bottom:12px">Owner tools &middot; testnet</div>
+      <p class="sec-sub" style="margin:0 0 14px">Marketplaces pay royalties on real resales. To test the flow: send a test royalty, release it, then pay out profit.</p>
+      <div class="chips">
+        <button class="btn sm" id="simRoyBtn">Send a 0.001 ETH test royalty</button>
+        <button class="btn sm" id="distBtn">Pay out 0.001 ETH profit to stakers</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <span>Test ETH only &middot; no value</span>
+  <span id="links"></span>
+  <a href="/">&larr; Main site</a>
+</div></footer>
+
+<script>
+const THEME_KEY = 'orion-theme';
+function currentTheme() {
+  const s = document.documentElement.getAttribute('data-theme');
+  if (s) return s;
+  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+try { const saved = localStorage.getItem(THEME_KEY); if (saved) document.documentElement.setAttribute('data-theme', saved); } catch {}
+document.getElementById('swap').addEventListener('click', () => {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try { localStorage.setItem(THEME_KEY, next); } catch {}
+});
+</script>
+
+<script>
+/* =====================================================================
+   ORION TESTNET - plain EIP-1193 + JSON-RPC, no library.
+   Reads go straight to the public RPC so the page works before a wallet
+   is connected; only sending transactions needs the wallet.
+   ===================================================================== */
+(function () {
+  const CFG = {
+    chainId: '0xb626',                       // 46630
+    rpc: 'https://rpc.testnet.chain.robinhood.com',
+    explorer: 'https://explorer.testnet.chain.robinhood.com',
+    nft:      '0xc72cc5790D5f79EDb6bcae5555DD1DB02fd6D37c',
+    treasury: '0x030042Af21fb960d8258a7979f1642b7627f653e',
+    staking:  '0x6Fe80D4B80D9335eC9a55F79C385ae5a3c392dfa',
+    lending:  '0x665F42Ad16606C750430b2DAc4A99E02f4fD8287',
+    rental:   '0x4C5F8Bd11d216E2dBdde93A8F7B7B6DC5AD585Bb',
+    yield:    '0xC38c889756859672677E0576BD33289A512f3210',
+    splitter: '0xAAD5Cd6e82a2F5B8b263Cc2c901f007c2dB4C400',
+    maxSupply: 50,
+    maxPerWallet: 2,
+  };
+  const SEL = {
+    mint:'0xa0712d68', totalMinted:'0xa2309ff8', mintPriceWei:'0xcb2c9722', mintedBy:'0x3cef28d2',
+    ownerOf:'0x6352211e', setApprovalForAll:'0xa22cb465', isApprovedForAll:'0xe985e9c5',
+    mintClosed:'0xd663d370', closeMint:'0x64f101f0',
+    redeem:'0xdb006a75', backingPerToken:'0x1521843e', redeemValue:'0x8e0de8ba', redeemedCount:'0x52aa3e6c',
+    defaultedCount:'0xad32a712', loansOutstanding:'0xc78d9c17', owner:'0x8da5cb5b',
+    balanceOf:'0x70a08231', stakedCount:'0x90be1863', borrowsBy:'0xb825ffd6', repaymentsBy:'0xce8d99df',
+    liquidatedOf:'0xffe11601', pointsClaimed:'0x9699c0dd', redeemedBy:'0xf39d81e2', rentalsBy:'0x9adfeba0',
+    stake:'0x0fbf0a93', unstake:'0xe449f341', stakerOf:'0xac86e186', pointsOf:'0xcf6a4403',
+    borrow:'0xadf459ca', repay:'0x371fd8e6', maxBorrow:'0x0cc0bfa5', owed:'0xb1276604', loans:'0xe1ec3c68',
+    rent:'0x783a112b', list:'0x80c9419e', delist:'0x964bc33f', listed:'0x1747a57b', slots:'0x387dd9e9',
+    rentCost:'0x1a98c305',
+    pendingRewards:'0x31d7a262', claim:'0x379607f5', totalDistributed:'0xefca2eed', epochCount:'0x829965cc',
+    totalStaked:'0x817b1cd2', release:'0x86d1a69f', distributeProfit:'0xd36dfac8',
+  };
+  const RATE_BPS = 500n;
+  const $ = id => document.getElementById(id);
+  const pad = h => h.replace(/^0x/, '').padStart(64, '0');
+  const encUint = n => pad(BigInt(n).toString(16));
+  const encAddr = a => pad(a.toLowerCase());
+  const encArr1 = id => encUint(32) + encUint(1) + encUint(id);
+  const hexOf = n => '0x' + BigInt(n).toString(16);
+  let skew = 0;   // chain time minus this device's clock, so due dates follow the chain, not the laptop
+  const now = () => Math.floor(Date.now() / 1000) + skew;
+  const words = h => (h && h.length > 2 ? h.slice(2).match(/.{64}/g) || [] : []);
+  const addrOf = w => '0x' + w.slice(24);
+  const same = (a, b) => !!a && !!b && a.toLowerCase() === b.toLowerCase();
+  const ZERO = '0x0000000000000000000000000000000000000000';
+
+  const S = {
+    account: null, chainId: null,
+    minted: 0, redeemed: 0, defaulted: 0, closed: false, price: 1000000000000000n,
+    balance: 0n, loansOut: 0n, assets: 0n, backing: 0n, redeemValue: 0n, maxBorrow: 0n,
+    owner: null, mintedByMe: 0, appr: {}, tokens: {}, listedIds: [], rentCost: { 7: 0n, 30: 0n, 90: 0n },
+    stakePts: 0n, hist: null,
+    rewards: 0n, paid: 0n, epochs: 0, poolBal: 0n, yieldBal: 0n, stakedNow: 0,
+    qty: 1, busy: false, borrowOpen: null, borrowTerm: 30, rentTerm: {},
+  };
+
+  /* ---------- formatting ---------- */
+  function eth(wei, dp = 6) {
+    wei = BigInt(wei);
+    const whole = wei / 10n ** 18n;
+    const frac = (wei % 10n ** 18n).toString().padStart(18, '0').slice(0, dp).replace(/0+$/, '');
+    return whole.toString() + (frac ? '.' + frac : '');
+  }
+  const pts = p => (BigInt(p) / 10n ** 18n).toLocaleString();
+  const short = a => a.slice(0, 6) + '…' + a.slice(-4);
+  const four = n => String(n).padStart(4, '0');
+  function left(t) {
+    const s = t - now();
+    if (s <= 0) return 'now';
+    if (s < 90) return s + ' sec';
+    if (s < 5400) return Math.round(s / 60) + ' min';
+    if (s < 48 * 3600) return Math.round(s / 3600) + ' h';
+    return Math.ceil(s / 86400) + ' days';
+  }
+  const interestFor = (p, d) => (p * RATE_BPS * BigInt(d)) / (365n * 10000n);
+
+  /* ---------- reads ---------- */
+  async function rpcOnce(calls) {
+    const body = calls.map((c, i) => ({ jsonrpc: '2.0', id: i, method: c.method, params: c.params }));
+    const r = await fetch(CFG.rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    const out = await r.json();
+    out.sort((a, b) => a.id - b.id);
+    return out.map(o => (o.error ? null : o.result));
+  }
+  async function rpc(calls) {
+    const res = [];
+    for (let i = 0; i < calls.length; i += 40) res.push(...await rpcOnce(calls.slice(i, i + 40)));
+    return res;
+  }
+  const ethCall = (to, data) => ({ method: 'eth_call', params: [{ to, data }, 'latest'] });
+  const num = h => (h && h !== '0x' ? BigInt(h) : 0n);
+
+  async function refresh() {
+    const acct = S.account;
+    try {
+      const [blk] = await rpc([{ method: 'eth_getBlockByNumber', params: ['latest', false] }]);
+      if (blk && blk.timestamp) skew = Number(BigInt(blk.timestamp)) - Math.floor(Date.now() / 1000);
+    } catch (e) { /* keep the last skew */ }
+    const calls = [
+      ethCall(CFG.nft, SEL.totalMinted),            // 0
+      ethCall(CFG.nft, SEL.mintPriceWei),           // 1
+      ethCall(CFG.nft, SEL.mintClosed),             // 2
+      ethCall(CFG.treasury, SEL.redeemedCount),     // 3
+      ethCall(CFG.treasury, SEL.defaultedCount),    // 4
+      ethCall(CFG.treasury, SEL.loansOutstanding),  // 5
+      { method: 'eth_getBalance', params: [CFG.treasury, 'latest'] }, // 6
+      ethCall(CFG.treasury, SEL.backingPerToken),   // 7
+      ethCall(CFG.treasury, SEL.redeemValue),       // 8
+      ethCall(CFG.lending, SEL.maxBorrow),          // 9
+      ethCall(CFG.rental, SEL.listed),              // 10
+      ethCall(CFG.treasury, SEL.owner),             // 11
+      ethCall(CFG.rental, SEL.rentCost + encUint(7)),   // 12
+      ethCall(CFG.rental, SEL.rentCost + encUint(30)),  // 13
+      ethCall(CFG.rental, SEL.rentCost + encUint(90)),  // 14
+    ];
+    if (acct) {
+      calls.push(ethCall(CFG.nft, SEL.mintedBy + encAddr(acct)));                                   // 15
+      for (const k of ['treasury', 'staking', 'lending', 'rental'])
+        calls.push(ethCall(CFG.nft, SEL.isApprovedForAll + encAddr(acct) + encAddr(CFG[k])));        // 16..19
+      calls.push(ethCall(CFG.staking, SEL.pointsOf + encAddr(acct)));                                // 20
+      for (const [to, sel] of [[CFG.nft, SEL.balanceOf], [CFG.staking, SEL.stakedCount], [CFG.lending, SEL.borrowsBy],
+          [CFG.lending, SEL.repaymentsBy], [CFG.lending, SEL.liquidatedOf], [CFG.treasury, SEL.redeemedBy], [CFG.rental, SEL.rentalsBy], [CFG.staking, SEL.pointsClaimed]])
+        calls.push(ethCall(to, sel + encAddr(acct)));                                                // 21..28
+    }
+    let r;
+    try { r = await rpc(calls); } catch { return paint('Could not reach the testnet. Retrying…'); }
+
+    S.minted = Number(num(r[0]));
+    S.price = num(r[1]) || S.price;
+    S.closed = num(r[2]) === 1n;
+    S.redeemed = Number(num(r[3]));
+    S.defaulted = Number(num(r[4]));
+    S.loansOut = num(r[5]);
+    S.balance = num(r[6]);
+    S.assets = S.balance + S.loansOut;
+    S.backing = num(r[7]);
+    S.redeemValue = num(r[8]);
+    const cap = S.assets / 2n > S.loansOut ? S.assets / 2n - S.loansOut : 0n;   // the 50% utilization cap
+    S.maxBorrow = [num(r[9]), cap, S.balance].reduce((a, b) => (b < a ? b : a));
+    const lw = words(r[10]);
+    S.listedIds = lw.length > 2 ? lw.slice(2, 2 + Number(BigInt('0x' + lw[1]))).map(w => Number(BigInt('0x' + w))) : [];
+    S.owner = r[11] ? addrOf(words(r[11])[0]) : null;
+    S.rentCost = { 7: num(r[12]), 30: num(r[13]), 90: num(r[14]) };
+    if (acct) {
+      S.mintedByMe = Number(num(r[15]));
+      ['treasury', 'staking', 'lending', 'rental'].forEach((k, i) => { S.appr[k] = num(r[16 + i]) === 1n; });
+      S.stakePts = num(r[20]);
+      const h = i => Number(num(r[21 + i]));
+      S.hist = { minted: S.mintedByMe, wallet: h(0), staked: h(1), borrows: h(2), repaid: h(3), lost: h(4), redeemed: h(5), rentals: h(6) };
+      S.hist.pointsClaimed = num(r[28]);
+      S.hist.onLoan = Math.max(0, S.hist.borrows - S.hist.repaid - S.hist.lost);
+    }
+
+    const xr = await rpc([
+      { method: 'eth_getBalance', params: [CFG.splitter, 'latest'] },
+      { method: 'eth_getBalance', params: [CFG.yield, 'latest'] },
+      ethCall(CFG.staking, SEL.totalDistributed),
+      ethCall(CFG.staking, SEL.epochCount),
+      ethCall(CFG.staking, SEL.totalStaked),
+      acct ? ethCall(CFG.staking, SEL.pendingRewards + encAddr(acct)) : ethCall(CFG.staking, SEL.epochCount),
+    ]);
+    S.poolBal = num(xr[0]); S.yieldBal = num(xr[1]); S.paid = num(xr[2]);
+    S.epochs = Number(num(xr[3])); S.stakedNow = Number(num(xr[4]));
+    S.rewards = acct ? num(xr[5]) : 0n;
+
+    const ids = Array.from({ length: S.minted }, (_, i) => i + 1);
+    const tcalls = [];
+    for (const id of ids) {
+      tcalls.push(ethCall(CFG.nft, SEL.ownerOf + encUint(id)));
+      tcalls.push(ethCall(CFG.staking, SEL.stakerOf + encUint(id)));
+      tcalls.push(ethCall(CFG.lending, SEL.loans + encUint(id)));
+      tcalls.push(ethCall(CFG.rental, SEL.slots + encUint(id)));
+    }
+    S.tokens = {};
+    if (ids.length) {
+      const t = await rpc(tcalls);
+      ids.forEach((id, i) => {
+        const ow = t[i * 4] ? addrOf(words(t[i * 4])[0]) : ZERO;
+        const st = t[i * 4 + 1] ? addrOf(words(t[i * 4 + 1])[0]) : ZERO;
+        const lw2 = words(t[i * 4 + 2]);
+        const sw = words(t[i * 4 + 3]);
+        S.tokens[id] = {
+          owner: ow, stakedBy: st,
+          loan: lw2.length === 5 ? { borrower: addrOf(lw2[0]), principal: BigInt('0x' + lw2[1]), interest: BigInt('0x' + lw2[2]),
+                                      due: Number(BigInt('0x' + lw2[3])), open: BigInt('0x' + lw2[4]) === 1n } : null,
+          slot: sw.length === 4 ? { listed: BigInt('0x' + sw[0]) === 1n, renter: addrOf(sw[1]),
+                                     start: Number(BigInt('0x' + sw[2])), until: Number(BigInt('0x' + sw[3])) } : null,
+        };
+      });
+    }
+    paint();
+  }
+
+  /* ---------- wallet ---------- */
+  const eip = () => window.ethereum;
+  async function readChain() { S.chainId = eip() ? await eip().request({ method: 'eth_chainId' }) : null; }
+
+  async function connect() {
+    if (!eip()) { window.open('https://metamask.io/download/', '_blank', 'noopener'); return false; }
+    try {
+      const accts = await eip().request({ method: 'eth_requestAccounts' });
+      S.account = accts[0] || null;
+      await readChain();
+      await refresh();
+      return !!S.account;
+    } catch { return false; }
+  }
+
+  async function ensureChain() {
+    await readChain();
+    if (S.chainId === CFG.chainId) return true;
+    try {
+      await eip().request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CFG.chainId }] });
+    } catch (e) {
+      if (e && (e.code === 4902 || /unrecognized|not added|unknown chain/i.test(e.message || ''))) {
+        try {
+          await eip().request({ method: 'wallet_addEthereumChain', params: [{
+            chainId: CFG.chainId, chainName: 'Robinhood Chain Testnet',
+            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+            rpcUrls: [CFG.rpc], blockExplorerUrls: [CFG.explorer],
+          }] });
+        } catch { return false; }
+      } else return false;
+    }
+    await readChain();
+    paint();
+    return S.chainId === CFG.chainId;
+  }
+
+  async function send(to, data, value) {
+    const tx = { from: S.account, to, data };
+    if (value) tx.value = hexOf(value);
+    return eip().request({ method: 'eth_sendTransaction', params: [tx] });
+  }
+  async function waitFor(hash) {
+    for (let i = 0; i < 80; i++) {
+      const [rc] = await rpc([{ method: 'eth_getTransactionReceipt', params: [hash] }]);
+      if (rc) return rc.status === '0x1';
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    throw new Error('Still pending. Check the explorer.');
+  }
+  const txLink = h => `<a href="${CFG.explorer}/tx/${h}" target="_blank" rel="noopener">View transaction</a>`;
+  function why(e) {
+    if (e && e.code === 4001) return 'Cancelled in your wallet.';
+    const m = (e && (e.shortMessage || e.message)) || 'Something went wrong.';
+    if (/insufficient funds/i.test(m)) return 'Not enough test ETH. Use the faucet.';
+    return m.length > 160 ? m.slice(0, 160) + '…' : m;
+  }
+  function say(el, html, kind) { el.className = 'status' + (kind ? ' ' + kind : ''); el.innerHTML = html; }
+
+  /* ---------- one runner for every action ---------- */
+  // steps: [{ approve: 'staking' }, { to, data, value, label }]
+  async function run(statusEl, steps, doneText) {
+    if (S.busy) return;
+    if (!S.account && !(await connect())) return;
+    if (!(await ensureChain())) return say(statusEl, 'Switch to Robinhood Chain testnet to continue.', 'err');
+    S.busy = true; paint();
+    try {
+      const todo = steps.filter(s => !(s.approve && S.appr[s.approve]));
+      let n = 0, hash = null, ok = true;
+      for (const s of todo) {
+        n++;
+        const tag = todo.length > 1 ? `Step ${n} of ${todo.length}: ` : '';
+        if (s.approve) {
+          say(statusEl, `${tag}allow the contract to move your Orion. Confirm in your wallet…`);
+          hash = await send(CFG.nft, SEL.setApprovalForAll + encAddr(CFG[s.approve]) + encUint(1));
+          say(statusEl, 'Approving…');
+          if (!(await waitFor(hash))) throw new Error('The approval did not go through.');
+          S.appr[s.approve] = true;
+        } else {
+          say(statusEl, `${tag}${s.label}. Confirm in your wallet…`);
+          hash = await send(s.to, s.data, s.value);
+          say(statusEl, 'Waiting for the block…');
+          ok = await waitFor(hash);
+        }
+      }
+      await refresh();
+      say(statusEl, ok ? `${typeof doneText === 'function' ? doneText() : doneText} ${txLink(hash)}` : `That did not go through. ${txLink(hash)}`, ok ? 'good' : 'err');
+    } catch (e) { say(statusEl, why(e), 'err'); }
+    S.busy = false; paint();
+  }
+
+  const A = {
+    mint: () => run($('mintStatus'), [{ to: CFG.nft, data: SEL.mint + encUint(S.qty), value: S.price * BigInt(S.qty), label: 'Minting' }], 'Minted. Your Orions are below.'),
+    closeMint: () => run($('mintStatus'), [{ to: CFG.nft, data: SEL.closeMint, label: 'Closing the mint' }], 'Mint closed. Redeem and borrow are open.'),
+    stake: id => run($('actStatus'), [{ approve: 'staking' }, { to: CFG.staking, data: SEL.stake + encArr1(id), label: `Staking No. ${four(id)}` }], `Staked No. ${four(id)}.`),
+    unstake: id => {
+      const rewardsBefore = S.rewards, claimedBefore = S.hist ? S.hist.pointsClaimed : 0n;
+      return run($('actStatus'), [{ to: CFG.staking, data: SEL.unstake + encArr1(id), label: `Unstaking No. ${four(id)} and claiming` }],
+        () => `Unstaked No. ${four(id)}. Claimed ${pts((S.hist ? S.hist.pointsClaimed : 0n) - claimedBefore)} points` +
+              (rewardsBefore > 0n ? ` and ${eth(rewardsBefore)} ETH of rewards were paid to you.` : '. No rewards were waiting.'));
+    },
+    redeem: id => run($('actStatus'), [{ approve: 'treasury' }, { to: CFG.treasury, data: SEL.redeem + encUint(id), label: `Redeeming No. ${four(id)}` }], 'Redeemed. The ETH is in your wallet.'),
+    borrow: (id, term) => run($('actStatus'), [{ approve: 'lending' }, { to: CFG.lending, data: SEL.borrow + encUint(id) + encUint(term) + encUint(S.maxBorrow), label: `Borrowing against No. ${four(id)}` }], `Received ${eth(S.maxBorrow - interestFor(S.maxBorrow, term))} ETH. Repay ${eth(S.maxBorrow)} ETH to get the Orion back.`),
+    repay: async id => {
+      const [o] = await rpc([ethCall(CFG.lending, SEL.owed + encUint(id))]);
+      return run($('actStatus'), [{ to: CFG.lending, data: SEL.repay + encUint(id), value: num(o), label: `Repaying No. ${four(id)}` }], `Repaid. No. ${four(id)} is back in your wallet.`);
+    },
+    claim: () => run($('rewStatus'), [{ to: CFG.staking, data: SEL.claim + encUint(200), label: 'Claiming your rewards' }], 'Claimed. The ETH is in your wallet.'),
+    release: () => run($('royStatus'), [{ to: CFG.splitter, data: SEL.release, label: 'Releasing royalties' }], 'Released: 80% to the treasury, 20% to the yield treasury.'),
+    simRoyalty: () => run($('royStatus'), [{ to: CFG.splitter, data: '0x', value: 1000000000000000n, label: 'Sending a test royalty' }], 'Test royalty sent to the pool. Release it next.'),
+    distribute: () => {
+      const amt = 1000000000000000n, steps = [], shortfall = amt - S.yieldBal;
+      if (shortfall > 0n) steps.push({ to: CFG.yield, data: '0x', value: shortfall, label: 'Funding the yield treasury' });
+      steps.push({ to: CFG.yield, data: SEL.distributeProfit + encUint(amt), label: 'Paying out profit to stakers' });
+      return run($('royStatus'), steps, 'Profit paid out to stakers, shared by points.');
+    },
+    list: id => run($('actStatus'), [{ approve: 'rental' }, { to: CFG.rental, data: SEL.list + encUint(id), label: `Listing No. ${four(id)} for rent` }], `Listed No. ${four(id)} for rent.`),
+    delist: id => run($('rentStatus'), [{ to: CFG.rental, data: SEL.delist + encUint(id), label: `Taking No. ${four(id)} back` }], `No. ${four(id)} is back with you.`),
+    rent: (id, term) => run($('rentStatus'), [{ to: CFG.rental, data: SEL.rent + encUint(id) + encUint(term), value: S.rentCost[term], label: `Renting No. ${four(id)} for ${term} days` }], `Rented No. ${four(id)} for ${term} days. Perks are running.`),
+  };
+
+  /* ---------- paint ---------- */
+  const qtyBox = $('qty');
+  const isOwner = () => S.account && S.owner && same(S.account, S.owner);
+  function room() { return Math.max(0, Math.min(CFG.maxPerWallet - S.mintedByMe, CFG.maxSupply - S.minted)); }
+
+  function place(t) {
+    const me = S.account;
+    if (!me) return null;
+    if (same(t.owner, me)) return 'idle';
+    if (same(t.owner, CFG.staking) && same(t.stakedBy, me)) return 'staked';
+    if (same(t.owner, CFG.lending) && t.loan && t.loan.open && same(t.loan.borrower, me)) return 'loan';
+    if (same(t.owner, CFG.rental) && t.slot && same(t.slot.renter, me) && t.slot.until > now()) return 'rented';
+    return null;
+  }
+
+  function paint(note) {
+    $('walletLabel').textContent = S.account ? short(S.account) : 'Connect Wallet';
+    $('walletBtn').classList.toggle('connected', !!S.account);
+    const wrong = S.account && S.chainId && S.chainId !== CFG.chainId;
+    $('net').classList.toggle('ok', !!S.account && !wrong);
+    $('net').classList.toggle('bad', !!wrong);
+    $('netText').textContent = wrong ? 'Wrong network' : 'Robinhood testnet';
+
+    const bn = $('banner');
+    bn.hidden = !isOwner();
+    if (!isOwner()) bn.innerHTML = '';
+    else if (S.closed) {
+      bn.className = 'banner closed';
+      bn.innerHTML = '<span><b>Mint closed.</b> Redeem, borrow and rent are open.</span>';
+    } else {
+      bn.className = 'banner open';
+      bn.innerHTML = '<span><b>Mint is open.</b> Redeem and borrow unlock once it closes (sold out, or closed by the team).</span>' +
+        (isOwner() ? '<button class="btn sm" id="closeBtn"' + (S.busy ? ' disabled' : '') + '>Close the mint</button>' : '');
+      const cb = $('closeBtn'); if (cb) cb.onclick = () => A.closeMint();
+    }
+
+    $('mintedN').textContent = S.minted;
+    $('supplyN').textContent = CFG.maxSupply;
+    $('mintedBar').style.width = (S.minted / CFG.maxSupply * 100) + '%';
+    const nextId = Math.min(CFG.maxSupply, S.minted + 1);
+    const img = $('previewImg'), want = '/testnet/img/' + nextId + '.jpg';
+    if (!img.src.endsWith(want)) img.src = want;
+    const r = S.closed ? 0 : room();
+    if (S.qty > Math.max(1, r)) S.qty = Math.max(1, r);
+    qtyBox.innerHTML = '';
+    for (let q = 1; q <= CFG.maxPerWallet; q++) {
+      const b = document.createElement('button');
+      b.className = 'chip' + (q === S.qty ? ' on' : '');
+      b.textContent = q; b.disabled = q > r || S.busy;
+      b.onclick = () => { S.qty = q; paint(); };
+      qtyBox.appendChild(b);
+    }
+    $('priceEach').innerHTML = eth(S.price) + '<small>ETH each</small>';
+    $('priceTotal').innerHTML = eth(S.price * BigInt(S.qty)) + '<small>ETH</small>';
+    const mb = $('mintBtn');
+    let label = 'Mint ' + S.qty, dis = false;
+    if (S.busy) { label = 'Working…'; dis = true; }
+    else if (S.closed) { label = S.minted >= CFG.maxSupply ? 'Sold out' : 'Mint closed'; dis = true; }
+    else if (!eip()) label = 'Install a wallet to mint';
+    else if (!S.account) label = 'Connect wallet to mint';
+    else if (wrong) label = 'Switch to Robinhood testnet';
+    else if (r === 0) { label = 'Wallet limit reached'; dis = true; }
+    mb.textContent = label; mb.disabled = dis;
+    if (note) say($('mintStatus'), note, 'err');
+
+    const H = S.account && S.hist;
+    $('hMinted').textContent = H ? H.minted : '—';
+    $('hWallet').textContent = H ? H.wallet : '—';
+    $('hStaked').textContent = H ? H.staked : '—';
+    $('hLoan').textContent = H ? H.onLoan : '—';
+    $('hRedeemed').textContent = H ? H.redeemed : '—';
+    $('hLost').textContent = H ? H.lost : '—';
+    $('hNote').textContent = H
+      ? 'Loans taken ' + H.borrows + ', repaid ' + H.repaid + '. Rentals taken ' + H.rentals + '. An Orion you send or sell shows up as a drop in the wallet count.'
+      : '';
+    paintOwned();
+    paintRentals();
+
+    $('pStake').textContent = S.account ? pts(S.stakePts) : '—';
+    $('pRewards').innerHTML = S.account ? eth(S.rewards) + '<small>ETH</small>' : '&mdash;';
+    $('pClaimed').textContent = S.account && S.hist ? pts(S.hist.pointsClaimed) : '—';
+    $('claimBtn').disabled = S.busy || !S.account || S.rewards === 0n;
+    $('rPool').innerHTML = eth(S.poolBal) + '<small>ETH</small>';
+    $('rYield').innerHTML = eth(S.yieldBal) + '<small>ETH</small>';
+    $('rEpochs').innerHTML = eth(S.paid) + '<small>ETH in ' + S.epochs + (S.epochs === 1 ? ' payout' : ' payouts') + '</small>';
+    $('releaseBtn').disabled = S.busy || !S.closed || S.poolBal === 0n;
+    $('releaseBtn').title = S.closed ? '' : 'Royalties are released once the mint closes';
+    $('ownerTools').hidden = !isOwner();
+    $('simRoyBtn').disabled = S.busy;
+    $('distBtn').disabled = S.busy || S.stakedNow === 0;
+    const circ = S.minted - S.redeemed - S.defaulted;
+    $('tAssets').innerHTML = eth(S.assets) + '<small>ETH</small>';
+    $('tLent').innerHTML = eth(S.loansOut) + '<small>ETH</small>';
+    $('tCirc').textContent = circ;
+    $('tBack').innerHTML = circ ? eth(S.backing) + '<small>ETH</small>' : '&mdash;';
+    $('tRedeem').innerHTML = circ ? eth(S.redeemValue) + '<small>ETH</small>' : '&mdash;';
+    $('tBorrow').innerHTML = circ ? eth(S.maxBorrow) + '<small>ETH</small>' : '&mdash;';
+  }
+
+  function btn(act, id, text, extra) {
+    return `<button class="btn sm${extra ? ' ' + extra : ''}" data-act="${act}" data-id="${id}" ${S.busy ? 'disabled' : ''}>${text}</button>`;
+  }
+
+  function paintOwned() {
+    const box = $('owned');
+    if (!S.account) { box.innerHTML = '<p class="empty">Connect your wallet to see yours.</p>'; return; }
+    const mine = [];
+    for (const id of Object.keys(S.tokens).map(Number)) {
+      const p = place(S.tokens[id]);
+      if (p && p !== 'rented') mine.push([id, p, S.tokens[id]]);
+    }
+    if (!mine.length) { box.innerHTML = '<p class="empty">You hold none yet. Mint one above.</p>'; return; }
+    box.innerHTML = '';
+    for (const [id, p, t] of mine) {
+      let tag = '', info = '', acts = '', extra = '';
+      if (p === 'idle') {
+        tag = '<span class="tag">In your wallet</span>';
+        acts = btn('stake', id, 'Stake') +
+               btn('borrowopen', id, 'Borrow', S.closed ? '' : 'locked') +
+               btn('redeem', id, 'Redeem ' + eth(S.redeemValue, 6), S.closed ? '' : 'locked') +
+               (isOwner() ? btn('list', id, 'List for rent') : '');
+        if (!S.closed) info = 'Redeem and borrow open when the mint closes';
+        if (S.borrowOpen === id && S.closed && S.maxBorrow === 0n) {
+          extra = '<div class="box">Nothing can be lent right now: the treasury is at its 50% lending limit. Try again after a loan is repaid.</div>';
+        } else if (S.borrowOpen === id && S.closed) {
+          const term = S.borrowTerm, amt = S.maxBorrow, get = amt - interestFor(amt, term);
+          extra = `<div class="box">Get <b>${eth(get)}</b> ETH now, repay <b>${eth(amt)}</b> ETH. The interest is taken up front, so nothing extra is due when you repay.<div class="chips">` +
+            [30, 90, 180].map(d => `<button class="chip s${d === term ? ' on' : ''}" data-act="term" data-id="${d}">${d} days</button>`).join('') +
+            `</div><button class="btn btn-holo sm" style="width:100%" data-act="borrow" data-id="${id}" ${S.busy ? 'disabled' : ''}>Borrow ${eth(get)} ETH</button></div>`;
+        }
+      } else if (p === 'staked') {
+        tag = '<span class="tag stk">Staked</span>';
+        info = '100 points for every full day staked. Unstaking claims them.';
+        acts = btn('unstake', id, 'Unstake and claim');
+      } else if (p === 'loan') {
+        const late = t.loan.due < now();
+        tag = `<span class="tag ${late ? 'late' : 'loan'}">${late ? 'Overdue' : 'Collateral'}</span>`;
+        info = `Repay ${eth(t.loan.principal)} ETH · ${late ? 'overdue, liquidation opens after the grace period' : 'due in ' + left(t.loan.due)}`;
+        acts = btn('repay', id, 'Repay ' + eth(t.loan.principal, 6), 'primary');
+      }
+      const d = document.createElement('div'); d.className = 'own';
+      d.innerHTML = `<img src="/testnet/img/${id}.jpg" alt="Orion No. ${four(id)}" loading="lazy">` +
+        `<div class="meta"><span class="no">No. ${four(id)}</span>${tag}</div>` +
+        `<div class="info">${info}</div>${extra}<div class="acts">${acts}</div>`;
+      box.appendChild(d);
+    }
+  }
+
+  function paintRentals() {
+    const box = $('rentals');
+    const mineRented = S.account ? Object.keys(S.tokens).map(Number).filter(id => place(S.tokens[id]) === 'rented') : [];
+    const ids = [...new Set([...S.listedIds, ...mineRented])];
+    if (!ids.length) { box.innerHTML = '<p class="empty">Nothing listed for rent yet.</p>'; return; }
+    box.innerHTML = '';
+    for (const id of ids) {
+      const t = S.tokens[id]; if (!t || !t.slot) continue;
+      const active = t.slot.renter !== ZERO && t.slot.until > now();
+      const mine = S.account && same(t.slot.renter, S.account) && active;
+      const term = S.rentTerm[id] || 7;
+      let tag, info = '', acts = '';
+      if (mine) { tag = '<span class="tag stk">Rented by you</span>'; info = `Perks running · ${left(t.slot.until)} left`; }
+      else if (active) { tag = '<span class="tag">Rented</span>'; info = `Free again in ${left(t.slot.until)}`; }
+      else {
+        tag = '<span class="tag">Available</span>';
+        info = `${eth(S.rentCost[term])} ETH for ${term} days`;
+        acts = [7, 30, 90].map(d => `<button class="chip s${d === term ? ' on' : ''}" data-act="rterm" data-id="${id}:${d}">${d}d</button>`).join('') +
+               btn('rent', id, 'Rent', 'primary') + (isOwner() ? btn('delist', id, 'Take back') : '');
+      }
+      const d = document.createElement('div'); d.className = 'own';
+      d.innerHTML = `<img src="/testnet/img/${id}.jpg" alt="Orion No. ${four(id)}" loading="lazy">` +
+        `<div class="meta"><span class="no">No. ${four(id)}</span>${tag}</div>` +
+        `<div class="info">${info}</div><div class="acts">${acts}</div>`;
+      box.appendChild(d);
+    }
+  }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+    const act = b.dataset.act, id = b.dataset.id;
+    if (act === 'stake') A.stake(Number(id));
+    else if (act === 'unstake') A.unstake(Number(id));
+    else if (act === 'redeem') { if (S.closed) A.redeem(Number(id)); }
+    else if (act === 'borrowopen') { if (S.closed) { S.borrowOpen = S.borrowOpen === Number(id) ? null : Number(id); paint(); } }
+    else if (act === 'term') { S.borrowTerm = Number(id); paint(); }
+    else if (act === 'borrow') A.borrow(Number(id), S.borrowTerm).then(() => { S.borrowOpen = null; paint(); });
+    else if (act === 'repay') A.repay(Number(id));
+    else if (act === 'list') A.list(Number(id));
+    else if (act === 'delist') A.delist(Number(id));
+    else if (act === 'rterm') { const [i, d] = id.split(':'); S.rentTerm[Number(i)] = Number(d); paint(); }
+    else if (act === 'rent') A.rent(Number(id), S.rentTerm[Number(id)] || 7);
+  });
+
+  /* ---------- boot ---------- */
+  $('walletBtn').addEventListener('click', () => { if (!S.account) connect(); });
+  $('mintBtn').addEventListener('click', () => {
+    if (!eip()) return window.open('https://metamask.io/download/', '_blank', 'noopener');
+    A.mint();
+  });
+  $('claimBtn').addEventListener('click', () => A.claim());
+  $('releaseBtn').addEventListener('click', () => A.release());
+  $('simRoyBtn').addEventListener('click', () => A.simRoyalty());
+  $('distBtn').addEventListener('click', () => A.distribute());
+  $('links').innerHTML =
+    `<a href="${CFG.explorer}/address/${CFG.nft}" target="_blank" rel="noopener">NFT</a> &middot; ` +
+    `<a href="${CFG.explorer}/address/${CFG.treasury}" target="_blank" rel="noopener">Treasury</a> &middot; ` +
+    `<a href="https://faucet.testnet.chain.robinhood.com" target="_blank" rel="noopener">Faucet</a>`;
+
+  if (eip()) {
+    eip().request({ method: 'eth_accounts' }).then(async a => {
+      if (a[0]) { S.account = a[0]; await readChain(); }
+      refresh();
+    }).catch(refresh);
+    eip().on?.('accountsChanged', a => { S.account = a[0] || null; S.borrowOpen = null; refresh(); });
+    eip().on?.('chainChanged', c => { S.chainId = c; paint(); });
+  } else { refresh(); }
+  setInterval(() => { if (!S.busy) refresh(); }, 8000);
+})();
+</script>

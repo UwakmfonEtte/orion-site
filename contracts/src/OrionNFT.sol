@@ -2,7 +2,9 @@
 pragma solidity ^0.8.24;
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC2981} from "@openzeppelin/contracts/token/common/ERC2981.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
@@ -21,7 +23,15 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
  * updates it to track ETH/USD, the same way the site already shows a
  * client-side quote via /api/eth-price.
  */
-contract OrionNFT is ERC721, Ownable, ReentrancyGuard, Pausable {
+/// @dev The mint must pay a treasury that has wired THIS contract in. Otherwise the
+///      treasury treats the NFT as a stranger and quietly reroutes the mint
+///      money to its donation sink, leaving holders with no backing.
+interface ITreasuryWiredCheckOrionNFT {
+    function nftContract() external view returns (address);
+    function royaltySplitter() external view returns (address);
+}
+
+contract OrionNFT is ERC721, ERC2981, Ownable2Step, ReentrancyGuard, Pausable {
     uint256 public constant MAX_SUPPLY = 1555;
 
     address payable public immutable treasury;
@@ -32,6 +42,10 @@ contract OrionNFT is ERC721, Ownable, ReentrancyGuard, Pausable {
     string private _baseTokenURI;
 
     mapping(address => bool) public hasMinted;
+    bool public closed;
+    uint96 public constant ROYALTY_BPS = 1000;          // 10%
+
+    event MintClosed();
 
     event Minted(address indexed to, uint256 indexed tokenId, uint256 pricePaid);
     event MintPriceUpdated(uint256 newPriceWei);
@@ -73,6 +87,35 @@ contract OrionNFT is ERC721, Ownable, ReentrancyGuard, Pausable {
         emit BaseURIUpdated(newBaseURI);
     }
 
+    /// @notice Irreversibly end the mint. Redemption and loans open only once
+    ///         the mint is closed (here, or by selling out).
+    /// @notice Secondary-sale royalty: 10%, paid to the royalty splitter. It can
+    ///         be pointed at its receiver until the mint closes, then it is fixed.
+    ///         Marketplaces read this (ERC-2981); whether they honor it is up to
+    ///         each marketplace, and nothing here can force a sale to pay it.
+    function setRoyaltyReceiver(address receiver) external onlyOwner {
+        require(!mintClosed(), "mint is closed");
+        require(receiver != address(0), "zero address");
+        // The treasury must have this same splitter wired. Both settings lock when the
+        // mint closes, and a mismatch would strand or divert the backing share.
+        require(ITreasuryWiredCheckOrionNFT(treasury).royaltySplitter() == receiver, "treasury has a different splitter");
+        _setDefaultRoyalty(receiver, ROYALTY_BPS);
+    }
+
+    function supportsInterface(bytes4 id) public view override(ERC721, ERC2981) returns (bool) {
+        return super.supportsInterface(id);
+    }
+
+    function closeMint() external onlyOwner {
+        closed = true;
+        emit MintClosed();
+    }
+
+    /// @notice True once minting is over: closed by the owner, or sold out.
+    function mintClosed() public view returns (bool) {
+        return closed || totalMinted >= MAX_SUPPLY;
+    }
+
     function pause() external onlyOwner {
         _pause();
     }
@@ -93,6 +136,7 @@ contract OrionNFT is ERC721, Ownable, ReentrancyGuard, Pausable {
      * silently pocketing the difference would be the wrong default.
      */
     function mint(bytes32[] calldata proof) external payable nonReentrant whenNotPaused {
+        require(!closed, "mint is closed");
         require(totalMinted < MAX_SUPPLY, "sold out");
         require(!hasMinted[msg.sender], "already minted");
         require(merkleRoot != bytes32(0), "allowlist not set");
@@ -100,6 +144,7 @@ contract OrionNFT is ERC721, Ownable, ReentrancyGuard, Pausable {
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender))));
         require(MerkleProof.verify(proof, merkleRoot, leaf), "not on allowlist");
         require(msg.value >= mintPriceWei, "insufficient payment");
+        require(ITreasuryWiredCheckOrionNFT(treasury).nftContract() == address(this), "treasury not wired");
 
         hasMinted[msg.sender] = true;
         uint256 tokenId = totalMinted + 1; // token IDs run 1..1555, matching the metadata files

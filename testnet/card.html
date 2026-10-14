@@ -1,0 +1,176 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orion testnet card</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  html,body { margin:0; background:#050505; color:#F4F6F4; font-family: Manrope, system-ui, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 28px 20px 48px; }
+  h1 { font-size: 15px; letter-spacing: .28em; text-transform: uppercase; font-weight: 600; margin: 0 0 18px; color:#939A95; }
+  canvas#view { width: 100%; height: auto; display: block; border-radius: 18px; box-shadow: 0 30px 70px -28px rgba(0,0,0,.9); }
+  .bar { display:flex; gap:10px; align-items:center; margin: 18px 0 26px; font-family:"IBM Plex Mono", monospace; font-size: 12px; letter-spacing:.14em; text-transform: uppercase; color:#939A95; }
+  button { font: inherit; letter-spacing: inherit; text-transform: inherit; color:#F4F6F4; background:transparent; border:1px solid #384540; padding: 10px 18px; cursor:pointer; }
+  button:hover { border-color:#5DCAA5; color:#9FE1CB; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .grid canvas { width:100%; height:auto; border-radius: 8px; cursor:pointer; opacity:.85; }
+  .grid canvas:hover { opacity:1; }
+</style>
+<main>
+  <h1>Orion testnet pass <span id="which"></span></h1>
+  <canvas id="view"></canvas>
+  <div class="bar">
+    <button id="prev">&larr; Prev</button><button id="next">Next &rarr;</button>
+    <span>1 to 50</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+const SUPPLY = 50;
+const IAU = ['Andromeda','Antlia','Apus','Aquarius','Aquila','Ara','Aries','Auriga',
+'Bootes','Caelum','Camelopardalis','Cancer','Canes Venatici','Canis Major',
+'Canis Minor','Capricornus','Carina','Cassiopeia','Centaurus','Cepheus','Cetus',
+'Chamaeleon','Circinus','Columba','Coma Berenices','Corona Australis',
+'Corona Borealis','Corvus','Crater','Crux','Cygnus','Delphinus','Dorado','Draco',
+'Equuleus','Eridanus','Fornax','Gemini','Grus','Hercules','Horologium','Hydra',
+'Hydrus','Indus','Lacerta','Leo','Leo Minor','Lepus','Libra','Lupus','Lynx','Lyra',
+'Mensa','Microscopium','Monoceros','Musca','Norma','Octans','Ophiuchus','Orion',
+'Pavo','Pegasus','Perseus','Phoenix','Pictor','Pisces','Piscis Austrinus','Puppis',
+'Pyxis','Reticulum','Sagitta','Sagittarius','Scorpius','Sculptor','Scutum',
+'Serpens','Sextans','Taurus','Telescopium','Triangulum','Triangulum Australe',
+'Tucana','Ursa Major','Ursa Minor','Vela','Virgo','Volans','Vulpecula'];
+
+function hashOf(s) { let h = 5381; for (const c of s.toLowerCase()) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h; }
+
+// Token n -> its pass. 37 is coprime with 88, so all 50 constellations differ.
+function passOf(n) {
+  const h = hashOf('orion-testnet-' + n);
+  return { n,
+    sign: IAU[(n * 37) % IAU.length],
+    serial: 'ORI-' + h.toString(16).toUpperCase().padStart(8, '0').slice(0, 4) + '-'
+            + ((h * 2654435761) >>> 0).toString(16).toUpperCase().slice(0, 4) };
+}
+
+/* Guilloche - the same engraving as the waitlist card. */
+function guilloche(cv) {
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W/2, cy = H/2;
+  g.clearRect(0,0,W,H); g.lineWidth = .6;
+  for (const o of [
+    { R:172, r:43, d:76, c:'rgba(224,185,120,.42)' },
+    { R:152, r:31, d:63, c:'rgba(216,222,233,.22)' },
+    { R:198, r:55, d:90, c:'rgba(168,206,255,.16)' }
+  ]) {
+    g.strokeStyle = o.c; g.beginPath();
+    for (let a = 0; a <= Math.PI*2*29; a += .013) {
+      const k = (o.R - o.r) / o.r;
+      const x = cx + (o.R - o.r)*Math.cos(a) + o.d*Math.cos(k*a);
+      const y = cy + ((o.R - o.r)*Math.sin(a) - o.d*Math.sin(k*a)) * .62;
+      a === 0 ? g.moveTo(x,y) : g.lineTo(x,y);
+    }
+    g.stroke();
+  }
+}
+
+function letter(g, t, x, y, sp) { for (const ch of t) { g.fillText(ch, x, y); x += g.measureText(ch).width + sp; } }
+function widthOf(g, t, sp) { let w = 0; for (const ch of t) w += g.measureText(ch).width + sp; return w - sp; }
+function right(g, t, x, y, sp) { letter(g, t, x - widthOf(g, t, sp), y, sp); }
+
+/* The waitlist card, with the handle replaced by ORION and the
+   founding-pass wording swapped for testnet wording. */
+function drawCard(p, W) {
+  const H = Math.round(W / 1.586);
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+  const S = W / 720;
+
+  const bg = g.createLinearGradient(0, 0, W * 0.62, H);
+  bg.addColorStop(0, '#2E3340'); bg.addColorStop(0.32, '#161A23');
+  bg.addColorStop(0.60, '#0D1016'); bg.addColorStop(1, '#252A35');
+  g.fillStyle = bg; g.fillRect(0, 0, W, H);
+
+  const eng = document.createElement('canvas');
+  eng.width = 720; eng.height = 454;
+  guilloche(eng);
+  g.globalAlpha = 0.30; g.drawImage(eng, 0, 0, W, H); g.globalAlpha = 1;
+
+  const sc = g.createLinearGradient(0, 0, 0, H);
+  sc.addColorStop(0.34, 'rgba(10,12,16,0)');
+  sc.addColorStop(0.62, 'rgba(10,12,16,.55)');
+  sc.addColorStop(1, 'rgba(10,12,16,.82)');
+  g.fillStyle = sc; g.fillRect(0, 0, W, H);
+
+  g.strokeStyle = 'rgba(224,185,120,.26)';
+  g.lineWidth = 2; g.strokeRect(1, 1, W - 2, H - 2);
+
+  const pad = 28 * S;
+
+  g.fillStyle = '#DCE0E8';
+  g.font = '700 ' + (18 * S) + 'px Manrope, system-ui, sans-serif';
+  g.textBaseline = 'top';
+  letter(g, 'ORION COLLECTIVE', pad, pad, 3.6 * S);
+
+  g.fillStyle = 'rgba(220,224,232,.6)';
+  g.font = '500 ' + (8.5 * S) + 'px "IBM Plex Mono", monospace';
+  right(g, 'TESTNET', W - pad, pad, 2.2 * S);
+  right(g, 'PASS', W - pad, pad + 13 * S, 2.2 * S);
+
+  // the one word on the card
+  const gold = g.createLinearGradient(pad, 0, W * 0.72, 0);
+  gold.addColorStop(0, '#FFFBF0'); gold.addColorStop(0.52, '#E0B978'); gold.addColorStop(1, '#9C7A2A');
+  g.fillStyle = gold;
+  g.font = '800 ' + (66 * S) + 'px Manrope, system-ui, sans-serif';
+  g.textBaseline = 'alphabetic';
+  letter(g, 'ORION', pad, H - 100 * S, 9 * S);
+
+  g.fillStyle = '#A8CEFF';
+  g.font = '500 ' + (9.5 * S) + 'px "IBM Plex Mono", monospace';
+  letter(g, (p.sign + '  ·  ONE OF EIGHTY-EIGHT').toUpperCase(), pad, H - 72 * S, 2.4 * S);
+
+  const rl = g.createLinearGradient(pad, 0, W - pad, 0);
+  rl.addColorStop(0, 'rgba(224,185,120,.5)'); rl.addColorStop(1, 'rgba(224,185,120,0)');
+  g.fillStyle = rl; g.fillRect(pad, H - 58 * S, W - pad * 2, 1.4 * S);
+
+  g.font = '400 ' + (9 * S) + 'px "IBM Plex Mono", monospace';
+  g.fillStyle = 'rgba(220,224,232,.62)';
+  letter(g, 'NO. ' + String(p.n).padStart(4, '0') + ' OF ' + SUPPLY, pad, H - 36 * S, 1.6 * S);
+  letter(g, p.serial, pad, H - 20 * S, 1.6 * S);
+  g.fillStyle = 'rgba(224,185,120,.85)';
+  right(g, 'TESTNET EDITION', W - pad, H - 36 * S, 1.6 * S);
+  right(g, '2026', W - pad, H - 20 * S, 1.6 * S);
+  return cv;
+}
+
+async function ready() {
+  await Promise.all([
+    document.fonts.load('800 66px Manrope'), document.fonts.load('700 18px Manrope'),
+    document.fonts.load('500 10px "IBM Plex Mono"'), document.fonts.load('400 10px "IBM Plex Mono"')
+  ]);
+  await document.fonts.ready;
+}
+window.renderCard = async (n, W) => { await ready(); return drawCard(passOf(n), W || 1200).toDataURL('image/jpeg', 0.93); };
+window.passOf = passOf;
+
+let cur = Math.min(SUPPLY, Math.max(1, Number(new URLSearchParams(location.search).get('n')) || 1));
+const view = document.getElementById('view');
+async function show(n) {
+  cur = n;
+  await ready();
+  const c = drawCard(passOf(n), 1200);
+  view.width = c.width; view.height = c.height;
+  view.getContext('2d').drawImage(c, 0, 0);
+  document.getElementById('which').textContent = String(n).padStart(2, '0') + ' / ' + SUPPLY;
+}
+document.getElementById('prev').onclick = () => show(cur === 1 ? SUPPLY : cur - 1);
+document.getElementById('next').onclick = () => show(cur === SUPPLY ? 1 : cur + 1);
+(async () => {
+  await show(cur);
+  const grid = document.getElementById('grid');
+  for (let n = 1; n <= SUPPLY; n++) {
+    const c = drawCard(passOf(n), 360); c.onclick = () => { show(n); scrollTo({top:0, behavior:'smooth'}); };
+    grid.appendChild(c);
+    await new Promise(r => setTimeout(r, 0));
+  }
+})();
+</script>

@@ -55,15 +55,19 @@ contract IntegrationTest is Test {
         nft.mint{value: PRICE}(aliceProof);
         assertEq(address(treasury).balance, PRICE);
 
+        vm.prank(multisig);
+        nft.closeMint();
         vm.startPrank(alice);
         nft.approve(address(treasury), 1);
         uint256 before = alice.balance;
         treasury.redeem(1);
         vm.stopPrank();
 
-        // Alice is the only holder, so she gets the whole treasury back.
-        assertEq(alice.balance - before, PRICE);
-        assertEq(address(treasury).balance, 0);
+        // Alice is the only holder, so she gets the whole backing share
+        // less the 5% fee, and the fee stays behind in the treasury.
+        uint256 fee = (PRICE * 500) / 10_000;
+        assertEq(alice.balance - before, PRICE - fee);
+        assertEq(address(treasury).balance, fee);
         assertEq(nft.ownerOf(1), treasury.BURN_ADDRESS());
     }
 
@@ -79,8 +83,11 @@ contract IntegrationTest is Test {
         // or the other 1,553 tokens' never-to-exist share would strand this ETH.
         uint256 remaining = nft.totalMinted() - treasury.redeemedCount();
         assertEq(remaining, 2);
-        uint256 expectedPayout = (PRICE * 2) / remaining;
+        uint256 share = (PRICE * 2) / remaining;
+        uint256 expectedPayout = share - (share * 500) / 10_000;
 
+        vm.prank(multisig);
+        nft.closeMint();
         vm.startPrank(alice);
         nft.approve(address(treasury), 1);
         uint256 before = alice.balance;
@@ -91,10 +98,10 @@ contract IntegrationTest is Test {
         assertEq(address(treasury).balance, PRICE * 2 - expectedPayout);
     }
 
-    /// @notice Regression test for the fixed mint-order bug: a contract that
-    ///         reenters redeem() from onERC721Received now sees the treasury
-    ///         already paid for *this* mint, not a stale pre-payment balance.
-    function test_reentrantRedeemDuringMintSeesFullySettledState() public {
+    /// @notice A contract that tries to redeem from inside the mint hook (the
+    ///         old mint-then-redeem trick) is stopped cold: redemption does not
+    ///         open until the mint is closed, so the whole mint reverts.
+    function test_redeemFromInsideTheMintHookIsBlockedByTheMintGate() public {
         OrionTreasury t2 = new OrionTreasury(multisig);
         OrionNFT n2 = new OrionNFT(multisig, payable(address(t2)), PRICE);
         MintReceiverReenterer attacker = new MintReceiverReenterer(n2, t2);
@@ -110,14 +117,10 @@ contract IntegrationTest is Test {
 
         bytes32[] memory emptyProof = new bytes32[](0);
         vm.prank(address(attacker));
+        vm.expectRevert("mint still open");
         attacker.doMint{value: PRICE}(emptyProof);
 
-        assertTrue(attacker.reentered());
-        // Treasury received exactly PRICE from this mint before the hook
-        // fired, and this is the only token ever minted, so the reentrant
-        // redeem() - seeing fully-settled state - pays out the whole thing,
-        // identical to what a sequential mint-then-redeem would produce.
-        assertEq(attacker.reentrantPayout(), PRICE);
+        assertEq(n2.totalMinted(), 0);
         assertEq(address(t2).balance, 0);
     }
 

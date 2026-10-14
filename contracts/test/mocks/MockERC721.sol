@@ -6,6 +6,11 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 /// @notice Bare-bones ERC-721 for exercising OrionTreasury in tests.
 contract MockERC721 is ERC721 {
     uint256 public totalMinted;
+    bool public mintClosed = true;
+
+    function setMintClosed(bool v) external {
+        mintClosed = v;
+    }
 
     constructor() ERC721("MockOrion", "MORI") {}
 

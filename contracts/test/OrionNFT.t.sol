@@ -3,13 +3,14 @@ pragma solidity ^0.8.24;
 
 import {Test} from "forge-std/Test.sol";
 import {OrionNFT} from "../src/OrionNFT.sol";
+import {OrionTreasury} from "../src/OrionTreasury.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract OrionNFTTest is Test {
     OrionNFT nft;
 
     address multisig = makeAddr("multisig");
-    address payable treasury = payable(makeAddr("treasury"));
+    OrionTreasury treasury;
 
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
@@ -38,9 +39,12 @@ contract OrionNFTTest is Test {
 
     function setUp() public {
         (root, aliceProof, bobProof) = _buildTwoLeafTree(alice, bob);
-        nft = new OrionNFT(multisig, treasury, PRICE);
-        vm.prank(multisig);
+        treasury = new OrionTreasury(multisig);
+        nft = new OrionNFT(multisig, payable(address(treasury)), PRICE);
+        vm.startPrank(multisig);
+        treasury.setNftContract(address(nft));
         nft.setMerkleRoot(root);
+        vm.stopPrank();
         vm.deal(alice, 1 ether);
         vm.deal(bob, 1 ether);
         vm.deal(stranger, 1 ether);
@@ -61,7 +65,7 @@ contract OrionNFTTest is Test {
     function test_mintForwardsExactPriceToTreasury() public {
         vm.prank(alice);
         nft.mint{value: PRICE}(aliceProof);
-        assertEq(treasury.balance, PRICE);
+        assertEq(address(treasury).balance, PRICE);
     }
 
     function test_overpaymentIsRefunded() public {
@@ -70,7 +74,7 @@ contract OrionNFTTest is Test {
         nft.mint{value: PRICE + 0.01 ether}(aliceProof);
         // spent exactly PRICE (plus gas, untracked here) - refund returned the rest
         assertEq(before - alice.balance, PRICE);
-        assertEq(treasury.balance, PRICE);
+        assertEq(address(treasury).balance, PRICE);
     }
 
     function test_tokenIdsStartAtOne() public {
@@ -99,7 +103,7 @@ contract OrionNFTTest is Test {
     }
 
     function test_mintRevertsWhenRootUnset() public {
-        OrionNFT fresh = new OrionNFT(multisig, treasury, PRICE);
+        OrionNFT fresh = new OrionNFT(multisig, payable(address(treasury)), PRICE);
         vm.prank(alice);
         vm.expectRevert("allowlist not set");
         fresh.mint{value: PRICE}(aliceProof);
@@ -213,9 +217,33 @@ contract OrionNFTTest is Test {
         // Drive totalMinted to MAX_SUPPLY via storage cheat (minting 1555 real
         // allowlisted addresses would dominate this test's runtime for no
         // extra signal - the boundary check is what's under test).
-        vm.store(address(nft), bytes32(uint256(9)), bytes32(uint256(1555))); // totalMinted slot (verified via `forge inspect OrionNFT storage-layout`)
+        vm.store(address(nft), bytes32(uint256(12)), bytes32(uint256(1555))); // totalMinted slot (verified via `forge inspect OrionNFT storage-layout`)
         vm.prank(alice);
         vm.expectRevert("sold out");
         nft.mint{value: PRICE}(aliceProof);
+    }
+
+    // ---- the NFT refuses to sell into a treasury that has not wired it -----
+
+    function test_mintRefusesAnUnwiredTreasury() public {
+        OrionTreasury other = new OrionTreasury(multisig);       // never wired to this nft
+        OrionNFT n2 = new OrionNFT(multisig, payable(address(other)), PRICE);
+        vm.startPrank(multisig);
+        other.setDonationSink(payable(multisig));                // the case that used to eat the money
+        n2.setMerkleRoot(root);
+        vm.stopPrank();
+        vm.prank(alice);
+        vm.expectRevert("treasury not wired");
+        n2.mint{value: PRICE}(aliceProof);
+        assertEq(multisig.balance, 0);
+    }
+
+    function test_ownershipTransferNeedsTheNewOwnerToAccept() public {
+        vm.prank(multisig);
+        nft.transferOwnership(stranger);
+        assertEq(nft.owner(), multisig);                          // not yet
+        vm.prank(stranger);
+        nft.acceptOwnership();
+        assertEq(nft.owner(), stranger);
     }
 }
