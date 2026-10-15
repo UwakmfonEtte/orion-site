@@ -1513,7 +1513,7 @@
 
     <!-- ================= COLLAB REQUEST ================= -->
     <section class="sec" id="collab">
-      <div class="sec-top"><span class="cap">Collaborations closed · Watch the official page for updates</span></div>
+      <div class="sec-top"><span class="cap">Collaborations</span></div>
       <div class="collab-pitch">
         <h2 class="sec-h">Bringing a constellation with you?</h2>
         <p>Communities can request an allocation for their members. Introduce
@@ -3295,7 +3295,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     }).then(() => { busy = false; });
   }
 
-  const COLLAB_CLOSED = true;
+  const COLLAB_CLOSED = false;
 
   function closedNotice() {
     stepEl.textContent = '';
