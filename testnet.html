@@ -5,7 +5,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='13' r='11' fill='%23F2F2F2'/%3E%3Ccircle cx='16' cy='13' r='5.8' fill='%23050505'/%3E%3Cpath d='M9 21c-1 5-1 8 0 9 1-2 2-5 2-9zM16 23c-1 5-1 8 0 9 1-1 1-4 1-9zM23 21c-1 4-1 7 0 8 1-2 1-4 1-8z' fill='%235DCAA5'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://rpc.testnet.chain.robinhood.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"></noscript>
 <style>
   :root {
     --paper:#FBFBFA; --plate:#FFFFFF; --raise:#F1F3F1;
@@ -339,6 +341,7 @@ document.getElementById('swap').addEventListener('click', () => {
     rental:   '0x757E5B600DAcEB1B2ce6a9cfE5f4Ffe0CD501711',
     yield:    '0x28Ef76f9f2Cfa30A30427E654D2d5A6FF4692bB6',
     splitter: '0x659a01BB2C1D1112d2f9Ee640ee125377eA768dE',
+    multicall: '0xcA11bde05977b3631167028862bE2a173976CA11',   // Multicall3, the same address on every chain that has it
     maxSupply: 150,
     maxPerWallet: 2,
   };
@@ -406,11 +409,57 @@ document.getElementById('swap').addEventListener('click', () => {
   // One batch, answered by id. A call that reverted comes back as null. A batch that
   // comes back short, malformed or rate-limited is an ERROR, never a shorter list:
   // answers matched by position would slide into the wrong slots.
+  // One POST with a time limit: a stuck connection must never hold the page for a minute.
+  async function post(body, ms) {
+    const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), ms);
+    try {
+      const r = await fetch(CFG.rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body), signal: ctl.signal });
+      if (!r.ok) { const e = new Error('rpc ' + r.status); e.status = r.status; throw e; }
+      return await r.json();
+    } finally { clearTimeout(timer); }
+  }
+
+  // ---- Multicall3: every read of a refresh in ONE request (a request costs about a second here, so
+  // fifteen in a row was ten seconds). aggregate3 takes (target, allowFailure, calldata) and returns
+  // (success, returndata) for each, in order.
+  function mcEncode(list) {
+    const n = list.length;
+    const tails = list.map(c => {
+      const data = c.data.replace(/^0x/, ''), len = data.length / 2;
+      return encAddr(c.to) + encUint(1) + encUint(96) + encUint(len) + data.padEnd(Math.ceil(len / 32) * 64, '0');
+    });
+    let off = n * 32; const offs = [];
+    for (const t of tails) { offs.push(encUint(off)); off += t.length / 2; }
+    return '0x82ad56cb' + encUint(32) + encUint(n) + offs.join('') + tails.join('');
+  }
+  function mcDecode(hex, n) {
+    const h = hex.replace(/^0x/, ''), word = i => { const w = h.slice(i * 2, i * 2 + 64); if (w.length !== 64) throw new Error('multicall answer is cut short'); return BigInt('0x' + w); };
+    const arr = Number(word(0));
+    if (Number(word(arr)) !== n) throw new Error('multicall answered a different number of calls');
+    const base = arr + 32, out = [];
+    for (let i = 0; i < n; i++) {
+      const t = base + Number(word(base + i * 32)), ok = word(t) === 1n, bo = t + Number(word(t + 32)), len = Number(word(bo));
+      const data = h.slice((bo + 32) * 2, (bo + 32 + len) * 2);
+      if (data.length !== len * 2) throw new Error('multicall answer is cut short');
+      out.push(ok ? '0x' + data : null);
+    }
+    return out;
+  }
+  const mcSpec = c => c.method === 'eth_getBalance'
+    ? { to: CFG.multicall, data: '0x4d2301cc' + encAddr(c.params[0]) }           // getEthBalance(address)
+    : { to: c.params[0].to, data: c.params[0].data };
+  async function rpcMulti(calls) {
+    const out = await post({ jsonrpc: '2.0', id: 1, method: 'eth_call', params: [{ to: CFG.multicall, data: mcEncode(calls.map(mcSpec)) }, 'latest'] }, 12000);
+    if (out.error || typeof out.result !== 'string' || out.result.length < 66) throw new Error('multicall refused');
+    return mcDecode(out.result, calls.length);
+  }
+
+  // ---- the plain JSON-RPC batch path, used if Multicall3 is ever unavailable
+  // A batch answers by id. A call that reverted comes back as null. A batch that comes back short,
+  // malformed or rate-limited is an ERROR, never a shorter list: answers matched by position would
+  // slide into the wrong slots.
   async function rpcOnce(calls) {
-    const body = calls.map((c, i) => ({ jsonrpc: '2.0', id: i, method: c.method, params: c.params }));
-    const r = await fetch(CFG.rpc, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
-    if (!r.ok) throw new Error('rpc ' + r.status);
-    const out = await r.json();
+    const out = await post(calls.map((c, i) => ({ jsonrpc: '2.0', id: i, method: c.method, params: c.params })), 10000);
     if (!Array.isArray(out)) throw new Error('rpc answer is not a batch');
     const res = new Array(calls.length).fill(undefined);
     for (const o of out) {
@@ -422,24 +471,60 @@ document.getElementById('swap').addEventListener('click', () => {
   async function rpcRetry(calls) {
     let err;
     for (let attempt = 0; attempt < 3; attempt++) {
-      try { return await rpcOnce(calls); } catch (e) { err = e; await new Promise(ok => setTimeout(ok, 350 * (attempt + 1))); }
+      try { return await rpcOnce(calls); } catch (e) { err = e; await new Promise(ok => setTimeout(ok, (e && e.status === 429 ? 1200 : 350) * (attempt + 1))); }
     }
     throw err;
   }
-  async function rpc(calls) {
+  async function rpc(calls) {            // 40 per request, one request at a time: the public node rate-limits (429) when two or three big batches run together
     const res = [];
     for (let i = 0; i < calls.length; i += 40) res.push(...await rpcRetry(calls.slice(i, i + 40)));
     return res;
   }
+  let mcDownUntil = 0;                   // after a Multicall3 failure, use plain batches for a minute
+  async function rpcAll(calls) {
+    if (Date.now() >= mcDownUntil) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try { return await rpcMulti(calls); } catch (e) {
+          // A busy node (429, or no answer in time) is not a broken Multicall3: wait and ask again, because many small
+          // batches would only make the rate limit worse. Anything else means Multicall3 cannot be relied on here.
+          const busy = e && (e.status === 429 || e.name === 'AbortError');
+          if (busy && attempt === 0) { await new Promise(ok => setTimeout(ok, 1500)); continue; }
+          if (busy) throw e;
+          mcDownUntil = Date.now() + 60000;
+          console.warn('Multicall3 read failed, using plain batches for a minute:', e && e.message);
+          break;
+        }
+      }
+    }
+    return rpc(calls);
+  }
   const ethCall = (to, data) => ({ method: 'eth_call', params: [{ to, data }, 'latest'] });
   const num = h => (h && h !== '0x' ? BigInt(h) : 0n);
 
+  // Remember which Orions sit inside the staking, lending or rental contract, so the next refresh can
+  // read their details in the same request instead of waiting to learn who holds what. Kept in memory
+  // and, if storage works, between visits (per NFT contract, so a redeploy never reuses an old guess).
+  const DEEP_KEY = 'orion-deep:' + CFG.nft;
+  let lastDeep = [];
+  try {
+    const c = JSON.parse(window.localStorage.getItem(DEEP_KEY));
+    if (Array.isArray(c)) lastDeep = c.filter(n => Number.isInteger(n) && n >= 1 && n <= CFG.maxSupply).slice(0, 120);
+  } catch (e) { /* no storage, no guess */ }
+  function saveDeep(ids) { lastDeep = ids.slice(0, 120); try { window.localStorage.setItem(DEEP_KEY, JSON.stringify(lastDeep)); } catch (e) { /* fine */ } }
+  const deepCalls = id => [
+    ethCall(CFG.staking, SEL.stakerOf + encUint(id)),
+    ethCall(CFG.lending, SEL.loans + encUint(id)),
+    ethCall(CFG.rental, SEL.slots + encUint(id)),
+  ];
+
+  async function readBlock() {
+    try {
+      const out = await post({ jsonrpc: '2.0', id: 1, method: 'eth_getBlockByNumber', params: ['latest', false] }, 8000);
+      if (out.result && out.result.timestamp) skew = Number(BigInt(out.result.timestamp)) - Math.floor(Date.now() / 1000);
+    } catch (e) { /* keep the last skew */ }
+  }
   async function refresh() {
     const acct = S.account;
-    try {
-      const [blk] = await rpc([{ method: 'eth_getBlockByNumber', params: ['latest', false] }]);
-      if (blk && blk.timestamp) skew = Number(BigInt(blk.timestamp)) - Math.floor(Date.now() / 1000);
-    } catch (e) { /* keep the last skew */ }
     const calls = [
       ethCall(CFG.nft, SEL.totalMinted),            // 0
       ethCall(CFG.nft, SEL.mintPriceWei),           // 1
@@ -466,37 +551,60 @@ document.getElementById('swap').addEventListener('click', () => {
           [CFG.lending, SEL.repaymentsBy], [CFG.lending, SEL.liquidatedOf], [CFG.treasury, SEL.redeemedBy], [CFG.rental, SEL.rentalsBy], [CFG.staking, SEL.pointsClaimed]])
         calls.push(ethCall(to, sel + encAddr(acct)));                                                // 21..28
     }
+    const xcalls = [
+      { method: 'eth_getBalance', params: [CFG.splitter, 'latest'] },
+      { method: 'eth_getBalance', params: [CFG.yield, 'latest'] },
+      ethCall(CFG.staking, SEL.totalDistributed),
+      ethCall(CFG.staking, SEL.epochCount),
+      ethCall(CFG.staking, SEL.totalStaked),
+      acct ? ethCall(CFG.staking, SEL.pendingRewards + encAddr(acct)) : ethCall(CFG.staking, SEL.epochCount),
+      ethCall(CFG.multicall, '0x0f28c97d'),         // getCurrentBlockTimestamp(): the chain's clock, in the same request
+    ];
+    // Who holds each Orion, read for every possible id at once (an id not minted yet just reverts and is ignored).
+    // Only a connected wallet needs this (to find its own Orions); a visitor just needs the ones listed for rent.
+    const ownCalls = [];
+    if (acct) for (let id = 1; id <= CFG.maxSupply; id++) ownCalls.push(ethCall(CFG.nft, SEL.ownerOf + encUint(id)));
+    const guess = lastDeep.slice();
+    const guessCalls = [].concat(...guess.map(deepCalls));
+    const nCore = calls.length, nX = xcalls.length;
+
     // Read everything first and apply it only if every read came back whole. A failed
     // or empty answer must never be painted as zeros or leave the page half-updated:
     // the last good numbers stay on screen and the next refresh tries again.
+    // Two round trips: (1) everything that does not depend on anything else, (2) a closer look at the
+    // Orions that sit inside the staking, lending or rental contract.
     let r, xr, ow, deep, dt, ids;
     try {
-      r = await rpc(calls);
+      const all = await rpcAll(calls.concat(xcalls, ownCalls, guessCalls));
+      r = all.slice(0, nCore);
+      xr = all.slice(nCore, nCore + nX);
+      const owAll = all.slice(nCore + nX, nCore + nX + ownCalls.length);
+      const guessed = all.slice(nCore + nX + ownCalls.length);
       if (r.some(x => x === null || x === '0x')) throw new Error('incomplete read');
-      ids = Array.from({ length: Number(num(r[0])) }, (_, i) => i + 1);
-      xr = await rpc([
-        { method: 'eth_getBalance', params: [CFG.splitter, 'latest'] },
-        { method: 'eth_getBalance', params: [CFG.yield, 'latest'] },
-        ethCall(CFG.staking, SEL.totalDistributed),
-        ethCall(CFG.staking, SEL.epochCount),
-        ethCall(CFG.staking, SEL.totalStaked),
-        acct ? ethCall(CFG.staking, SEL.pendingRewards + encAddr(acct)) : ethCall(CFG.staking, SEL.epochCount),
-      ]);
-      if (xr.some(x => x === null || x === '0x')) throw new Error('incomplete read');
-      // One read per Orion for who holds it (a burned one legitimately reverts). Only the
-      // ones sitting in the staking, lending or rental contract need a closer look, so a
-      // full collection costs one read each, not four.
-      ow = ids.length ? await rpc(ids.map(id => ethCall(CFG.nft, SEL.ownerOf + encUint(id)))) : [];
+      if (xr.slice(0, nX - 1).some(x => x === null || x === '0x')) throw new Error('incomplete read');
+      // the chain's clock came with the reads; if it did not (no Multicall3 here), ask for the block
+      const ts = xr[nX - 1];
+      if (ts && ts !== '0x') skew = Number(BigInt(ts)) - Math.floor(Date.now() / 1000); else await readBlock();
+      const minted = Number(num(r[0]));
+      if (minted > CFG.maxSupply) throw new Error('more Orions minted than this page was built for');
+      ids = Array.from({ length: minted }, (_, i) => i + 1);
+      ow = owAll.slice(0, minted);                        // a burned Orion legitimately reverts: null is fine here
       const mods = [CFG.staking, CFG.lending, CFG.rental].map(a => a.toLowerCase());
-      deep = ids.filter((id, i) => { const a = addrFrom(ow[i]); return a && mods.includes(a.toLowerCase()); });
-      const dcalls = [];
-      for (const id of deep) {
-        dcalls.push(ethCall(CFG.staking, SEL.stakerOf + encUint(id)));
-        dcalls.push(ethCall(CFG.lending, SEL.loans + encUint(id)));
-        dcalls.push(ethCall(CFG.rental, SEL.slots + encUint(id)));
+      const lw0 = words(r[10]);
+      const listed0 = lw0.length > 2 ? lw0.slice(2, 2 + Number(BigInt('0x' + lw0[1]))).map(w => Number(BigInt('0x' + w))) : [];
+      deep = acct
+        ? ids.filter((id, i) => { const a = addrFrom(ow[i]); return a && mods.includes(a.toLowerCase()); })
+        : listed0.filter(id => id >= 1 && id <= minted);
+      // details already read by the guess, and only the Orions the guess missed need a second request
+      const have = new Map(guess.map((id, k) => [id, guessed.slice(k * 3, k * 3 + 3)]));
+      const missing = deep.filter(id => !have.has(id));
+      if (missing.length) {
+        const extra = await rpcAll([].concat(...missing.map(deepCalls)));
+        missing.forEach((id, k) => have.set(id, extra.slice(k * 3, k * 3 + 3)));
       }
-      dt = deep.length ? await rpc(dcalls) : [];
+      dt = [].concat(...deep.map(id => have.get(id)));
       if (dt.some(x => !x)) throw new Error('incomplete read');
+      saveDeep(deep);
     } catch { return paint('Could not reach the testnet. Retrying…'); }
     const stale = $('mintStatus');
     if (stale.textContent.startsWith('Could not reach')) say(stale, '');
