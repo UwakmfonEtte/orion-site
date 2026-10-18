@@ -5,6 +5,10 @@
       "destination": "/testnet.html"
     },
     {
+      "source": "/testnet/report",
+      "destination": "/testnet/report.html"
+    },
+    {
       "source": "/testnet/meta/:id",
       "destination": "/testnet/meta/:id.json"
     },
