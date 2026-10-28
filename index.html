@@ -1044,7 +1044,9 @@
 
   /* ---- section plate rule: marks where a plate begins, atlas-fashion ---- */
   .sec-top { gap: 18px; }
-  .sec-top .cap { flex: none; }
+  /* Short captions keep their size; a long one ("Collaborations closed · …") may wrap
+     rather than push the page wider than a phone. */
+  .sec-top .cap { flex: 0 1 auto; min-width: 0; overflow-wrap: anywhere; }
   .sec-top::after {
     content: "";
     flex: 1 1 auto;
@@ -1069,7 +1071,13 @@
     .btn:active, .chip:active, .swap:active { transform: none; }
     .pu-out dd.bumped { opacity: 1; transform: none; }
   }
-
+  /* The narrowest phones (320–360px): five links, the mark and the switch did not fit, and
+     the switch hung off the edge, making the whole page scroll sideways. */
+  @media (max-width: 360px) {
+    .top { padding-left: 12px; gap: 6px; }
+    .top nav { gap: 7px; }
+    .top nav a { letter-spacing: .03em; }
+  }
 </style>
 
 <div class="shift">
