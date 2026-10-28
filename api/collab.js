@@ -103,7 +103,7 @@ function image(v) {
 
 /** Flip to false to reopen. Kept as a single switch rather than removing the
  *  route, so closing needs no schema change and reopening is a one-line revert. */
-const COLLAB_CLOSED = false;
+const COLLAB_CLOSED = true;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
