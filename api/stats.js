@@ -12,7 +12,7 @@
 import { neon } from "@neondatabase/serverless";
 
 const CONN = process.env.DATABASE_URL || process.env.POSTGRES_URL;
-const SUPPLY = Number(process.env.SUPPLY) || 1555;
+const SUPPLY = Number(process.env.SUPPLY) || 999;
 
 export default async function handler(req, res) {
   if (req.method !== "GET") {

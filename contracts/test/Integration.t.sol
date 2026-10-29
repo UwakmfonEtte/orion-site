@@ -78,8 +78,8 @@ contract IntegrationTest is Test {
         nft.mint{value: PRICE}(bobProof);
         assertEq(address(treasury).balance, PRICE * 2);
 
-        // 1,555-token max supply, but only 2 actually minted so far - backingPerToken
-        // divides by what's actually minted (2), not the eventual max (1,555),
+        // 999-token max supply, but only 2 actually minted so far - backingPerToken
+        // divides by what's actually minted (2), not the eventual max (999),
         // or the other 1,553 tokens' never-to-exist share would strand this ETH.
         uint256 remaining = nft.totalMinted() - treasury.redeemedCount();
         assertEq(remaining, 2);

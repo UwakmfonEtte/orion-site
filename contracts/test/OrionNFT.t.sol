@@ -207,17 +207,17 @@ contract OrionNFTTest is Test {
     // ---------------------------------------------------------------
 
     function test_remainingSupplyTracksMints() public {
-        assertEq(nft.remainingSupply(), 1555);
+        assertEq(nft.remainingSupply(), 999);
         vm.prank(alice);
         nft.mint{value: PRICE}(aliceProof);
-        assertEq(nft.remainingSupply(), 1554);
+        assertEq(nft.remainingSupply(), 998);
     }
 
     function test_cannotMintPastMaxSupply() public {
-        // Drive totalMinted to MAX_SUPPLY via storage cheat (minting 1555 real
+        // Drive totalMinted to MAX_SUPPLY via storage cheat (minting 999 real
         // allowlisted addresses would dominate this test's runtime for no
         // extra signal - the boundary check is what's under test).
-        vm.store(address(nft), bytes32(uint256(12)), bytes32(uint256(1555))); // totalMinted slot (verified via `forge inspect OrionNFT storage-layout`)
+        vm.store(address(nft), bytes32(uint256(12)), bytes32(uint256(999))); // totalMinted slot (verified via `forge inspect OrionNFT storage-layout`)
         vm.prank(alice);
         vm.expectRevert("sold out");
         nft.mint{value: PRICE}(aliceProof);

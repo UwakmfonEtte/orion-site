@@ -11,7 +11,7 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 
 /**
  * @title OrionNFT
- * @notice The 1,555-supply Orion mint. Allowlist-gated by a Merkle root (the
+ * @notice The 999-supply Orion mint. Allowlist-gated by a Merkle root (the
  *         waitlist/vouch decision already happens off-chain in Postgres;
  *         this just proves membership cheaply on-chain), one mint per
  *         address, and every wei paid is forwarded straight to the
@@ -32,7 +32,7 @@ interface ITreasuryWiredCheckOrionNFT {
 }
 
 contract OrionNFT is ERC721, ERC2981, Ownable2Step, ReentrancyGuard, Pausable {
-    uint256 public constant MAX_SUPPLY = 1555;
+    uint256 public constant MAX_SUPPLY = 999;
 
     address payable public immutable treasury;
 
@@ -147,7 +147,7 @@ contract OrionNFT is ERC721, ERC2981, Ownable2Step, ReentrancyGuard, Pausable {
         require(ITreasuryWiredCheckOrionNFT(treasury).nftContract() == address(this), "treasury not wired");
 
         hasMinted[msg.sender] = true;
-        uint256 tokenId = totalMinted + 1; // token IDs run 1..1555, matching the metadata files
+        uint256 tokenId = totalMinted + 1; // token IDs run 1..999, matching the metadata files
         totalMinted += 1;
 
         // All value transfers happen before _safeMint's onERC721Received hook

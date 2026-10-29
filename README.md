@@ -1,6 +1,6 @@
 # Orion Collective — waitlist site
 
-Waitlist and founding-pass site for **Orion**, a 1,555-piece collection minted at
+Waitlist and founding-pass site for **Orion**, a 999-piece collection minted at
 12 USDC and backed by a
 Liquid Backing Treasury.
 

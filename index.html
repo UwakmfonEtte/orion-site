@@ -254,7 +254,7 @@
   /* ---------- READINGS ---------- */
   /* Three up, not auto-fit. There are six readings, and auto-fit puts all
      six on one row at desktop width - which leaves each cell too narrow for
-     the longer values, so "$18,660" spills out of its cell and lands on top
+     the longer values, so "$11,988" spills out of its cell and lands on top
      of the one beside it. Six divides evenly into two rows of three. */
   .readings { display: grid; grid-template-columns: repeat(3, 1fr); border-block: 1px solid var(--rule); }
   .reading { padding: 22px 26px; border-left: 1px solid var(--rule); }
@@ -553,7 +553,7 @@
 
      Three columns, not auto-fit: six readings on auto-fit all land on one
      row at desktop width, which leaves each cell too narrow for the longer
-     values, and "$18,660" spills onto the $12 beside it. */
+     values, and "$11,988" spills onto the $12 beside it. */
   .readings {  display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px; border: none; margin: 0 0 46px; }
@@ -1133,7 +1133,7 @@
   <section class="hero">
     <canvas id="sky" aria-hidden="true"></canvas>
     <div class="hero-wrap"><div class="hero-in">
-      <h1>1,555 <i>Liquid Constellations</i></h1>
+      <h1>999 <i>Liquid Constellations</i></h1>
       <p class="lede">
         Every Orion is backed by ETH you can redeem on demand.
       </p>
@@ -1304,8 +1304,8 @@
       </div>
 
       <dl class="readings">
-        <div class="reading"><dt>Circulating supply</dt><dd>1,555</dd></div>
-        <div class="reading"><dt>Total backing</dt><dd>$18,660</dd><small class="usd" id="tvlEth">6.911 ETH</small></div>
+        <div class="reading"><dt>Circulating supply</dt><dd>999</dd></div>
+        <div class="reading"><dt>Total backing</dt><dd>$11,988</dd><small class="usd" id="tvlEth">4.440 ETH</small></div>
         <div class="reading"><dt>Backing / Orion</dt><dd>$12</dd><small class="usd" id="perEth">0.00444 ETH</small></div>
         <div class="reading"><dt>Redemption fee</dt><dd>5<span>%</span></dd></div>
         <div class="reading"><dt>Team allocation</dt><dd>0<span>%</span></dd></div>
@@ -2064,10 +2064,10 @@ const POST = ORION_POST || ORION_X;
 /* Pre-written for the quote task. The budget is not 280: X appends the
    quoted post URL as text and counts every URL as 23 characters whatever
    its length, and oriongqgc.space auto-links too - so two links cost 46 of
-   the 280 and the copy has to fit in what is left. This runs 243. */
+   the 280 and the copy has to fit in what is left. This runs 241. */
 const claimText = pass =>
   `Just got accepted into @LiquidOrion\n\n` +
-  `1,555 supply • $12 mint • $18,666 Liquid backed\n\n` +
+  `999 supply • $12 mint • $11,988 Liquid backed\n\n` +
   `ORION Pass #${String(pass).padStart(4, '0')} sealed.\n\n` +
   `Who needs a vouch?`;
 
@@ -2228,9 +2228,9 @@ refreshCount();   // the API path needs no capability handshake to resolve first
    ===================================================================== */
 (function () {
   /* Dollars are the fixed side now: 12 per Orion is the promise, and
-     1,555 x 12 is the treasury. The ETH figure is what floats, derived
+     999 x 12 is the treasury. The ETH figure is what floats, derived
      from the live price, so it is the one that moves on the page. */
-  const PER_USD = 12, SUPPLY = 1555, TOTAL_USD = PER_USD * SUPPLY;
+  const PER_USD = 12, SUPPLY = 999, TOTAL_USD = PER_USD * SUPPLY;
   const usd = n => '$' + n.toLocaleString('en-US', { maximumFractionDigits: n < 100 ? 2 : 0 });
 
   async function price() {
@@ -2732,7 +2732,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
    the whole point, so it is computed the way it actually happens.
    ===================================================================== */
 (function () {
-  const SUP0 = 1555, TRE0 = 18660, FEE = 0.05;   // 1,555 x $12
+  const SUP0 = 999, TRE0 = 11988, FEE = 0.05;   // 999 x $12
   const burn = document.getElementById('burn');
   if (!burn) return;
   const out = document.getElementById('burnOut');
@@ -3099,7 +3099,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
     { q:'How many whitelist spots?', hint:'What your community is asking for. We will come back with a number.',
       render:() => field('spots','Spots requested','e.g. 50','inputmode="numeric"'),
       check:() => { const n = Number(String(S.spots).replace(/[^0-9]/g,''));
-                    return n >= 1 && n <= 1555 ? '' : 'A number between 1 and 1,555.'; } },
+                    return n >= 1 && n <= 999 ? '' : 'A number between 1 and 999.'; } },
   ];
 
   let i = 0, done = false, busy = false;
@@ -3295,7 +3295,7 @@ refreshCount();   // the API path needs no capability handshake to resolve first
         rate_limited:    'Too many requests from this connection. Try again in an hour.',
         image_too_large: 'One of the screenshots is too large. Remove it and try again.',
         bad_link:        'One of the links was rejected. Use X, Discord or Telegram.',
-        bad_spots:       'The number of spots has to be between 1 and 1,555.',
+        bad_spots:       'The number of spots has to be between 1 and 999.',
         missing_article_take: 'Tell us what Orion is about, in a sentence or two, before sending.',
         too_large:       'That request was too large. Try fewer screenshots.',
         not_configured:  'Collab requests are not open yet.',

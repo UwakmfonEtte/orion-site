@@ -8,7 +8,7 @@ testnet (see below).
 
 | Contract | Job |
 | --- | --- |
-| `OrionNFT.sol` | The mainnet mint. ERC-721, capped at 1,555, Merkle allowlist, price locked after the first mint, every wei goes to the treasury. |
+| `OrionNFT.sol` | The mainnet mint. ERC-721, capped at 999, Merkle allowlist, price locked after the first mint, every wei goes to the treasury. |
 | `OrionTestNFT.sol` | Testnet stand-in: public mint, supply and per-wallet cap set at deploy (150 and 2 on the public testnet). Same money flow. |
 | `OrionTreasury.sol` | Multisig-owned vault. Redemption burns an Orion and pays its share of the assets less a 5% fee that stays behind, so backing per Orion only rises. Also the balance sheet the modules plug into. |
 | `OrionStaking.sol` | Stake an Orion, earn 100 points for every full 24 hours (whole days, no per-second drip). Unstake anytime: unstaking pays your waiting rewards and cashes in the points of the Orions that leave, in the same transaction. Shares the Yield Treasury's realized profit among current stakers by points. |

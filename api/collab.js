@@ -144,7 +144,7 @@ export default async function handler(req, res) {
   if (!community || !repName || !repContact) return res.status(400).json({ error: "missing_fields" });
   if (!sizeClaim) return res.status(400).json({ error: "missing_size" });
   if (!sizeLink || !interestLink) return res.status(400).json({ error: "bad_link" });
-  if (!Number.isFinite(spots) || spots < 1 || spots > 1555) return res.status(400).json({ error: "bad_spots" });
+  if (!Number.isFinite(spots) || spots < 1 || spots > 999) return res.status(400).json({ error: "bad_spots" });
   if (articleTake.length < 15) return res.status(400).json({ error: "missing_article_take" });
   if (sizeImg === "TOO_LARGE" || repImg === "TOO_LARGE" || interestImg === "TOO_LARGE") {
     return res.status(413).json({ error: "image_too_large" });

@@ -61,7 +61,7 @@ interface IModule {
  * redemptions divide up. Anyone else's ETH is rerouted to donationSink.
  */
 contract OrionTreasury is Ownable2Step, ReentrancyGuard, Pausable {
-    uint256 public constant MAX_SUPPLY = 1555;
+    uint256 public constant MAX_SUPPLY = 999;
     address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     /// @notice 5% of each redemption stays in the treasury. Nobody is paid it.
     uint256 public constant REDEMPTION_FEE_BPS = 500;

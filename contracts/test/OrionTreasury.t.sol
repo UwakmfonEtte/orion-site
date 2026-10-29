@@ -159,8 +159,8 @@ contract OrionTreasuryTest is Test {
     function test_redeemPaysEqualShareAndBurnsToken() public {
         _wire();
         nft.mint(alice, 1);
-        nft.setTotalMinted(1555); // simulate a full sellout for round-number math
-        vm.deal(address(treasury), 1555 ether); // 1 ETH per remaining token, round number
+        nft.setTotalMinted(999); // simulate a full sellout for round-number math
+        vm.deal(address(treasury), 999 ether); // 1 ETH per remaining token, round number
 
         vm.startPrank(alice);
         nft.approve(address(treasury), 1);
@@ -178,10 +178,10 @@ contract OrionTreasuryTest is Test {
         _wire();
         nft.mint(alice, 1);
         nft.mint(bob, 2);
-        nft.setTotalMinted(1555); // simulate a full sellout for round-number math
-        vm.deal(address(treasury), 1555 ether);
+        nft.setTotalMinted(999); // simulate a full sellout for round-number math
+        vm.deal(address(treasury), 999 ether);
 
-        // 1555 ETH / 1555 remaining = 1 ETH each, before any redemption
+        // 999 ETH / 999 remaining = 1 ETH each, before any redemption
         assertEq(treasury.backingPerToken(), 1 ether);
 
         vm.startPrank(alice);
@@ -189,23 +189,23 @@ contract OrionTreasuryTest is Test {
         treasury.redeem(1);
         vm.stopPrank();
 
-        // 1554 ETH left / 1554 remaining tokens = still 1 ETH - supply and
+        // 998 ETH left / 998 remaining tokens = still 1 ETH - supply and
         // balance shrink together here; the ratchet shows once a redemption
         // leaves uneven remainders. Confirm the arithmetic directly instead.
         uint256 remaining = nft.totalMinted() - treasury.redeemedCount();
-        assertEq(remaining, 1554);
+        assertEq(remaining, 998);
         assertEq(treasury.backingPerToken(), address(treasury).balance / remaining);
     }
 
     function test_backingAccountsForPartialMintNotMaxSupply() public {
         // The bug an integration test caught: dividing by the eventual max
-        // (1,555) instead of what's actually minted would strand ETH forever
-        // whenever the mint hasn't sold out. Only 1 of 1,555 ever minted here.
+        // (999) instead of what's actually minted would strand ETH forever
+        // whenever the mint hasn't sold out. Only 1 of 999 ever minted here.
         _wire();
-        nft.mint(alice, 1); // totalMinted() is now 1, not 1555
+        nft.mint(alice, 1); // totalMinted() is now 1, not 999
         vm.deal(address(treasury), 10 ether);
 
-        assertEq(treasury.backingPerToken(), 10 ether); // all of it, not 10/1555
+        assertEq(treasury.backingPerToken(), 10 ether); // all of it, not 10/999
 
         vm.startPrank(alice);
         nft.approve(address(treasury), 1);
